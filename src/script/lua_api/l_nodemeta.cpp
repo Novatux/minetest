@@ -273,6 +273,25 @@ int NodeMetaRef::l_from_table(lua_State *L)
 	return 1;
 }
 
+// set_nodedef(self, def_base, def_changes)
+static int l_set_nodedef(lua_State *L)
+{
+	NodeMetaRef *ref = checkobject(L, 1);
+	luaL_checktype(L, 2, LUA_TTABLE);
+	luaL_checktype(L, 3, LUA_TTABLE);
+	ContentFeatures def_base = read_content_features(L, 2);
+	ContentFeatures def = read_content_features(L, 3, def_base);
+	std::ostringstream os(std::ios::binary);
+	def.serialize(os);
+	const std::string &str = os.str();
+
+	NodeMetadata *meta = getmeta(ref, !str.empty());
+	if(meta == NULL || str == meta->getString("__nodedef"))
+		return 0;
+	meta->setString("__nodedef", str);
+	reportMetadataChange(ref);
+	return 0;
+}
 
 NodeMetaRef::NodeMetaRef(v3s16 p, ServerEnvironment *env):
 	m_p(p),
@@ -334,5 +353,6 @@ const luaL_reg NodeMetaRef::methods[] = {
 	luamethod(NodeMetaRef, get_inventory),
 	luamethod(NodeMetaRef, to_table),
 	luamethod(NodeMetaRef, from_table),
+	luamethod(NodeMetaRef, l_set_nodedef),
 	{0,0}
 };

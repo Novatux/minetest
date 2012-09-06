@@ -33,6 +33,7 @@ class IGameDef;
 
 
 class MapBlock;
+class MeshNodeDefManager;
 
 struct MeshMakeData
 {
@@ -41,8 +42,12 @@ struct MeshMakeData
 	v3s16 m_crack_pos_relative;
 	bool m_smooth_lighting;
 	IGameDef *m_gamedef;
+	
+	bool m_gamedef_not_global;
+	bool m_gamedef_taken;
 
 	MeshMakeData(IGameDef *gamedef);
+	~MeshMakeData();
 
 	/*
 		Copy central data directly from block, and other data from
@@ -111,6 +116,9 @@ public:
 private:
 	scene::SMesh *m_mesh;
 	IGameDef *m_gamedef;
+
+	// If true, m_gamedef is to be deleted
+	bool m_gamedef_not_global;
 
 	// Must animate() be called before rendering?
 	bool m_has_animation;

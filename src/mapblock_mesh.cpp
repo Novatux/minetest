@@ -32,6 +32,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "settings.h"
 #include "util/directiontables.h"
 
+
 float srgb_linear_multiply(float f, float m, float max)
 {
 	f = f * f; // SRGB -> Linear
@@ -42,6 +43,265 @@ float srgb_linear_multiply(float f, float m, float max)
 	return f;
 }
 
+class MeshNodeDefManager: public INodeDefManager
+{
+	INodeDefManager *m_orig;
+	ContentFeatures m_content_features[MAX_CONTENT+1];
+public:
+	MeshNodeDefManager(INodeDefManager *orig):
+		m_orig(orig)
+	{
+	}
+	~MeshNodeDefManager()
+	{
+	}
+	// Get node definition
+	const ContentFeatures& get(content_t c) const
+	{
+		if(m_content_features[c].name != "")
+			return m_content_features[c];
+		return m_orig->get(c);
+	}
+	const ContentFeatures& get(const MapNode &n) const
+	{
+		return get(n.getContent());
+	}
+	bool getId(const std::string &name, content_t &result) const
+	{
+		return m_orig->getId(name, result);
+	}
+	content_t getId(const std::string &name) const
+	{
+		return m_orig->getId(name);
+	}
+	// Allows "group:name" in addition to regular node names
+	void getIds(const std::string &name, std::set<content_t> &result) const
+	{
+		return m_orig->getIds(name, result);
+	}
+	const ContentFeatures& get(const std::string &name) const
+	{
+		return m_orig->get(name);
+	}
+	void serialize(std::ostream &os)
+	{
+		m_orig->serialize(os);
+	}
+	/* Special interface */
+	void setSpecial(content_t id, const ContentFeatures &def)
+	{
+		m_content_features[id] = def;
+	}
+	/* Copied from nodedef.cpp */
+	virtual void updateTextures(ITextureSource *tsrc)
+	{
+#ifndef SERVER
+		bool new_style_water = g_settings->getBool("new_style_water");
+		bool new_style_leaves = g_settings->getBool("new_style_leaves");
+		bool opaque_water = g_settings->getBool("opaque_water");
+		
+		for(u16 i=0; i<=MAX_CONTENT; i++)
+		{
+			ContentFeatures *f = &m_content_features[i];
+			if(f->name.empty())
+				continue;
+			
+			// Figure out the actual tiles to use
+			TileDef tiledef[6];
+			for(u32 j=0; j<6; j++)
+			{
+				tiledef[j] = f->tiledef[j];
+				if(tiledef[j].name == "")
+					tiledef[j].name = "unknown_block.png";
+			}
+
+			switch(f->drawtype){
+			default:
+			case NDT_NORMAL:
+				f->solidness = 2;
+				break;
+			case NDT_AIRLIKE:
+				f->solidness = 0;
+				break;
+			case NDT_LIQUID:
+				assert(f->liquid_type == LIQUID_SOURCE);
+				if(opaque_water)
+					f->alpha = 255;
+				if(new_style_water){
+					f->solidness = 0;
+				} else {
+					f->solidness = 1;
+					f->backface_culling = false;
+				}
+				break;
+			case NDT_FLOWINGLIQUID:
+				assert(f->liquid_type == LIQUID_FLOWING);
+				f->solidness = 0;
+				if(opaque_water)
+					f->alpha = 255;
+				break;
+			case NDT_GLASSLIKE:
+				f->solidness = 0;
+				f->visual_solidness = 1;
+				break;
+			case NDT_ALLFACES:
+				f->solidness = 0;
+				f->visual_solidness = 1;
+				break;
+			case NDT_ALLFACES_OPTIONAL:
+				if(new_style_leaves){
+					f->drawtype = NDT_ALLFACES;
+					f->solidness = 0;
+					f->visual_solidness = 1;
+				} else {
+					f->drawtype = NDT_NORMAL;
+					f->solidness = 2;
+					for(u32 i=0; i<6; i++){
+						tiledef[i].name += std::string("^[noalpha");
+					}
+				}
+				break;
+			case NDT_TORCHLIKE:
+			case NDT_SIGNLIKE:
+			case NDT_PLANTLIKE:
+			case NDT_FENCELIKE:
+			case NDT_RAILLIKE:
+			case NDT_NODEBOX:
+				f->solidness = 0;
+				break;
+			}
+
+			// Tiles (fill in f->tiles[])
+			for(u16 j=0; j<6; j++){
+				// Texture
+				f->tiles[j].texture = tsrc->getTexture(tiledef[j].name);
+				// Alpha
+				f->tiles[j].alpha = f->alpha;
+				if(f->alpha == 255)
+					f->tiles[j].material_type = MATERIAL_ALPHA_SIMPLE;
+				else
+					f->tiles[j].material_type = MATERIAL_ALPHA_VERTEX;
+				// Material flags
+				f->tiles[j].material_flags = 0;
+				if(f->backface_culling)
+					f->tiles[j].material_flags |= MATERIAL_FLAG_BACKFACE_CULLING;
+				if(tiledef[j].animation.type == TAT_VERTICAL_FRAMES)
+					f->tiles[j].material_flags |= MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES;
+				// Animation parameters
+				if(f->tiles[j].material_flags &
+						MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES)
+				{
+					// Get raw texture size to determine frame count by
+					// aspect ratio
+					video::ITexture *t = tsrc->getTextureRaw(tiledef[j].name);
+					v2u32 size = t->getOriginalSize();
+					int frame_height = (float)size.X /
+							(float)tiledef[j].animation.aspect_w *
+							(float)tiledef[j].animation.aspect_h;
+					int frame_count = size.Y / frame_height;
+					int frame_length_ms = 1000.0 *
+							tiledef[j].animation.length / frame_count;
+					f->tiles[j].animation_frame_count = frame_count;
+					f->tiles[j].animation_frame_length_ms = frame_length_ms;
+
+					// If there are no frames for an animation, switch
+					// animation off (so that having specified an animation
+					// for something but not using it in the texture pack
+					// gives no overhead)
+					if(frame_count == 1){
+						f->tiles[j].material_flags &=
+								~MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES;
+					}
+				}
+			}
+			// Special tiles (fill in f->special_tiles[])
+			for(u16 j=0; j<CF_SPECIAL_COUNT; j++){
+				// Texture
+				f->special_tiles[j].texture =
+						tsrc->getTexture(f->tiledef_special[j].name);
+				// Alpha
+				f->special_tiles[j].alpha = f->alpha;
+				if(f->alpha == 255)
+					f->special_tiles[j].material_type = MATERIAL_ALPHA_SIMPLE;
+				else
+					f->special_tiles[j].material_type = MATERIAL_ALPHA_VERTEX;
+				// Material flags
+				f->special_tiles[j].material_flags = 0;
+				if(f->tiledef_special[j].backface_culling)
+					f->special_tiles[j].material_flags |= MATERIAL_FLAG_BACKFACE_CULLING;
+				if(f->tiledef_special[j].animation.type == TAT_VERTICAL_FRAMES)
+					f->special_tiles[j].material_flags |= MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES;
+				// Animation parameters
+				if(f->special_tiles[j].material_flags &
+						MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES)
+				{
+					// Get raw texture size to determine frame count by
+					// aspect ratio
+					video::ITexture *t = tsrc->getTextureRaw(f->tiledef_special[j].name);
+					v2u32 size = t->getOriginalSize();
+					int frame_height = (float)size.X /
+							(float)f->tiledef_special[j].animation.aspect_w *
+							(float)f->tiledef_special[j].animation.aspect_h;
+					int frame_count = size.Y / frame_height;
+					int frame_length_ms = 1000.0 *
+							f->tiledef_special[j].animation.length / frame_count;
+					f->special_tiles[j].animation_frame_count = frame_count;
+					f->special_tiles[j].animation_frame_length_ms = frame_length_ms;
+
+					// If there are no frames for an animation, switch
+					// animation off (so that having specified an animation
+					// for something but not using it in the texture pack
+					// gives no overhead)
+					if(frame_count == 1){
+						f->special_tiles[j].material_flags &=
+								~MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES;
+					}
+				}
+			}
+		}
+#endif
+	}
+};
+
+class MeshGameDef: public IGameDef
+{
+	IGameDef *m_orig;
+	INodeDefManager *m_nodedef_replacement;
+public:
+	MeshGameDef(IGameDef *orig, INodeDefManager *nodedef_replacement):
+		m_orig(orig),
+		m_nodedef_replacement(nodedef_replacement)
+	{}
+	~MeshGameDef()
+	{
+		delete m_nodedef_replacement;
+	}
+	// These are thread-safe IF they are not edited while running threads.
+	// Thus, first they are set up and then they are only read.
+	IItemDefManager* getItemDefManager()
+		{ return m_orig->getItemDefManager(); }
+	INodeDefManager* getNodeDefManager()
+		{ return m_nodedef_replacement; }
+	ICraftDefManager* getCraftDefManager()
+		{ return m_orig->getCraftDefManager(); }
+
+	// This is always thread-safe, but referencing the irrlicht texture
+	// pointers in other threads than main thread will make things explode.
+	ITextureSource* getTextureSource()
+		{ return m_orig->getTextureSource(); }
+	
+	// Used for keeping track of names/ids of unknown nodes
+	u16 allocateUnknownNodeId(const std::string &name)
+		{ return m_orig->allocateUnknownNodeId(name); }
+	
+	// Only usable on the client
+	ISoundManager* getSoundManager()
+		{ return m_orig->getSoundManager(); }
+	MtEventManager* getEventManager()
+		{ return m_orig->getEventManager(); }
+};
+
+
 /*
 	MeshMakeData
 */
@@ -51,8 +311,18 @@ MeshMakeData::MeshMakeData(IGameDef *gamedef):
 	m_blockpos(-1337,-1337,-1337),
 	m_crack_pos_relative(-1337, -1337, -1337),
 	m_smooth_lighting(false),
-	m_gamedef(gamedef)
-{}
+	m_gamedef(gamedef),
+	m_gamedef_not_global(false),
+	m_gamedef_taken(false)
+{
+}
+
+MeshMakeData::~MeshMakeData()
+{
+	if(m_gamedef_not_global && !m_gamedef_taken){
+		delete m_gamedef;
+	}
+}
 
 void MeshMakeData::fill(MapBlock *block)
 {
@@ -95,6 +365,63 @@ void MeshMakeData::fill(MapBlock *block)
 			MapBlock *b = map->getBlockNoCreateNoEx(bp);
 			if(b)
 				b->copyTo(m_vmanip);
+		}
+	}
+	
+	{
+		/*
+			If block has nodes with metadata, create wrapper gamedef and a
+			wrapper nodedef that will handle their metadata-modified nodedefs
+		*/
+
+		Map *map = block->getParent();
+
+		static v3s16 dirs[7] =
+		{
+			// +right, +top, +back
+			v3s16( 0, 0, 0), // this
+			v3s16( 0, 0, 1), // back
+			v3s16( 0, 1, 0), // top
+			v3s16( 1, 0, 0), // right
+			v3s16( 0, 0,-1), // front
+			v3s16( 0,-1, 0), // bottom
+			v3s16(-1, 0, 0) // left
+		};
+		for(u16 i=0; i<7; i++)
+		{
+			const v3s16 &dir = dirs[i];
+			v3s16 bp = m_blockpos + dir;
+			MapBlock *block = map->getBlockNoCreateNoEx(bp);
+			if(!block)
+				continue;
+			v3s16 blockpos_nodes = bp*MAP_BLOCKSIZE;
+			std::map<v3s16, NodeMetadata*> *nm = block->m_node_metadata.getAll();
+			if(!nm->empty())
+			{
+				MeshNodeDefManager *nodedef = new MeshNodeDefManager(m_gamedef->ndef());
+				m_gamedef = new MeshGameDef(m_gamedef, nodedef);
+				m_gamedef_not_global = true;
+				int special_id = MAX_CONTENT + 1 - nm->size();
+				assert(special_id >= 0);
+				for(std::map<v3s16, NodeMetadata*>::iterator i = nm->begin();
+						i != nm->end(); i++)
+				{
+					NodeMetadata *m = i->second;
+					v3s16 p = i->first;
+					std::string def_s = m->getString("__nodedef");
+					if(def_s.empty())
+						continue;
+					std::istringstream is(def_s, std::ios::binary);
+					ContentFeatures def;
+					def.deSerialize(is);
+					//def = nodedef->get("default:mese");
+					def.name = "__modified";
+					//def.name = nodedef->get(m_vmanip.getNodeRef(blockpos_nodes+p)).name;
+					m_vmanip.getNodeRef(blockpos_nodes+p).setContent(special_id);
+					nodedef->setSpecial(special_id++, def);
+				}
+				nodedef->updateTextures(m_gamedef->tsrc());
+			}
 		}
 	}
 }
@@ -1044,6 +1371,8 @@ MapBlockMesh::MapBlockMesh(MeshMakeData *data):
 	//TimeTaker timer1("MapBlockMesh()");
 
 	std::vector<FastFace> fastfaces_new;
+	data->m_gamedef_taken = true;
+	m_gamedef_not_global = data->m_gamedef_not_global;
 
 	/*
 		We are including the faces of the trailing edges of the block.
@@ -1052,6 +1381,7 @@ MapBlockMesh::MapBlockMesh(MeshMakeData *data):
 
 		NOTE: This is the slowest part of this method.
 	*/
+	core::array<FastFace> fastfaces_new;
 	{
 		// 4-23ms for MAP_BLOCKSIZE=16  (NOTE: probably outdated)
 		//TimeTaker timer2("updateAllFastFaceRows()");
@@ -1287,6 +1617,8 @@ MapBlockMesh::~MapBlockMesh()
 {
 	m_mesh->drop();
 	m_mesh = NULL;
+	if(m_gamedef_not_global)
+		delete m_gamedef;
 }
 
 bool MapBlockMesh::animate(bool faraway, float time, int crack, u32 daynight_ratio)

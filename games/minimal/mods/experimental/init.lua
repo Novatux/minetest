@@ -514,6 +514,23 @@ minetest.register_craft({
 	}
 })
 
+minetest.register_craftitem("experimental:tester_tool_2", {
+	description = "Tester Tool 2",
+	inventory_image = "experimental_tester_tool_2.png",
+    on_use = function(itemstack, user, pointed_thing)
+		--print(dump(pointed_thing))
+		if pointed_thing.type == "node" then
+			local p = pointed_thing.under
+			local meta = minetest.env:get_meta(p)
+			meta:set_nodedef(minetest.registered_nodes[minetest.env:get_node(p).name], {
+				tile_images = {
+					"default_mese.png",
+				},
+			})
+		end
+	end,
+})
+
 --[[minetest.register_on_joinplayer(function(player)
 	minetest.after(3, function()
 		player:set_inventory_formspec("size[8,7.5]"..
