@@ -514,6 +514,17 @@ minetest.register_craft({
 	}
 })
 
+local function hex_dump(buf)
+	local result = ""
+	for i=1,math.ceil(#buf/16) * 16 do
+		if (i-1) % 16 == 0 then result = result .. string.format('%08X	', i-1) end
+		result = result .. ( i > #buf and '	 ' or string.format('%02X ', buf:byte(i)) )
+		if i %	8 == 0 then result = result .. ' ' end
+		if i % 16 == 0 then result = result .. (buf:sub(i-16+1, i):gsub('%c','.') .. '\n' ) end
+	end
+	return result
+end
+
 minetest.register_craftitem("experimental:tester_tool_2", {
 	description = "Tester Tool 2",
 	inventory_image = "experimental_tester_tool_2.png",
@@ -527,6 +538,8 @@ minetest.register_craftitem("experimental:tester_tool_2", {
 					"default_mese.png",
 				},
 			})
+			print("Stored data is")
+			print(hex_dump(meta:get_string("__nodedef")))
 		end
 	end,
 })
