@@ -35,7 +35,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "nodetimer.h"
 #include "nodedef.h" // For ContentFeatures
 #include "util/pointer.h" // HybridPtr
-#include "mapnode_with_def.h"
+#include "node_with_def.h"
 
 class Database;
 class ClientMap;

@@ -17,8 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef MAPNODE_WITH_DEF_HEADER
-#define MAPNODE_WITH_DEF_HEADER
+#ifndef NODE_WITH_DEF_HEADER
+#define NODE_WITH_DEF_HEADER
 
 #include "mapnode.h"
 #include "util/pointer.h"

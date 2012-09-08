@@ -33,7 +33,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "util/numeric.h" // getContainerPos
 #include "nodedef.h" // For ContentFeatures for getNodeDef*()
 #include "util/pointer.h" // HybridPtr
-#include "mapnode_with_def.h"
+#include "node_with_def.h"
 
 class Map;
 class NodeMetadataList;
