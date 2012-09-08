@@ -169,6 +169,10 @@ public:
 	{
 		never_delete = a_never_delete;
 	}
+	bool getNeverDelete()
+	{
+		return a_never_delete;
+	}
 private:
 	void drop()
 	{

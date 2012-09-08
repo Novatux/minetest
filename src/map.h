@@ -213,7 +213,7 @@ public:
 
 	// Returns a NULL pointer if not found
 	HybridPtr<const ContentFeatures> getNodeDefNoEx(v3s16 p);
-
+	
 	// throws InvalidPositionException if not found
 	void setNode(v3s16 p, MapNode & n);
 	

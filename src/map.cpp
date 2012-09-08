@@ -266,8 +266,6 @@ void Map::unspreadLight(enum LightBank bank,
 		std::set<v3s16> & light_sources,
 		std::map<v3s16, MapBlock*>  & modified_blocks)
 {
-	INodeDefManager *nodemgr = m_gamedef->ndef();
-
 	v3s16 dirs[6] = {
 		v3s16(0,0,1), // back
 		v3s16(0,1,0), // top
@@ -354,29 +352,29 @@ void Map::unspreadLight(enum LightBank bank,
 				v3s16 relpos = n2pos - blockpos * MAP_BLOCKSIZE;
 				// Get node straight from the block
 				MapNode n2 = block->getNode(relpos);
+				HybridPtr<const ContentFeatures> fp2 = block->getNodeDef(relpos);
 
 				bool changed = false;
 
 				//TODO: Optimize output by optimizing light_sources?
-
+				
 				/*
 					If the neighbor is dimmer than what was specified
 					as oldlight (the light of the previous node)
 				*/
-				if(n2.getLight(bank, nodemgr) < oldlight)
+				if(n2.getLight(bank, *fp2) < oldlight)
 				{
 					/*
 						And the neighbor is transparent and it has some light
 					*/
-					if(nodemgr->get(n2).light_propagates
-							&& n2.getLight(bank, nodemgr) != 0)
+					if(fp2->light_propagates && n2.getLight(bank, *fp2) != 0)
 					{
 						/*
 							Set light to 0 and add to queue
 						*/
 
-						u8 current_light = n2.getLight(bank, nodemgr);
-						n2.setLight(bank, 0, nodemgr);
+						u8 current_light = n2.getLight(bank, *fp2);
+						n2.setLight(bank, 0, *fp2);
 						block->setNode(relpos, n2);
 
 						unlighted_nodes[n2pos] = current_light;
@@ -450,8 +448,6 @@ void Map::spreadLight(enum LightBank bank,
 		std::set<v3s16> & from_nodes,
 		std::map<v3s16, MapBlock*> & modified_blocks)
 {
-	INodeDefManager *nodemgr = m_gamedef->ndef();
-
 	const v3s16 dirs[6] = {
 		v3s16(0,0,1), // back
 		v3s16(0,1,0), // top
@@ -505,8 +501,9 @@ void Map::spreadLight(enum LightBank bank,
 
 		// Get node straight from the block
 		MapNode n = block->getNode(relpos);
+		HybridPtr<const ContentFeatures> fp = block->getNodeDef(relpos);
 
-		u8 oldlight = n.getLight(bank, nodemgr);
+		u8 oldlight = n.getLight(bank, *fp);
 		u8 newlight = diminish_light(oldlight);
 
 		// Loop through 6 neighbors
@@ -538,13 +535,14 @@ void Map::spreadLight(enum LightBank bank,
 				v3s16 relpos = n2pos - blockpos * MAP_BLOCKSIZE;
 				// Get node straight from the block
 				MapNode n2 = block->getNode(relpos);
+				HybridPtr<const ContentFeatures> fp2 = block->getNodeDef(relpos);
 
 				bool changed = false;
 				/*
 					If the neighbor is brighter than the current node,
 					add to list (it will light up this node on its turn)
 				*/
-				if(n2.getLight(bank, nodemgr) > undiminish_light(oldlight))
+				if(n2.getLight(bank, *fp2) > undiminish_light(oldlight))
 				{
 					lighted_nodes.insert(n2pos);
 					changed = true;
@@ -553,11 +551,11 @@ void Map::spreadLight(enum LightBank bank,
 					If the neighbor is dimmer than how much light this node
 					would spread on it, add to list
 				*/
-				if(n2.getLight(bank, nodemgr) < newlight)
+				if(n2.getLight(bank, *fp2) < newlight)
 				{
-					if(nodemgr->get(n2).light_propagates)
+					if(fp2->light_propagates)
 					{
-						n2.setLight(bank, newlight, nodemgr);
+						n2.setLight(bank, newlight, *fp2);
 						block->setNode(relpos, n2);
 						lighted_nodes.insert(n2pos);
 						changed = true;
@@ -605,8 +603,6 @@ void Map::lightNeighbors(enum LightBank bank,
 
 v3s16 Map::getBrightestNeighbour(enum LightBank bank, v3s16 p)
 {
-	INodeDefManager *nodemgr = m_gamedef->ndef();
-
 	v3s16 dirs[6] = {
 		v3s16(0,0,1), // back
 		v3s16(0,1,0), // top
@@ -625,15 +621,17 @@ v3s16 Map::getBrightestNeighbour(enum LightBank bank, v3s16 p)
 		// Get the position of the neighbor node
 		v3s16 n2pos = p + dirs[i];
 		MapNode n2;
+		HybridPtr<const ContentFeatures> fp2;
 		try{
 			n2 = getNode(n2pos);
+			fp2 = getNodeDef(n2pos);
 		}
 		catch(InvalidPositionException &e)
 		{
 			continue;
 		}
-		if(n2.getLight(bank, nodemgr) > brightest_light || found_something == false){
-			brightest_light = n2.getLight(bank, nodemgr);
+		if(n2.getLight(bank, *fp2) > brightest_light || found_something == false){
+			brightest_light = n2.getLight(bank, *fp2);
 			brightest_pos = n2pos;
 			found_something = true;
 		}
@@ -656,8 +654,6 @@ v3s16 Map::getBrightestNeighbour(enum LightBank bank, v3s16 p)
 s16 Map::propagateSunlight(v3s16 start,
 		std::map<v3s16, MapBlock*> & modified_blocks)
 {
-	INodeDefManager *nodemgr = m_gamedef->ndef();
-
 	s16 y = start.Y;
 	for(; ; y--)
 	{
@@ -675,10 +671,11 @@ s16 Map::propagateSunlight(v3s16 start,
 
 		v3s16 relpos = pos - blockpos*MAP_BLOCKSIZE;
 		MapNode n = block->getNode(relpos);
+		HybridPtr<const ContentFeatures> fp = block->getNodeDef(relpos);
 
-		if(nodemgr->get(n).sunlight_propagates)
+		if(fp->sunlight_propagates)
 		{
-			n.setLight(LIGHTBANK_DAY, LIGHT_SUN, nodemgr);
+			n.setLight(LIGHTBANK_DAY, LIGHT_SUN, *fp);
 			block->setNode(relpos, n);
 
 			modified_blocks[blockpos] = block;
@@ -985,8 +982,9 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	*/
 	try{
 		MapNode topnode = getNode(toppos);
+		HybridPtr<const ContentFeatures> topnode_fp = getNodeDef(toppos);
 
-		if(topnode.getLight(LIGHTBANK_DAY, ndef) != LIGHT_SUN)
+		if(topnode.getLight(LIGHTBANK_DAY, *topnode_fp) != LIGHT_SUN)
 			node_under_sunlight = false;
 	}
 	catch(InvalidPositionException &e)
@@ -996,6 +994,8 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	/*
 		Remove all light that has come out of this node
 	*/
+	
+	HybridPtr<const ContentFeatures> fp = getNodeDef(p);
 
 	enum LightBank banks[] =
 	{
@@ -1006,7 +1006,7 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	{
 		enum LightBank bank = banks[i];
 
-		u8 lightwas = getNode(p).getLight(bank, ndef);
+		u8 lightwas = getNode(p).getLight(bank, *fp);
 
 		// Add the block of the added node to modified_blocks
 		v3s16 blockpos = getNodeBlockPos(p);
@@ -1032,7 +1032,7 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	*/
 	if(node_under_sunlight && ndef->get(n).sunlight_propagates)
 	{
-		n.setLight(LIGHTBANK_DAY, LIGHT_SUN, ndef);
+		n.setLight(LIGHTBANK_DAY, LIGHT_SUN, *fp);
 	}
 
 	/*
@@ -1177,13 +1177,16 @@ void Map::removeNodeAndUpdate(v3s16 p,
 	*/
 	try{
 		MapNode topnode = getNode(toppos);
+		HybridPtr<const ContentFeatures> top_fp = getNodeDef(toppos);
 
-		if(topnode.getLight(LIGHTBANK_DAY, ndef) != LIGHT_SUN)
+		if(topnode.getLight(LIGHTBANK_DAY, *top_fp) != LIGHT_SUN)
 			node_under_sunlight = false;
 	}
 	catch(InvalidPositionException &e)
 	{
 	}
+	
+	HybridPtr<const ContentFeatures> fp = getNodeDef(p);
 
 	std::set<v3s16> light_sources;
 
@@ -1200,7 +1203,7 @@ void Map::removeNodeAndUpdate(v3s16 p,
 			Unlight neighbors (in case the node is a light source)
 		*/
 		unLightNeighbors(bank, p,
-				getNode(p).getLight(bank, ndef),
+				getNode(p).getLight(bank, *fp),
 				light_sources, modified_blocks);
 	}
 
