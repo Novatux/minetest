@@ -528,6 +528,7 @@ end
 minetest.register_craftitem("experimental:tester_tool_2", {
 	description = "Tester Tool 2",
 	inventory_image = "experimental_tester_tool_2.png",
+	liquids_pointable = true,
     on_use = function(itemstack, user, pointed_thing)
 		--print(dump(pointed_thing))
 		if pointed_thing.type == "node" then
