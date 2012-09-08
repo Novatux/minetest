@@ -54,10 +54,10 @@ MapNode::MapNode(INodeDefManager *ndef, const std::string &name,
 	param2 = a_param2;
 }
 
-void MapNode::setLight(enum LightBank bank, u8 a_light, INodeDefManager *nodemgr)
+void MapNode::setLight(enum LightBank bank, u8 a_light, const ContentFeatures &f)
 {
 	// If node doesn't contain light data, ignore this
-	if(nodemgr->get(*this).param_type != CPT_LIGHT)
+	if(f.param_type != CPT_LIGHT)
 		return;
 	if(bank == LIGHTBANK_DAY)
 	{
@@ -73,10 +73,14 @@ void MapNode::setLight(enum LightBank bank, u8 a_light, INodeDefManager *nodemgr
 		assert(0);
 }
 
-u8 MapNode::getLight(enum LightBank bank, INodeDefManager *nodemgr) const
+void MapNode::setLight(enum LightBank bank, u8 a_light, INodeDefManager *nodemgr)
+{
+	setLight(bank, a_light, nodemgr->get(*this));
+}
+
+u8 MapNode::getLight(enum LightBank bank, const ContentFeatures &f) const
 {
 	// Select the brightest of [light source, propagated light]
-	const ContentFeatures &f = nodemgr->get(*this);
 	u8 light = 0;
 	if(f.param_type == CPT_LIGHT)
 	{
@@ -92,10 +96,15 @@ u8 MapNode::getLight(enum LightBank bank, INodeDefManager *nodemgr) const
 	return light;
 }
 
-bool MapNode::getLightBanks(u8 &lightday, u8 &lightnight, INodeDefManager *nodemgr) const
+u8 MapNode::getLight(enum LightBank bank, INodeDefManager *nodemgr) const
+{
+	const ContentFeatures &f = nodemgr->get(*this);
+	return getLight(bank, f);
+}
+
+bool MapNode::getLightBanks(u8 &lightday, u8 &lightnight, const ContentFeatures &f) const
 {
 	// Select the brightest of [light source, propagated light]
-	const ContentFeatures &f = nodemgr->get(*this);
 	if(f.param_type == CPT_LIGHT)
 	{
 		lightday = param1 & 0x0f;
@@ -113,25 +122,55 @@ bool MapNode::getLightBanks(u8 &lightday, u8 &lightnight, INodeDefManager *nodem
 	return f.param_type == CPT_LIGHT || f.light_source != 0;
 }
 
+bool MapNode::getLightBanks(u8 &lightday, u8 &lightnight, INodeDefManager *nodemgr) const
+{
+	const ContentFeatures &f = nodemgr->get(*this);
+	return getLightBanks(lightday, lightnight, f);
+}
+
+u8 MapNode::getLightBlend(u32 daylight_factor, const ContentFeatures &f) const
+{
+	u8 lightday = 0;
+	u8 lightnight = 0;
+	getLightBanks(lightday, lightnight, f);
+	return blend_light(daylight_factor, lightday, lightnight);
+}
+
+u8 MapNode::getLightBlend(u32 daylight_factor, INodeDefManager *nodemgr) const
+{
+	const ContentFeatures &f = nodemgr->get(*this);
+	return getLightBlend(daylight_factor, f);
+}
+
+u8 MapNode::getFaceDir(const ContentFeatures &f) const
+{
+	if(f.param_type_2 == CPT2_FACEDIR)
+		return getParam2() & 0x1F;
+	return 0;
+}
+
 u8 MapNode::getFaceDir(INodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	if(f.param_type_2 == CPT2_FACEDIR)
-		return getParam2() & 0x1F;
+	return getFaceDir(f);
+}
+
+u8 MapNode::getWallMounted(const ContentFeatures &f) const
+{
+	if(f.param_type_2 == CPT2_WALLMOUNTED)
+		return getParam2() & 0x07;
 	return 0;
 }
 
 u8 MapNode::getWallMounted(INodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	if(f.param_type_2 == CPT2_WALLMOUNTED)
-		return getParam2() & 0x07;
-	return 0;
+	return getWallMounted(f);
 }
 
-v3s16 MapNode::getWallMountedDir(INodeDefManager *nodemgr) const
+v3s16 MapNode::getWallMountedDir(const ContentFeatures &f) const
 {
-	switch(getWallMounted(nodemgr))
+	switch(getWallMounted(f))
 	{
 	case 0: default: return v3s16(0,1,0);
 	case 1: return v3s16(0,-1,0);
@@ -143,7 +182,8 @@ v3s16 MapNode::getWallMountedDir(INodeDefManager *nodemgr) const
 }
 
 void MapNode::rotateAlongYAxis(INodeDefManager *nodemgr, Rotation rot) {
-	ContentParamType2 cpt2 = nodemgr->get(*this).param_type_2;
+	const ContentFeatures &f = nodemgr->get(*this);
+	ContentParamType2 cpt2 = f.param_type_2;
 
 	if (cpt2 == CPT2_FACEDIR) {
 		u8 newrot = param2 & 3;
@@ -160,14 +200,20 @@ void MapNode::rotateAlongYAxis(INodeDefManager *nodemgr, Rotation rot) {
 	}
 }
 
+v3s16 MapNode::getWallMountedDir(INodeDefManager *nodemgr) const
+{
+	const ContentFeatures &f = nodemgr->get(*this);
+	return getWallMountedDir(f);
+}
+
 static std::vector<aabb3f> transformNodeBox(const MapNode &n,
-		const NodeBox &nodebox, INodeDefManager *nodemgr)
+		const NodeBox &nodebox, const ContentFeatures &f)
 {
 	std::vector<aabb3f> boxes;
 	if(nodebox.type == NODEBOX_FIXED || nodebox.type == NODEBOX_LEVELED)
 	{
 		const std::vector<aabb3f> &fixed = nodebox.fixed;
-		int facedir = n.getFaceDir(nodemgr);
+		int facedir = n.getFaceDir(f);
 		u8 axisdir = facedir>>2;
 		facedir&=0x03;
 		for(std::vector<aabb3f>::const_iterator
@@ -303,7 +349,7 @@ static std::vector<aabb3f> transformNodeBox(const MapNode &n,
 	}
 	else if(nodebox.type == NODEBOX_WALLMOUNTED)
 	{
-		v3s16 dir = n.getWallMountedDir(nodemgr);
+		v3s16 dir = n.getWallMountedDir(f);
 
 		// top
 		if(dir == v3s16(0,1,0))
@@ -348,16 +394,26 @@ static std::vector<aabb3f> transformNodeBox(const MapNode &n,
 	return boxes;
 }
 
+std::vector<aabb3f> MapNode::getNodeBoxes(const ContentFeatures &f) const
+{
+	return transformNodeBox(*this, f.node_box, f);
+}
+
 std::vector<aabb3f> MapNode::getNodeBoxes(INodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	return transformNodeBox(*this, f.node_box, nodemgr);
+	return getNodeBoxes(f);
+}
+
+std::vector<aabb3f> MapNode::getSelectionBoxes(const ContentFeatures &f) const
+{
+	return transformNodeBox(*this, f.selection_box, f);
 }
 
 std::vector<aabb3f> MapNode::getSelectionBoxes(INodeDefManager *nodemgr) const
 {
 	const ContentFeatures &f = nodemgr->get(*this);
-	return transformNodeBox(*this, f.selection_box, nodemgr);
+	return getSelectionBoxes(f);
 }
 
 u8 MapNode::getMaxLevel(INodeDefManager *nodemgr) const

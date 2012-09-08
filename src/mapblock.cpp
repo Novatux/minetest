@@ -92,7 +92,7 @@ MapBlock::~MapBlock()
 
 HybridPtr<const ContentFeatures> MapBlock::getNodeDefNoCheck(v3s16 p)
 {
-	// If special definition exists, return a shared copy of it
+	// If special definition exists, return a shared pointer to a copy of it
 	if(m_special_nodedefs.count(p))
 		return new ContentFeatures(m_special_nodedefs[p]);
 	// Otherwise look up from node definition manager
@@ -729,6 +729,7 @@ void MapBlock::deSerialize(std::istream &is, u8 version, bool disk)
 	/* Read special node definitions from metadata */
 	TRACESTREAM(<<"MapBlock::deSerialize "<<PP(getPos())
 			<<": Special node definitions"<<std::endl);
+	m_special_nodedefs.clear();
 	std::map<v3s16, NodeMetadata*> *metamap = m_node_metadata.getAll();
 	for(std::map<v3s16, NodeMetadata*>::iterator i = metamap->begin();
 			i != metamap->end(); i++)

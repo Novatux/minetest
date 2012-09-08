@@ -254,12 +254,13 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 		try{
 			// Object collides into walkable nodes
 			MapNode n = map->getNode(p);
-			const ContentFeatures &f = gamedef->getNodeDefManager()->get(n);
+			HybridPtr<const ContentFeatures> f_ptr = map->getNodeDef(p);
+			const ContentFeatures &f = *f_ptr;
 			if(f.walkable == false)
 				continue;
 			int n_bouncy_value = itemgroup_get(f.groups, "bouncy");
 
-			std::vector<aabb3f> nodeboxes = n.getNodeBoxes(gamedef->ndef());
+			std::vector<aabb3f> nodeboxes = n.getNodeBoxes(f);
 			for(std::vector<aabb3f>::iterator
 					i = nodeboxes.begin();
 					i != nodeboxes.end(); i++)

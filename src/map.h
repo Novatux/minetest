@@ -208,6 +208,9 @@ public:
 	// Returns a CONTENT_IGNORE node if not found
 	MapNode getNodeNoEx(v3s16 p);
 	
+	// throws InvalidPositionException if not found
+	HybridPtr<const ContentFeatures> getNodeDef(v3s16 p);
+
 	// Returns a NULL pointer if not found
 	HybridPtr<const ContentFeatures> getNodeDefNoEx(v3s16 p);
 
