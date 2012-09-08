@@ -51,6 +51,10 @@ private:
 	// pos = {x=num, y=num, z=num}
 	// timeofday: nil = current time, 0 = night, 0.5 = day
 	static int l_get_node_light(lua_State *L);
+	
+	// minetest.get_nodedef(pos, entityname)
+	// pos = {x=num, y=num, z=num}
+	static int l_get_nodedef(lua_State *L)
 
 	// minetest.place_node(pos, node)
 	// pos = {x=num, y=num, z=num}
