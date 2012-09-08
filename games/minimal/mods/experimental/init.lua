@@ -537,6 +537,14 @@ minetest.register_craftitem("experimental:tester_tool_2", {
 				tile_images = {
 					"default_mese.png",
 				},
+				drawtype = "nodebox",
+				node_box = {
+					type = "fixed",
+					fixed = {
+						{-0.5, -0.5, -0.5, 0.5, 0, 0.5},
+						{-0.5, 0, 0, 0.5, 0.5, 0.5},
+					},
+				},
 			})
 			print("Stored data is")
 			print(hex_dump(meta:get_string("__nodedef")))

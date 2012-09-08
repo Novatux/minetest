@@ -33,6 +33,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "modifiedstate.h"
 #include "util/container.h"
 #include "nodetimer.h"
+#include "nodedef.h" // For ContentFeatures
+#include "util/pointer.h" // HybridPtr
 
 class Database;
 class ClientMap;
@@ -205,7 +207,13 @@ public:
 
 	// Returns a CONTENT_IGNORE node if not found
 	MapNode getNodeNoEx(v3s16 p);
+	
+	// Returns a NULL pointer if not found
+	HybridPtr<const ContentFeatures> getNodeDefNoEx(v3s16 p);
 
+	// throws InvalidPositionException if not found
+	void setNode(v3s16 p, MapNode & n);
+	
 	void unspreadLight(enum LightBank bank,
 			std::map<v3s16, u8> & from_nodes,
 			std::set<v3s16> & light_sources,

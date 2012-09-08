@@ -370,7 +370,7 @@ void MeshMakeData::fill(MapBlock *block)
 	
 	{
 		/*
-			If block has nodes with metadata, create wrapper gamedef and a
+			If block has special node definitions, create wrapper gamedef and a
 			wrapper nodedef that will handle their metadata-modified nodedefs
 		*/
 
@@ -387,6 +387,8 @@ void MeshMakeData::fill(MapBlock *block)
 			v3s16( 0,-1, 0), // bottom
 			v3s16(-1, 0, 0) // left
 		};
+		MeshNodeDefManager *nodedef = NULL;
+		int special_id = 2000; // TODO: Choose first id that isn't already used
 		for(u16 i=0; i<7; i++)
 		{
 			const v3s16 &dir = dirs[i];
@@ -395,34 +397,31 @@ void MeshMakeData::fill(MapBlock *block)
 			if(!block)
 				continue;
 			v3s16 blockpos_nodes = bp*MAP_BLOCKSIZE;
-			std::map<v3s16, NodeMetadata*> *nm = block->m_node_metadata.getAll();
-			if(!nm->empty())
+			std::map<v3s16, ContentFeatures> *defs = &block->m_special_nodedefs;
+			if(!defs->empty())
 			{
-				MeshNodeDefManager *nodedef = new MeshNodeDefManager(m_gamedef->ndef());
-				m_gamedef = new MeshGameDef(m_gamedef, nodedef);
-				m_gamedef_not_global = true;
-				int special_id = MAX_CONTENT + 1 - nm->size();
-				assert(special_id >= 0);
-				for(std::map<v3s16, NodeMetadata*>::iterator i = nm->begin();
-						i != nm->end(); i++)
-				{
-					NodeMetadata *m = i->second;
-					v3s16 p = i->first;
-					std::string def_s = m->getString("__nodedef");
-					if(def_s.empty())
-						continue;
-					std::istringstream is(def_s, std::ios::binary);
-					ContentFeatures def;
-					def.deSerialize(is);
-					//def = nodedef->get("default:mese");
-					def.name = "__modified";
-					//def.name = nodedef->get(m_vmanip.getNodeRef(blockpos_nodes+p)).name;
-					m_vmanip.getNodeRef(blockpos_nodes+p).setContent(special_id);
-					nodedef->setSpecial(special_id++, def);
+				if(nodedef == NULL){
+					nodedef = new MeshNodeDefManager(m_gamedef->ndef());
+					m_gamedef = new MeshGameDef(m_gamedef, nodedef);
+					m_gamedef_not_global = true;
 				}
-				nodedef->updateTextures(m_gamedef->tsrc());
+				for(std::map<v3s16, ContentFeatures>::iterator i = defs->begin();
+						i != defs->end(); i++)
+				{
+					const v3s16 &p = i->first;
+					const ContentFeatures &def = i->second;
+					m_vmanip.getNodeRef(blockpos_nodes+p).setContent(special_id);
+					nodedef->setSpecial(special_id, def);
+					special_id++;
+					if(special_id >= MAX_CONTENT)
+						break;
+				}
+				if(special_id >= MAX_CONTENT)
+					break;
 			}
 		}
+		if(nodedef)
+			nodedef->updateTextures(m_gamedef->tsrc());
 	}
 }
 

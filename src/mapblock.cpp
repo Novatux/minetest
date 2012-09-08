@@ -90,6 +90,20 @@ MapBlock::~MapBlock()
 		delete[] data;
 }
 
+HybridPtr<const ContentFeatures> MapBlock::getNodeDefNoCheck(v3s16 p)
+{
+	// If special definition exists, return a shared copy of it
+	if(m_special_nodedefs.count(p))
+		return new ContentFeatures(m_special_nodedefs[p]);
+	// Otherwise look up from node definition manager
+	MapNode n = getNodeNoCheck(p);
+	const ContentFeatures &c = m_gamedef->ndef()->get(n);
+	// Return a reference that won't be deleted
+	HybridPtr<const ContentFeatures> ptr(&c);
+	ptr.setNeverDelete(true);
+	return ptr;
+}
+
 bool MapBlock::isValidPositionParent(v3s16 p)
 {
 	if(isValidPosition(p))
@@ -710,6 +724,32 @@ void MapBlock::deSerialize(std::istream &is, u8 version, bool disk)
 		errorstream<<"WARNING: MapBlock::deSerialize(): Ignoring an error"
 				<<" while deserializing node metadata at ("
 				<<PP(getPos())<<": "<<e.what()<<std::endl;
+	}
+
+	/* Read special node definitions from metadata */
+	TRACESTREAM(<<"MapBlock::deSerialize "<<PP(getPos())
+			<<": Special node definitions"<<std::endl);
+	std::map<v3s16, NodeMetadata*> *metamap = m_node_metadata.getAll();
+	for(std::map<v3s16, NodeMetadata*>::iterator i = metamap->begin();
+			i != metamap->end(); i++)
+	{
+		const v3s16 &p = i->first;
+		try{
+			NodeMetadata *m = i->second;
+			std::string def_s = m->getString("__nodedef");
+			if(def_s.empty())
+				continue;
+			std::istringstream is(def_s, std::ios::binary);
+			ContentFeatures def;
+			def.deSerialize(is);
+			def.name = "__modified";
+			m_special_nodedefs[p] = def;
+		}
+		catch(SerializationError &e){
+			errorstream<<"WARNING: MapBlock::deSerialize(): Ignoring an error"
+					<<" while deserializing nodedef from metadata at ("
+					<<PP(getPos())<<": "<<e.what()<<std::endl;
+		}
 	}
 
 	/*

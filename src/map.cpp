@@ -204,6 +204,16 @@ MapNode Map::getNode(v3s16 p)
 	return block->getNodeNoCheck(relpos);
 }
 
+HybridPtr<const ContentFeatures> Map::getNodeDefNoEx(v3s16 p)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+		return NULL;
+	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
+	return block->getNodeDefNoCheck(relpos);
+}
+
 // throws InvalidPositionException if not found
 void Map::setNode(v3s16 p, MapNode & n)
 {

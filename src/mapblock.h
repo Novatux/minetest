@@ -31,6 +31,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "nodetimer.h"
 #include "modifiedstate.h"
 #include "util/numeric.h" // getContainerPos
+#include "nodedef.h" // For ContentFeatures for getNodeDef*()
+#include "util/pointer.h" // HybridPtr
 
 class Map;
 class NodeMetadataList;
@@ -300,14 +302,27 @@ public:
 		setNode(p.X, p.Y, p.Z, n);
 	}
 
+	HybridPtr<const ContentFeatures> getNodeDef(v3s16 p)
+	{
+		if(!isValidPosition(p))
+			throw InvalidPositionException();
+		return getNodeDefNoCheck(p);
+	}
+	
+	// Returns a NULL pointer if not found
+	HybridPtr<const ContentFeatures> getNodeDefNoEx(v3s16 p)
+	{
+		if(!isValidPosition(p))
+			return NULL;
+		return getNodeDefNoCheck(p);
+	}
+	
 	/*
 		Non-checking variants of the above
 	*/
 
 	MapNode getNodeNoCheck(s16 x, s16 y, s16 z)
 	{
-		if(data == NULL)
-			throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
 	
@@ -315,6 +330,8 @@ public:
 	{
 		return getNodeNoCheck(p.X, p.Y, p.Z);
 	}
+	
+	HybridPtr<const ContentFeatures> getNodeDefNoCheck(v3s16 p);
 	
 	void setNodeNoCheck(s16 x, s16 y, s16 z, MapNode & n)
 	{
@@ -513,6 +530,8 @@ public:
 	NodeMetadataList m_node_metadata;
 	NodeTimerList m_node_timers;
 	StaticObjectList m_static_objects;
+
+	std::map<v3s16, ContentFeatures> m_special_nodedefs;
 	
 	s16 heat;
 	s16 humidity;
