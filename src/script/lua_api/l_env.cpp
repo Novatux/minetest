@@ -136,6 +136,41 @@ int ModApiEnvMod::l_swap_node(lua_State *L)
 	return 1;
 }
 
+// minetest.set_node_with_def(pos, node, basedef, adddef)
+// pos = {x=num, y=num, z=num}
+static int l_set_node_with_def(lua_State *L)
+{
+	GET_ENV_PTR;
+	
+	INodeDefManager *ndef = env->getGameDef()->ndef();
+	// parameters
+	v3s16 pos = read_v3s16(L, 2);
+	MapNode n = readnode(L, 3, ndef);
+	luaL_checktype(L, 4, LUA_TTABLE);
+	luaL_checktype(L, 5, LUA_TTABLE);
+	ContentFeatures def_base = read_content_features(L, 4);
+	ContentFeatures def = read_content_features(L, 5, def_base);
+	// Do it
+	MapNode n_old = env->getMap().getNodeNoEx(pos);
+	// Call destructor
+	if(ndef->get(n_old).has_on_destruct)
+		scriptapi_node_on_destruct(L, pos, n_old);
+	// Replace node
+	HybridPtr<const ContentFeatures> def_ptr(new ContentFeatures(def));
+	NodeWithDef nd(n, def_ptr);
+	bool succeeded = env->getMap().addNodeWithEvent(pos, nd);
+	if(succeeded){
+		// Call post-destructor
+		if(ndef->get(n_old).has_after_destruct)
+			scriptapi_node_after_destruct(L, pos, n_old);
+		// Call constructor
+		if(ndef->get(n).has_on_construct)
+			scriptapi_node_on_construct(L, pos, n);
+	}
+	lua_pushboolean(L, succeeded);
+	return 1;
+}
+
 // minetest.get_node(pos)
 // pos = {x=num, y=num, z=num}
 int ModApiEnvMod::l_get_node(lua_State *L)
@@ -855,6 +890,7 @@ void ModApiEnvMod::Initialize(lua_State *L, int top)
 	API_FCT(set_node);
 	API_FCT(add_node);
 	API_FCT(swap_node);
+	API_FCT(set_node_with_def);
 	API_FCT(add_item);
 	API_FCT(remove_node);
 	API_FCT(get_node);

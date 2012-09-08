@@ -26,8 +26,10 @@ NodeWithDef::NodeWithDef()
 }
 NodeWithDef::NodeWithDef(const MapNode &n, const INodeDefManager *ndef):
 	m_n(n),
-	m_def(&ndef->get(n))
+	m_def(NULL)
 {
+	m_def = &ndef->get(n);
+	m_def.setNeverDelete(true);
 }
 NodeWithDef::NodeWithDef(const MapNode &n, const HybridPtr<const ContentFeatures> &def):
 	m_n(n),

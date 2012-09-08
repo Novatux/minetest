@@ -532,20 +532,36 @@ minetest.register_craftitem("experimental:tester_tool_2", {
 		--print(dump(pointed_thing))
 		if pointed_thing.type == "node" then
 			local p = pointed_thing.under
-			local meta = minetest.env:get_meta(p)
-			meta:set_nodedef(minetest.registered_nodes[minetest.env:get_node(p).name], {
-				tile_images = {
-					"default_mese.png",
-				},
-				drawtype = "nodebox",
-				node_box = {
-					type = "fixed",
-					fixed = {
-						{-0.5, -0.5, -0.5, 0.5, 0, 0.5},
-						{-0.5, 0, 0, 0.5, 0.5, 0.5},
+			local n = minetest.env:get_node(p)
+			-- Set the facedir
+			local user_pos = user:getpos()
+			if user_pos then
+				local dir = {
+					x = p.x - user_pos.x,
+					y = p.y - user_pos.y,
+					z = p.z - user_pos.z
+				}
+				n.param2 = minetest.dir_to_facedir(dir)
+			end
+			-- Set the node
+			minetest.env:set_node_with_def(p, n,
+				minetest.registered_nodes[n.name],
+				{
+					--tile_images = {
+					--	"default_mese.png",
+					--},
+					drawtype = "nodebox",
+					paramtype = "light",
+					paramtype2 = "facedir",
+					node_box = {
+						type = "fixed",
+						fixed = {
+							{-0.5, -0.5, -0.5, 0.5, 0, 0.5},
+							{-0.5, 0, 0, 0.5, 0.5, 0.5},
+						},
 					},
-				},
 			})
+			local meta = minetest.env:get_meta(p)
 			print("Stored data is")
 			print(hex_dump(meta:get_string("__nodedef")))
 		end

@@ -282,6 +282,14 @@ void Map::setNode(v3s16 p, const NodeWithDef &nd)
 	block->setNodeNoCheck(relpos, nd);
 }
 
+void Map::setNodeDef(v3s16 p, const ContentFeatures *def)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	MapBlock *block = getBlockNoCreate(blockpos);
+	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
+	block->setNodeDefNoCheck(relpos, def);
+}
+
 
 /*
 	Goes recursively through the neighbours of the node.
@@ -983,14 +991,173 @@ void Map::updateLighting(std::map<v3s16, MapBlock*> & a_blocks,
 	}
 }
 
+void Map::updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks)
+{
+	v3s16 toppos = p + v3s16(0,1,0);
+	v3s16 bottompos = p + v3s16(0,-1,0);
+
+	bool node_under_sunlight = true;
+	core::map<v3s16, bool> light_sources;
+	
+	/*
+		If there is a node at top and it doesn't have sunlight,
+		there has not been any sunlight going down.
+
+		Otherwise there probably is.
+	*/
+	try{
+		MapNode topnode = getNode(toppos);
+		HybridPtr<const ContentFeatures> topnode_fp = getNodeDef(toppos);
+
+		if(topnode.getLight(LIGHTBANK_DAY, *topnode_fp) != LIGHT_SUN)
+			node_under_sunlight = false;
+	}
+	catch(InvalidPositionException &e)
+	{
+	}
+
+	/*
+		Remove all light that has come out of this node
+	*/
+	
+	MapNode n = getNode(p);
+	HybridPtr<const ContentFeatures> fp = getNodeDef(p);
+
+	enum LightBank banks[] =
+	{
+		LIGHTBANK_DAY,
+		LIGHTBANK_NIGHT
+	};
+	for(s32 i=0; i<2; i++)
+	{
+		enum LightBank bank = banks[i];
+
+		u8 lightwas = getNode(p).getLight(bank, *fp);
+
+		// Add the block of the added node to modified_blocks
+		v3s16 blockpos = getNodeBlockPos(p);
+		MapBlock * block = getBlockNoCreate(blockpos);
+		assert(block != NULL);
+		modified_blocks.insert(blockpos, block);
+
+		assert(isValidPosition(p));
+
+		// Unlight neighbours of node.
+		// This means setting light of all consequent dimmer nodes
+		// to 0.
+		// This also collects the nodes at the border which will spread
+		// light again into this.
+		unLightNeighbors(bank, p, lightwas, light_sources, modified_blocks);
+
+		n.setLight(bank, 0, *fp);
+	}
+
+	/*
+		If node lets sunlight through and is under sunlight, it has
+		sunlight too.
+	*/
+	if(node_under_sunlight && fp->sunlight_propagates)
+	{
+		n.setLight(LIGHTBANK_DAY, LIGHT_SUN, *fp);
+	}
+
+	/*
+		If node is under sunlight and doesn't let sunlight through,
+		take all sunlighted nodes under it and clear light from them
+		and from where the light has been spread.
+		TODO: This could be optimized by mass-unlighting instead
+			  of looping
+	*/
+	if(node_under_sunlight && !fp->sunlight_propagates)
+	{
+		s16 y = p.Y - 1;
+		for(;; y--){
+			//m_dout<<DTIME<<"y="<<y<<std::endl;
+			v3s16 n2pos(p.X, y, p.Z);
+
+			MapNode n2;
+			HybridPtr<const ContentFeatures> fp2;
+			try{
+				n2 = getNode(n2pos);
+				fp2 = getNodeDef(n2pos);
+			}
+			catch(InvalidPositionException &e)
+			{
+				break;
+			}
+
+			if(n2.getLight(LIGHTBANK_DAY, *fp2) == LIGHT_SUN)
+			{
+				unLightNeighbors(LIGHTBANK_DAY,
+						n2pos, n2.getLight(LIGHTBANK_DAY, *fp2),
+						light_sources, modified_blocks);
+				n2.setLight(LIGHTBANK_DAY, 0, *fp2);
+				setNode(n2pos, n2);
+			}
+			else
+				break;
+		}
+	}
+
+	for(s32 i=0; i<2; i++)
+	{
+		enum LightBank bank = banks[i];
+
+		/*
+			Spread light from all nodes that might be capable of doing so
+		*/
+		spreadLight(bank, light_sources, modified_blocks);
+	}
+
+	/*
+		Update information about whether day and night light differ
+	*/
+	for(core::map<v3s16, MapBlock*>::Iterator
+			i = modified_blocks.getIterator();
+			i.atEnd() == false; i++)
+	{
+		MapBlock *block = i.getNode()->getValue();
+		block->expireDayNightDiff();
+	}
+
+	/*
+		Add neighboring liquid nodes and the node itself if it is
+		liquid (=water node was added) to transform queue.
+	*/
+	v3s16 dirs[7] = {
+		v3s16(0,0,0), // self
+		v3s16(0,0,1), // back
+		v3s16(0,1,0), // top
+		v3s16(1,0,0), // right
+		v3s16(0,0,-1), // front
+		v3s16(0,-1,0), // bottom
+		v3s16(-1,0,0), // left
+	};
+	for(u16 i=0; i<7; i++)
+	{
+		try{
+			v3s16 p2 = p + dirs[i];
+
+			MapNode n2 = getNode(p2);
+			HybridPtr<const ContentFeatures> fp2 = getNodeDef(p2);
+			if(fp2->isLiquid() || n2.getContent() == CONTENT_AIR)
+			{
+				m_transforming_liquid.push_back(p2);
+			}
+		}catch(InvalidPositionException &e)
+		{
+		}
+	}
+}
+
 /*
 */
-void Map::addNodeAndUpdate(v3s16 p, MapNode n,
+void Map::addNodeAndUpdate(v3s16 p, NodeWithDef nd,
 		std::map<v3s16, MapBlock*> &modified_blocks,
 		bool remove_metadata)
+void Map::addNodeAndUpdate(v3s16 p, NodeWithDef nd,
+		core::map<v3s16, MapBlock*> &modified_blocks)
 {
-	INodeDefManager *ndef = m_gamedef->ndef();
-
 	/*PrintInfo(m_dout);
 	m_dout<<DTIME<<"Map::addNodeAndUpdate(): p=("
 			<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;*/
@@ -1035,7 +1202,8 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	*/
 	
 	HybridPtr<const ContentFeatures> fp = getNodeDef(p);
-
+	
+	MapNode n = nd.node();
 	enum LightBank banks[] =
 	{
 		LIGHTBANK_DAY,
@@ -1062,17 +1230,19 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		// light again into this.
 		unLightNeighbors(bank, p, lightwas, light_sources, modified_blocks);
 
-		n.setLight(bank, 0, ndef);
+		n.setLight(bank, 0, *fp);
 	}
 
 	/*
 		If node lets sunlight through and is under sunlight, it has
 		sunlight too.
 	*/
-	if(node_under_sunlight && ndef->get(n).sunlight_propagates)
+	if(node_under_sunlight && fp->sunlight_propagates)
 	{
 		n.setLight(LIGHTBANK_DAY, LIGHT_SUN, *fp);
 	}
+	
+	nd.setNode(n);
 
 	/*
 		Remove node metadata
@@ -1085,7 +1255,9 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		Set the node on the map
 	*/
 
-	setNode(p, n);
+	setNode(p, nd);
+	
+	fp = getNodeDef(p);
 
 	/*
 		If node is under sunlight and doesn't let sunlight through,
@@ -1094,28 +1266,28 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 		TODO: This could be optimized by mass-unlighting instead
 			  of looping
 	*/
-	if(node_under_sunlight && !ndef->get(n).sunlight_propagates)
+	if(node_under_sunlight && !fp->sunlight_propagates)
 	{
 		s16 y = p.Y - 1;
 		for(;; y--){
 			//m_dout<<DTIME<<"y="<<y<<std::endl;
 			v3s16 n2pos(p.X, y, p.Z);
-
-			MapNode n2;
+			
+			NodeWithDef n2;
 			try{
-				n2 = getNode(n2pos);
+				n2 = getNodeWithDef(n2pos);
 			}
 			catch(InvalidPositionException &e)
 			{
 				break;
 			}
 
-			if(n2.getLight(LIGHTBANK_DAY, ndef) == LIGHT_SUN)
+			if(n2.getLight(LIGHTBANK_DAY) == LIGHT_SUN)
 			{
 				unLightNeighbors(LIGHTBANK_DAY,
-						n2pos, n2.getLight(LIGHTBANK_DAY, ndef),
+						n2pos, n2.getLight(LIGHTBANK_DAY),
 						light_sources, modified_blocks);
-				n2.setLight(LIGHTBANK_DAY, 0, ndef);
+				n2.setLight(LIGHTBANK_DAY, 0);
 				setNode(n2pos, n2);
 			}
 			else
@@ -1170,21 +1342,22 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 	};
 	for(u16 i=0; i<7; i++)
 	{
-		try
-		{
+		try{
+			v3s16 p2 = p + dirs[i];
 
-		v3s16 p2 = p + dirs[i];
-
-		MapNode n2 = getNode(p2);
-		if(ndef->get(n2).isLiquid() || n2.getContent() == CONTENT_AIR)
-		{
-			m_transforming_liquid.push_back(p2);
+			NodeWithDef n2 = getNodeWithDef(p2);
+			if(n2.def()->isLiquid() || n2.getContent() == CONTENT_AIR)
+				m_transforming_liquid.push_back(p2);
 		}
-
-		}catch(InvalidPositionException &e)
-		{
+		catch(InvalidPositionException &e){
 		}
 	}
+}
+
+void Map::addNodeAndUpdate(v3s16 p, MapNode n,
+		core::map<v3s16, MapBlock*> &modified_blocks)
+{
+	addNodeAndUpdate(p, NodeWithDef(n, m_gamedef->ndef()), modified_blocks);
 }
 
 /*
@@ -1192,8 +1365,6 @@ void Map::addNodeAndUpdate(v3s16 p, MapNode n,
 void Map::removeNodeAndUpdate(v3s16 p,
 		std::map<v3s16, MapBlock*> &modified_blocks)
 {
-	INodeDefManager *ndef = m_gamedef->ndef();
-
 	/*PrintInfo(m_dout);
 	m_dout<<DTIME<<"Map::removeNodeAndUpdate(): p=("
 			<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;*/
@@ -1259,7 +1430,9 @@ void Map::removeNodeAndUpdate(v3s16 p,
 
 	MapNode n;
 	n.setContent(replace_material);
-	setNode(p, n);
+	setNode(p, NodeWithDef(n, m_gamedef->ndef()));
+
+	fp = getNodeDef(p);
 
 	for(s32 i=0; i<2; i++)
 	{
@@ -1304,8 +1477,9 @@ void Map::removeNodeAndUpdate(v3s16 p,
 		// TODO: Is this needed? Lighting is cleared up there already.
 		try{
 			MapNode n = getNode(p);
-			n.setLight(LIGHTBANK_DAY, 0, ndef);
+			n.setLight(LIGHTBANK_DAY, 0, *fp);
 			setNode(p, n);
+			fp = getNodeDef(p);
 		}
 		catch(InvalidPositionException &e)
 		{
@@ -1365,34 +1539,56 @@ void Map::removeNodeAndUpdate(v3s16 p,
 	};
 	for(u16 i=0; i<7; i++)
 	{
-		try
-		{
+		try{
+			v3s16 p2 = p + dirs[i];
 
-		v3s16 p2 = p + dirs[i];
-
-		MapNode n2 = getNode(p2);
-		if(ndef->get(n2).isLiquid() || n2.getContent() == CONTENT_AIR)
-		{
-			m_transforming_liquid.push_back(p2);
+			NodeWithDef n2 = getNodeWithDef(p2);
+			if(n2.def()->isLiquid() || n2.getContent() == CONTENT_AIR)
+				m_transforming_liquid.push_back(p2);
 		}
-
-		}catch(InvalidPositionException &e)
-		{
-		}
+		catch(InvalidPositionException &e)
+		{}
 	}
 }
 
-bool Map::addNodeWithEvent(v3s16 p, MapNode n, bool remove_metadata)
+bool Map::updateNodeLightWithEvent(v3s16 p)
+{
+	MapEditEvent event;
+	event.type = MEET_OTHER;
+
+	bool succeeded = true;
+	try{
+		core::map<v3s16, MapBlock*> modified_blocks;
+		updateNodeLight(p, modified_blocks);
+
+		// Copy modified_blocks to event
+		for(core::map<v3s16, MapBlock*>::Iterator
+				i = modified_blocks.getIterator();
+				i.atEnd()==false; i++)
+		{
+			event.modified_blocks.insert(i.getNode()->getKey(), false);
+		}
+	}
+	catch(InvalidPositionException &e){
+		succeeded = false;
+	}
+
+	dispatchEvent(&event);
+
+	return succeeded;
+}
+
+bool Map::addNodeWithEvent(v3s16 p, NodeWithDef nd, bool remove_metadata)
 {
 	MapEditEvent event;
 	event.type = remove_metadata ? MEET_ADDNODE : MEET_SWAPNODE;
 	event.p = p;
-	event.n = n;
+	event.n = nd.node();
 
 	bool succeeded = true;
 	try{
-		std::map<v3s16, MapBlock*> modified_blocks;
-		addNodeAndUpdate(p, n, modified_blocks, remove_metadata);
+		core::map<v3s16, MapBlock*> modified_blocks;
+		addNodeAndUpdate(p, nd, modified_blocks, remove_metadata);
 
 		// Copy modified_blocks to event
 		for(std::map<v3s16, MapBlock*>::iterator
@@ -1407,8 +1603,23 @@ bool Map::addNodeWithEvent(v3s16 p, MapNode n, bool remove_metadata)
 	}
 
 	dispatchEvent(&event);
+	
+	// Report metadata update if special definition is used
+	if(nd.def_is_global() == false)
+	{
+		v3s16 blockpos = getNodeBlockPos(p);
+		MapEditEvent event;
+		event.type = MEET_BLOCK_NODE_METADATA_CHANGED;
+		event.p = blockpos;
+		dispatchEvent(&event);
+	}
 
 	return succeeded;
+}
+
+bool Map::addNodeWithEvent(v3s16 p, MapNode n, bool remove_metadata)
+{
+	return addNodeWithEvent(p, NodeWithDef(n, m_gamedef->ndef()), remove_metadata);
 }
 
 bool Map::removeNodeWithEvent(v3s16 p)

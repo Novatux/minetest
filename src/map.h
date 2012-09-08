@@ -222,6 +222,8 @@ public:
 	NodeWithDef getNodeWithDefNoEx(v3s16 p);
 	void setNode(v3s16 p, const NodeWithDef &nd);
 	
+	void setNodeDef(v3s16 p, const ContentFeatures *def);
+	
 	void unspreadLight(enum LightBank bank,
 			std::map<v3s16, u8> & from_nodes,
 			std::set<v3s16> & light_sources,
@@ -246,18 +248,22 @@ public:
 			std::map<v3s16, MapBlock*> & modified_blocks);
 
 	void updateLighting(enum LightBank bank,
-			std::map<v3s16, MapBlock*>  & a_blocks,
-			std::map<v3s16, MapBlock*> & modified_blocks);
+			core::map<v3s16, MapBlock*>  & a_blocks,
+			core::map<v3s16, MapBlock*> & modified_blocks);
+			
+	void updateLighting(core::map<v3s16, MapBlock*>  & a_blocks,
+			core::map<v3s16, MapBlock*> & modified_blocks);
 
-	void updateLighting(std::map<v3s16, MapBlock*>  & a_blocks,
-			std::map<v3s16, MapBlock*> & modified_blocks);
+	void updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks);
 
 	/*
 		These handle lighting but not faces.
 	*/
 	void addNodeAndUpdate(v3s16 p, MapNode n,
-			std::map<v3s16, MapBlock*> &modified_blocks,
+			core::map<v3s16, MapBlock*> &modified_blocks,
 			bool remove_metadata = true);
+	void addNodeAndUpdate(v3s16 p, NodeWithDef nd,
+			core::map<v3s16, MapBlock*> &modified_blocks);
 	void removeNodeAndUpdate(v3s16 p,
 			std::map<v3s16, MapBlock*> &modified_blocks);
 
@@ -266,6 +272,8 @@ public:
 		These emit events.
 		Return true if succeeded, false if not.
 	*/
+	bool updateNodeLightWithEvent(v3s16 p);
+	bool addNodeWithEvent(v3s16 p, NodeWithDef nd, bool remove_metadata = true);
 	bool addNodeWithEvent(v3s16 p, MapNode n, bool remove_metadata = true);
 	bool removeNodeWithEvent(v3s16 p);
 

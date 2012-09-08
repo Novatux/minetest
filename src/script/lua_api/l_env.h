@@ -38,6 +38,10 @@ private:
 	// minetest.swap_node(pos, node)
 	// pos = {x=num, y=num, z=num}
 	static int l_swap_node(lua_State *L);
+	
+	// minetest.set_node_with_def(pos, node, basedef, adddef)
+	// pos = {x=num, y=num, z=num}
+	static int l_set_node_with_def(lua_State *L);
 
 	// minetest.get_node(pos)
 	// pos = {x=num, y=num, z=num}
@@ -54,7 +58,7 @@ private:
 	
 	// minetest.get_nodedef(pos, entityname)
 	// pos = {x=num, y=num, z=num}
-	static int l_get_nodedef(lua_State *L)
+	static int l_get_nodedef(lua_State *L);
 
 	// minetest.place_node(pos, node)
 	// pos = {x=num, y=num, z=num}

@@ -119,24 +119,35 @@ void MapBlock::setNodeNoCheck(v3s16 p, const NodeWithDef &nd)
 {
 	setNodeNoCheck(p, nd.node());
 	// If nd's definition is global, it should not have __nodedef
-	if(nd.def_is_global()){
-		NodeMetadata *meta = m_node_metadata.get(p);
-		if(meta != NULL && meta->getString("__nodedef") != ""){
-			meta->setString("__nodedef,", "");
-			m_special_nodedefs.erase(p);
-		}
-	}
+	if(nd.def_is_global())
+		setNodeDefNoCheck(p, NULL);
 	// If nd's definition is local, it should have __nodedef
+	else
+		setNodeDefNoCheck(p, nd.def());
+}
+
+// def=NULL resets to global definition
+void MapBlock::setNodeDefNoCheck(v3s16 p, const ContentFeatures *def)
+{
+	if(def == NULL){
+		NodeMetadata *meta = m_node_metadata.get(p);
+		if(meta != NULL && meta->getString("__nodedef") != "")
+			meta->setString("__nodedef", "");
+		m_special_nodedefs.erase(p);
+	}
 	else{
 		std::ostringstream os(std::ios::binary);
-		nd.def()->serialize(os);
+		def->serialize(os);
 		const std::string &str = os.str();
 
 		NodeMetadata *meta = m_node_metadata.get(p);
-		if(meta != NULL && str != meta->getString("__nodedef")){
-			meta->setString("__nodedef", str);
-			m_special_nodedefs[p] = *nd.def();
+		if(meta == NULL){
+			meta = new NodeMetadata(m_gamedef);
+			m_node_metadata.set(p, meta);
 		}
+		if(str != meta->getString("__nodedef"))
+			meta->setString("__nodedef", str);
+		m_special_nodedefs[p] = *def;
 	}
 }
 

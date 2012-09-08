@@ -326,11 +326,11 @@ public:
 	}
 	NodeWithDef getNodeWithDefNoEx(v3s16 p);
 
-	NodeWithDef setNode(v3s16 p, const NodeWithDef &nd)
+	void setNode(v3s16 p, const NodeWithDef &nd)
 	{
 		if(!isValidPosition(p))
 			throw InvalidPositionException();
-		setNode(p, nd);
+		setNodeNoCheck(p, nd);
 	}
 	
 	/*
@@ -365,6 +365,8 @@ public:
 	HybridPtr<const ContentFeatures> getNodeDefNoCheck(v3s16 p);
 	NodeWithDef getNodeWithDefNoCheck(v3s16 p);
 	void setNodeNoCheck(v3s16 p, const NodeWithDef &nd);
+	// def=NULL resets to global definition
+	void setNodeDefNoCheck(v3s16 p, const ContentFeatures *def);
 	
 	/*
 		These functions consult the parent container if the position
