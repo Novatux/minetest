@@ -36,8 +36,6 @@ public:
 	}
 	SharedPtr(const SharedPtr<T> &t)
 	{
-		//*this = t;
-		drop();
 		refcount = t.refcount;
 		(*refcount)++;
 		ptr = t.ptr;
@@ -115,8 +113,6 @@ public:
 	}
 	HybridPtr(const HybridPtr<T> &t)
 	{
-		//*this = t;
-		drop();
 		refcount = t.refcount;
 		(*refcount)++;
 		ptr = t.ptr;
