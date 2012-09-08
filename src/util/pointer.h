@@ -169,9 +169,9 @@ public:
 	{
 		never_delete = a_never_delete;
 	}
-	bool getNeverDelete()
+	bool getNeverDelete() const
 	{
-		return a_never_delete;
+		return never_delete;
 	}
 private:
 	void drop()

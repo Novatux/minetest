@@ -261,6 +261,7 @@ add_subdirectory(util)
 
 set(common_SRCS
 	version.cpp
+	mapnode_with_def.cpp
 	rollback_interface.cpp
 	rollback.cpp
 	genericobject.cpp

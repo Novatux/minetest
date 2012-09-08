@@ -90,6 +90,13 @@ MapBlock::~MapBlock()
 		delete[] data;
 }
 
+NodeWithDef MapBlock::getNodeWithDefNoEx(v3s16 p)
+{
+	if(!isValidPosition(p))
+		return NodeWithDef(MapNode(CONTENT_IGNORE), m_gamedef->ndef());
+	return getNodeWithDefNoCheck(p);
+}
+
 HybridPtr<const ContentFeatures> MapBlock::getNodeDefNoCheck(v3s16 p)
 {
 	// If special definition exists, return a shared pointer to a copy of it
@@ -102,6 +109,35 @@ HybridPtr<const ContentFeatures> MapBlock::getNodeDefNoCheck(v3s16 p)
 	HybridPtr<const ContentFeatures> ptr(&c);
 	ptr.setNeverDelete(true);
 	return ptr;
+}
+
+NodeWithDef MapBlock::getNodeWithDefNoCheck(v3s16 p)
+{
+	return NodeWithDef(getNodeNoCheck(p), getNodeDefNoCheck(p));
+}
+void MapBlock::setNodeNoCheck(v3s16 p, const NodeWithDef &nd)
+{
+	setNodeNoCheck(p, nd.node());
+	// If nd's definition is global, it should not have __nodedef
+	if(nd.def_is_global()){
+		NodeMetadata *meta = m_node_metadata.get(p);
+		if(meta != NULL && meta->getString("__nodedef") != ""){
+			meta->setString("__nodedef,", "");
+			m_special_nodedefs.erase(p);
+		}
+	}
+	// If nd's definition is local, it should have __nodedef
+	else{
+		std::ostringstream os(std::ios::binary);
+		nd.def()->serialize(os);
+		const std::string &str = os.str();
+
+		NodeMetadata *meta = m_node_metadata.get(p);
+		if(meta != NULL && str != meta->getString("__nodedef")){
+			meta->setString("__nodedef", str);
+			m_special_nodedefs[p] = *nd.def();
+		}
+	}
 }
 
 bool MapBlock::isValidPositionParent(v3s16 p)
@@ -743,7 +779,8 @@ void MapBlock::deSerialize(std::istream &is, u8 version, bool disk)
 			std::istringstream is(def_s, std::ios::binary);
 			ContentFeatures def;
 			def.deSerialize(is);
-			def.name = "__modified";
+			// Force existing name
+			def.name = m_gamedef->ndef()->get(getNodeNoEx(p)).name;
 			m_special_nodedefs[p] = def;
 		}
 		catch(SerializationError &e){

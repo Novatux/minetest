@@ -33,6 +33,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "util/numeric.h" // getContainerPos
 #include "nodedef.h" // For ContentFeatures for getNodeDef*()
 #include "util/pointer.h" // HybridPtr
+#include "mapnode_with_def.h"
 
 class Map;
 class NodeMetadataList;
@@ -317,12 +318,29 @@ public:
 		return getNodeDefNoCheck(p);
 	}
 	
+	NodeWithDef getNodeWithDef(v3s16 p)
+	{
+		if(!isValidPosition(p))
+			throw InvalidPositionException();
+		return getNodeWithDefNoCheck(p);
+	}
+	NodeWithDef getNodeWithDefNoEx(v3s16 p);
+
+	NodeWithDef setNode(v3s16 p, const NodeWithDef &nd)
+	{
+		if(!isValidPosition(p))
+			throw InvalidPositionException();
+		setNode(p, nd);
+	}
+	
 	/*
 		Non-checking variants of the above
 	*/
 
 	MapNode getNodeNoCheck(s16 x, s16 y, s16 z)
 	{
+		if(data == NULL)
+			throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
 	
@@ -331,9 +349,7 @@ public:
 		return getNodeNoCheck(p.X, p.Y, p.Z);
 	}
 	
-	HybridPtr<const ContentFeatures> getNodeDefNoCheck(v3s16 p);
-	
-	void setNodeNoCheck(s16 x, s16 y, s16 z, MapNode & n)
+	void setNodeNoCheck(s16 x, s16 y, s16 z, const MapNode & n)
 	{
 		if(data == NULL)
 			throw InvalidPositionException();
@@ -341,11 +357,15 @@ public:
 		raiseModified(MOD_STATE_WRITE_NEEDED, "setNodeNoCheck");
 	}
 	
-	void setNodeNoCheck(v3s16 p, MapNode & n)
+	void setNodeNoCheck(v3s16 p, const MapNode & n)
 	{
 		setNodeNoCheck(p.X, p.Y, p.Z, n);
 	}
 
+	HybridPtr<const ContentFeatures> getNodeDefNoCheck(v3s16 p);
+	NodeWithDef getNodeWithDefNoCheck(v3s16 p);
+	void setNodeNoCheck(v3s16 p, const NodeWithDef &nd);
+	
 	/*
 		These functions consult the parent container if the position
 		is not valid on this MapBlock.

@@ -243,6 +243,45 @@ void Map::setNode(v3s16 p, MapNode & n)
 	block->setNodeNoCheck(relpos, n);
 }
 
+NodeWithDef Map::getNodeWithDef(v3s16 p)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+		throw InvalidPositionException();
+	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
+	return NodeWithDef(
+		block->getNodeNoCheck(relpos),
+		block->getNodeDefNoCheck(relpos)
+	);
+}
+NodeWithDef Map::getNodeWithDefNoEx(v3s16 p)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	MapBlock *block = getBlockNoCreateNoEx(blockpos);
+	if(block == NULL)
+		return NodeWithDef(MapNode(CONTENT_IGNORE), m_gamedef->ndef());
+	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
+	return block->getNodeWithDefNoCheck(relpos);
+}
+
+void Map::setNode(v3s16 p, const NodeWithDef &nd)
+{
+	v3s16 blockpos = getNodeBlockPos(p);
+	MapBlock *block = getBlockNoCreate(blockpos);
+	v3s16 relpos = p - blockpos*MAP_BLOCKSIZE;
+	// Never allow placing CONTENT_IGNORE, it fucks up stuff
+	if(nd.getContent() == CONTENT_IGNORE){
+		errorstream<<"Map::setNode(): Not allowing to place CONTENT_IGNORE"
+				<<" while trying to replace \""
+				<<m_gamedef->ndef()->get(block->getNodeNoCheck(relpos)).name
+				<<"\" at "<<PP(p)<<" (block "<<PP(blockpos)<<")"<<std::endl;
+		debug_stacks_print_to(infostream);
+		return;
+	}
+	block->setNodeNoCheck(relpos, nd);
+}
+
 
 /*
 	Goes recursively through the neighbours of the node.
