@@ -331,6 +331,13 @@ set(common_SRCS
 	${JTHREAD_SRCS}
 	${common_SCRIPT_SRCS}
 	${UTIL_SRCS}
+	util/serialize.cpp
+	util/template_serialize.cpp
+	util/directiontables.cpp
+	util/numeric.cpp
+	util/pointedthing.cpp
+	util/string.cpp
+	util/timetaker.cpp
 )
 
 # This gives us the icon
