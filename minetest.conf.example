@@ -114,8 +114,10 @@
 # Enable smooth lighting with simple ambient occlusion;
 # disable for speed or for different looks.
 #smooth_lighting = true
-# Path to texture directory. All textures are first searched from here.
+# Path to texture directory.
 #texture_path = 
+# Name of current texture pack, textures are first searched from $texture_path/$texture_pack, then textures/$texture_pack.
+#texture_pack = 
 # Video back-end.
 # Possible values: null, software, burningsvideo, direct3d8, direct3d9, opengl
 #video_driver = opengl

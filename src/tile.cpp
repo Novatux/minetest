@@ -121,15 +121,42 @@ std::string getTexturePath(const std::string &filename)
 	if(incache)
 		return fullpath;
 	
+	
+	std::string texture_folder = g_settings->get("texture_pack");
+	
 	/*
 		Check from texture_path
 	*/
 	std::string texture_path = g_settings->get("texture_path");
 	if(texture_path != "")
 	{
-		std::string testpath = texture_path + DIR_DELIM + filename;
-		// Check all filename extensions. Returns "" if not found.
-		fullpath = getImagePath(testpath);
+		if(texture_folder != "")
+		{
+			std::string testpath = texture_path + DIR_DELIM + texture_folder + DIR_DELIM + filename;
+			// Check all filename extensions. Returns "" if not found.
+			fullpath = getImagePath(testpath);
+		}
+		else
+		{
+			std::string testpath = texture_path + DIR_DELIM + filename;
+			// Check all filename extensions. Returns "" if not found.
+			fullpath = getImagePath(testpath);
+		}
+	}
+	
+	/*
+		Check from $user/textures/$texture_pack
+	*/
+	if(fullpath == "")
+	{
+		if(texture_folder != "")
+		{
+			std::string texture_path = porting::path_user + DIR_DELIM
+					+ "textures" + DIR_DELIM + texture_folder;
+			std::string testpath = texture_path + DIR_DELIM + filename;
+			// Check all filename extensions. Returns "" if not found.
+			fullpath = getImagePath(testpath);
+		}
 	}
 	
 	/*
