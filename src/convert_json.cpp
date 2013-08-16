@@ -203,10 +203,10 @@ ModStoreModDetails          readModStoreModDetails(Json::Value& details) {
 		}
 	}
 
-	if (retval.versions.size() < 1) {
-		errorstream << "readModStoreModDetails: not a single version specified!" << std::endl;
-		retval.valid = false;
-	}
+	//if (retval.versions.size() < 1) {
+	//	errorstream << "readModStoreModDetails: not a single version specified!" << std::endl;
+	//	retval.valid = false;
+	//}
 
 	//categories
 	if (details["categories"].isObject()) {

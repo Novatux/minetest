@@ -170,7 +170,7 @@ function modstore.update_modlist()
 		
 	if modstore.modlist_unsorted.data ~= nil then
 		modstore.modlist_unsorted.pagecount = 
-			math.floor((#modstore.modlist_unsorted.data / modstore.modsperpage))
+			math.ceil((#modstore.modlist_unsorted.data / modstore.modsperpage))-1
 	else
 		modstore.modlist_unsorted.data = {}
 		modstore.modlist_unsorted.pagecount = 0
@@ -244,14 +244,16 @@ function modstore.getmodlist(list)
 			retval = retval .."label[10.1," .. ratingy .. ";Rating: " .. details.rating .."]"
 			
 			--install button
-			local buttony = screenshot_ypos + 1.2
-			local buttonnumber = (i - (list.page * modstore.modsperpage))
-			retval = retval .."button[9.6," .. buttony .. ";2,0.5;btn_install_mod_" .. buttonnumber .. ";"
+			if details.download_url ~= "" then
+				local buttony = screenshot_ypos + 1.2
+				local buttonnumber = (i - (list.page * modstore.modsperpage))
+				retval = retval .."button[9.6," .. buttony .. ";2,0.5;btn_install_mod_" .. buttonnumber .. ";"
 			
-			if modmgr.mod_exists(details.basename) then
-				retval = retval .. "re-Install]"
-			else
-				retval = retval .. "Install]"
+				if modmgr.mod_exists(details.basename) then
+					retval = retval .. "re-Install]"
+				else
+					retval = retval .. "Install]"
+				end
 			end
 		end
 	end

@@ -341,7 +341,11 @@ int ModApiMainMenu::l_get_modstore_details(lua_State *L)
 			lua_settable(L, top);
 
 			lua_pushstring(L,"download_url");
-			lua_pushstring(L,current_mod.versions[0].file.c_str());
+			if (current_mod.versions.size() < 1) {
+				lua_pushstring(L,"");
+			} else {
+				lua_pushstring(L,current_mod.versions[0].file.c_str());
+			}
 			lua_settable(L, top);
 
 			lua_pushstring(L,"screenshot_url");
