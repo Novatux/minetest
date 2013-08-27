@@ -46,6 +46,7 @@ struct ObjectProperties
 	float automatic_rotate;
 	f32 stepheight;
 	bool automatic_face_movement_dir;
+	bool force_load;
 
 
 	ObjectProperties();

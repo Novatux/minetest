@@ -41,7 +41,8 @@ ObjectProperties::ObjectProperties():
 	makes_footstep_sound(false),
 	automatic_rotate(0),
 	stepheight(0),
-	automatic_face_movement_dir(false)
+	automatic_face_movement_dir(false),
+	force_load(false)
 {
 	textures.push_back("unknown_object.png");
 	colors.push_back(video::SColor(255,255,255,255));
@@ -73,6 +74,7 @@ std::string ObjectProperties::dump()
 	os<<", is_visible="<<is_visible;
 	os<<", makes_footstep_sound="<<makes_footstep_sound;
 	os<<", automatic_rotate="<<automatic_rotate;
+	os<<", force_load="<<force_load;
 	return os.str();
 }
 
@@ -104,6 +106,7 @@ void ObjectProperties::serialize(std::ostream &os) const
 	writeU8(os, collideWithObjects);
 	writeF1000(os,stepheight);
 	writeU8(os, automatic_face_movement_dir);
+	writeU8(os, force_load);
 	// Add stuff only at the bottom.
 	// Never remove anything, because we don't want new versions of this
 }
@@ -139,6 +142,7 @@ void ObjectProperties::deSerialize(std::istream &is)
 			collideWithObjects = readU8(is);
 			stepheight = readF1000(is);
 			automatic_face_movement_dir = readU8(is);
+			force_load = readU8(is);
 		}catch(SerializationError &e){}
 	}
 	else
