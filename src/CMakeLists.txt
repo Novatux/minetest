@@ -333,7 +333,6 @@ set(common_SRCS
 	${common_SCRIPT_SRCS}
 	${UTIL_SRCS}
 	util/serialize.cpp
-	util/template_serialize.cpp
 	util/directiontables.cpp
 	util/numeric.cpp
 	util/pointedthing.cpp
