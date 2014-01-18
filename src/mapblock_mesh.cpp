@@ -46,7 +46,7 @@ float srgb_linear_multiply(float f, float m, float max)
 class MeshNodeDefManager: public INodeDefManager
 {
 	INodeDefManager *m_orig;
-	ContentFeatures m_content_features[MAX_CONTENT+1];
+	ContentFeatures m_content_features[MAX_REGISTERED_CONTENT+1];
 public:
 	MeshNodeDefManager(INodeDefManager *orig):
 		m_orig(orig)
@@ -83,9 +83,9 @@ public:
 	{
 		return m_orig->get(name);
 	}
-	void serialize(std::ostream &os)
+	void serialize(std::ostream &os, u16 protocol_version)
 	{
-		m_orig->serialize(os);
+		m_orig->serialize(os, protocol_version);
 	}
 	/* Special interface */
 	void setSpecial(content_t id, const ContentFeatures &def)
@@ -99,21 +99,23 @@ public:
 		bool new_style_water = g_settings->getBool("new_style_water");
 		bool new_style_leaves = g_settings->getBool("new_style_leaves");
 		bool opaque_water = g_settings->getBool("opaque_water");
-		
-		for(u16 i=0; i<=MAX_CONTENT; i++)
+
+		for(u32 i=0; i<=MAX_REGISTERED_CONTENT; i++)
 		{
 			ContentFeatures *f = &m_content_features[i];
-			if(f->name.empty())
-				continue;
-			
+
 			// Figure out the actual tiles to use
 			TileDef tiledef[6];
 			for(u32 j=0; j<6; j++)
 			{
 				tiledef[j] = f->tiledef[j];
 				if(tiledef[j].name == "")
-					tiledef[j].name = "unknown_block.png";
+					tiledef[j].name = "unknown_node.png";
 			}
+
+			bool is_liquid = false;
+			u8 material_type;
+			material_type = (f->alpha == 255) ? TILE_MATERIAL_BASIC : TILE_MATERIAL_ALPHA;
 
 			switch(f->drawtype){
 			default:
@@ -133,14 +135,20 @@ public:
 					f->solidness = 1;
 					f->backface_culling = false;
 				}
+				is_liquid = true;
 				break;
 			case NDT_FLOWINGLIQUID:
 				assert(f->liquid_type == LIQUID_FLOWING);
 				f->solidness = 0;
 				if(opaque_water)
 					f->alpha = 255;
+				is_liquid = true;
 				break;
 			case NDT_GLASSLIKE:
+				f->solidness = 0;
+				f->visual_solidness = 1;
+				break;
+			case NDT_GLASSLIKE_FRAMED:
 				f->solidness = 0;
 				f->visual_solidness = 1;
 				break;
@@ -160,10 +168,17 @@ public:
 						tiledef[i].name += std::string("^[noalpha");
 					}
 				}
+				if (f->waving == 1)
+					material_type = TILE_MATERIAL_LEAVES;
+				break;
+			case NDT_PLANTLIKE:
+				f->solidness = 0;
+				f->backface_culling = false;
+				if (f->waving == 1)
+					material_type = TILE_MATERIAL_PLANTS;
 				break;
 			case NDT_TORCHLIKE:
 			case NDT_SIGNLIKE:
-			case NDT_PLANTLIKE:
 			case NDT_FENCELIKE:
 			case NDT_RAILLIKE:
 			case NDT_NODEBOX:
@@ -171,16 +186,19 @@ public:
 				break;
 			}
 
+			if (is_liquid)
+				material_type = (f->alpha == 255) ? TILE_MATERIAL_LIQUID_OPAQUE : TILE_MATERIAL_LIQUID_TRANSPARENT;
+
 			// Tiles (fill in f->tiles[])
 			for(u16 j=0; j<6; j++){
 				// Texture
-				f->tiles[j].texture = tsrc->getTexture(tiledef[j].name);
+				f->tiles[j].texture = tsrc->getTexture(
+						tiledef[j].name,
+						&f->tiles[j].texture_id);
 				// Alpha
 				f->tiles[j].alpha = f->alpha;
-				if(f->alpha == 255)
-					f->tiles[j].material_type = MATERIAL_ALPHA_SIMPLE;
-				else
-					f->tiles[j].material_type = MATERIAL_ALPHA_VERTEX;
+				// Material type
+				f->tiles[j].material_type = material_type;
 				// Material flags
 				f->tiles[j].material_flags = 0;
 				if(f->backface_culling)
@@ -191,10 +209,9 @@ public:
 				if(f->tiles[j].material_flags &
 						MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES)
 				{
-					// Get raw texture size to determine frame count by
+					// Get texture size to determine frame count by
 					// aspect ratio
-					video::ITexture *t = tsrc->getTextureRaw(tiledef[j].name);
-					v2u32 size = t->getOriginalSize();
+					v2u32 size = f->tiles[j].texture->getOriginalSize();
 					int frame_height = (float)size.X /
 							(float)tiledef[j].animation.aspect_w *
 							(float)tiledef[j].animation.aspect_h;
@@ -217,14 +234,13 @@ public:
 			// Special tiles (fill in f->special_tiles[])
 			for(u16 j=0; j<CF_SPECIAL_COUNT; j++){
 				// Texture
-				f->special_tiles[j].texture =
-						tsrc->getTexture(f->tiledef_special[j].name);
+				f->special_tiles[j].texture = tsrc->getTexture(
+						f->tiledef_special[j].name,
+						&f->special_tiles[j].texture_id);
 				// Alpha
 				f->special_tiles[j].alpha = f->alpha;
-				if(f->alpha == 255)
-					f->special_tiles[j].material_type = MATERIAL_ALPHA_SIMPLE;
-				else
-					f->special_tiles[j].material_type = MATERIAL_ALPHA_VERTEX;
+				// Material type
+				f->special_tiles[j].material_type = material_type;
 				// Material flags
 				f->special_tiles[j].material_flags = 0;
 				if(f->tiledef_special[j].backface_culling)
@@ -235,10 +251,9 @@ public:
 				if(f->special_tiles[j].material_flags &
 						MATERIAL_FLAG_ANIMATION_VERTICAL_FRAMES)
 				{
-					// Get raw texture size to determine frame count by
+					// Get texture size to determine frame count by
 					// aspect ratio
-					video::ITexture *t = tsrc->getTextureRaw(f->tiledef_special[j].name);
-					v2u32 size = t->getOriginalSize();
+					v2u32 size = f->special_tiles[j].texture->getOriginalSize();
 					int frame_height = (float)size.X /
 							(float)f->tiledef_special[j].animation.aspect_w *
 							(float)f->tiledef_special[j].animation.aspect_h;
@@ -289,6 +304,9 @@ public:
 	// pointers in other threads than main thread will make things explode.
 	ITextureSource* getTextureSource()
 		{ return m_orig->getTextureSource(); }
+	
+	IShaderSource* getShaderSource()
+		{ return m_orig->getShaderSource(); }
 	
 	// Used for keeping track of names/ids of unknown nodes
 	u16 allocateUnknownNodeId(const std::string &name)
@@ -388,7 +406,7 @@ void MeshMakeData::fill(MapBlock *block)
 			v3s16(-1, 0, 0) // left
 		};
 		MeshNodeDefManager *nodedef = NULL;
-		int special_id = 2000; // TODO: Choose first id that isn't already used
+		u16 special_id = 2000; // TODO: Choose first id that isn't already used
 		for(u16 i=0; i<7; i++)
 		{
 			const v3s16 &dir = dirs[i];
@@ -413,10 +431,10 @@ void MeshMakeData::fill(MapBlock *block)
 					m_vmanip.getNodeRef(blockpos_nodes+p).setContent(special_id);
 					nodedef->setSpecial(special_id, def);
 					special_id++;
-					if(special_id >= MAX_CONTENT)
+					if(special_id >= MAX_REGISTERED_CONTENT)
 						break;
 				}
-				if(special_id >= MAX_CONTENT)
+				if(special_id >= MAX_REGISTERED_CONTENT)
 					break;
 			}
 		}
@@ -1380,7 +1398,6 @@ MapBlockMesh::MapBlockMesh(MeshMakeData *data):
 
 		NOTE: This is the slowest part of this method.
 	*/
-	core::array<FastFace> fastfaces_new;
 	{
 		// 4-23ms for MAP_BLOCKSIZE=16  (NOTE: probably outdated)
 		//TimeTaker timer2("updateAllFastFaceRows()");

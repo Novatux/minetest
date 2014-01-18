@@ -52,7 +52,7 @@ struct SimpleSoundSpec;
 struct ServerSoundParams;
 class Inventory;
 struct NodeBox;
-struct ContentFeatures;
+#include <nodedef.h>
 struct TileDef;
 class Server;
 struct DigParams;
@@ -62,7 +62,8 @@ struct NoiseParams;
 class DecoSchematic;
 
 
-ContentFeatures    read_content_features         (lua_State *L, int index);
+ContentFeatures    read_content_features         (lua_State *L, int index, ContentFeatures f_base = ContentFeatures());
+void               push_content_features         (lua_State *L, const ContentFeatures &f);
 TileDef            read_tiledef                  (lua_State *L, int index);
 void               read_soundspec                (lua_State *L, int index,
                                                   SimpleSoundSpec &spec);

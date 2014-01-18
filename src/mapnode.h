@@ -233,7 +233,9 @@ struct MapNode
 
 	/* Liquid helpers */
 	u8 getMaxLevel(INodeDefManager *nodemgr) const;
+	u8 getMaxLevel(const ContentFeatures &f) const;
 	u8 getLevel(INodeDefManager *nodemgr) const;
+	u8 getLevel(const ContentFeatures &f) const;
 	u8 setLevel(INodeDefManager *nodemgr, s8 level = 1);
 	u8 addLevel(INodeDefManager *nodemgr, s8 add = 1);
 	void freezeMelt(INodeDefManager *nodemgr);

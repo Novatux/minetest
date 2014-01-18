@@ -991,13 +991,13 @@ void Map::updateLighting(std::map<v3s16, MapBlock*> & a_blocks,
 	}
 }
 
-void Map::updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks)
+void Map::updateNodeLight(v3s16 p, std::map<v3s16, MapBlock*> &modified_blocks)
 {
 	v3s16 toppos = p + v3s16(0,1,0);
 	v3s16 bottompos = p + v3s16(0,-1,0);
 
 	bool node_under_sunlight = true;
-	core::map<v3s16, bool> light_sources;
+	std::set<v3s16> light_sources;
 	
 	/*
 		If there is a node at top and it doesn't have sunlight,
@@ -1038,7 +1038,7 @@ void Map::updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks)
 		v3s16 blockpos = getNodeBlockPos(p);
 		MapBlock * block = getBlockNoCreate(blockpos);
 		assert(block != NULL);
-		modified_blocks.insert(blockpos, block);
+		modified_blocks[blockpos] = block;
 
 		assert(isValidPosition(p));
 
@@ -1112,12 +1112,11 @@ void Map::updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks)
 	/*
 		Update information about whether day and night light differ
 	*/
-	for(core::map<v3s16, MapBlock*>::Iterator
-			i = modified_blocks.getIterator();
-			i.atEnd() == false; i++)
+	for(std::map<v3s16, MapBlock*>::iterator
+			i = modified_blocks.begin();
+			i != modified_blocks.end(); i++)
 	{
-		MapBlock *block = i.getNode()->getValue();
-		block->expireDayNightDiff();
+		i->second->expireDayNightDiff();
 	}
 
 	/*
@@ -1155,8 +1154,6 @@ void Map::updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks)
 void Map::addNodeAndUpdate(v3s16 p, NodeWithDef nd,
 		std::map<v3s16, MapBlock*> &modified_blocks,
 		bool remove_metadata)
-void Map::addNodeAndUpdate(v3s16 p, NodeWithDef nd,
-		core::map<v3s16, MapBlock*> &modified_blocks)
 {
 	/*PrintInfo(m_dout);
 	m_dout<<DTIME<<"Map::addNodeAndUpdate(): p=("
@@ -1355,9 +1352,9 @@ void Map::addNodeAndUpdate(v3s16 p, NodeWithDef nd,
 }
 
 void Map::addNodeAndUpdate(v3s16 p, MapNode n,
-		core::map<v3s16, MapBlock*> &modified_blocks)
+		std::map<v3s16, MapBlock*> &modified_blocks, bool remove_metadata)
 {
-	addNodeAndUpdate(p, NodeWithDef(n, m_gamedef->ndef()), modified_blocks);
+	addNodeAndUpdate(p, NodeWithDef(n, m_gamedef->ndef()), modified_blocks, remove_metadata);
 }
 
 /*
@@ -1558,15 +1555,15 @@ bool Map::updateNodeLightWithEvent(v3s16 p)
 
 	bool succeeded = true;
 	try{
-		core::map<v3s16, MapBlock*> modified_blocks;
+		std::map<v3s16, MapBlock*> modified_blocks;
 		updateNodeLight(p, modified_blocks);
 
 		// Copy modified_blocks to event
-		for(core::map<v3s16, MapBlock*>::Iterator
-				i = modified_blocks.getIterator();
-				i.atEnd()==false; i++)
+		for(std::map<v3s16, MapBlock*>::iterator
+				i = modified_blocks.begin();
+				i != modified_blocks.end(); i++)
 		{
-			event.modified_blocks.insert(i.getNode()->getKey(), false);
+			event.modified_blocks.insert(i->first);
 		}
 	}
 	catch(InvalidPositionException &e){
@@ -1587,7 +1584,7 @@ bool Map::addNodeWithEvent(v3s16 p, NodeWithDef nd, bool remove_metadata)
 
 	bool succeeded = true;
 	try{
-		core::map<v3s16, MapBlock*> modified_blocks;
+		std::map<v3s16, MapBlock*> modified_blocks;
 		addNodeAndUpdate(p, nd, modified_blocks, remove_metadata);
 
 		// Copy modified_blocks to event

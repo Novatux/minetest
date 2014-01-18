@@ -61,12 +61,13 @@ struct STraits<std::vector<u8> >
 			*result = src;
 		return true;
 	}
-	static void write(const std::vector<u8> &src, std::vector<u8> &result)
+	static void write(const std::vector<u8> &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result = src;
 	}
 };
 
+/*
 template<>
 struct STraits<SharedBuffer<u8> >
 {
@@ -80,11 +81,12 @@ struct STraits<SharedBuffer<u8> >
 			*result = SharedBuffer<u8>(&src[0], src.size());
 		return true;
 	}
-	static void write(const SharedBuffer<u8> &src, std::vector<u8> &result)
+	static void write(const SharedBuffer<u8> &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.insert(result.begin(), &src[0], &src[0] + src.getSize());
 	}
 };
+*/
 
 template<>
 struct STraits<std::string>
@@ -99,7 +101,7 @@ struct STraits<std::string>
 			*result = std::string((const char*)&src[0], src.size());
 		return true;
 	}
-	static void write(const std::string &src, std::vector<u8> &result)
+	static void write(const std::string &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.insert(result.begin(), (u8*)src.c_str(),
 				(u8*)src.c_str() + src.size());
@@ -121,7 +123,7 @@ struct STraits<bool>
 			*result = !!src[0];
 		return true;
 	}
-	static void write(const bool &src, std::vector<u8> &result)
+	static void write(const bool &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.push_back(src);
 	}
@@ -142,7 +144,7 @@ struct STraits<u8>
 			*result = src[0];
 		return true;
 	}
-	static void write(const u8 &src, std::vector<u8> &result)
+	static void write(const u8 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.push_back(src);
 	}
@@ -163,7 +165,7 @@ struct STraits<u16>
 			*result = readU16(&src[0]);
 		return true;
 	}
-	static void write(const u16 &src, std::vector<u8> &result)
+	static void write(const u16 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(2);
 		writeU16(&result[0], src);
@@ -185,7 +187,7 @@ struct STraits<u32>
 			*result = readU32(&src[0]);
 		return true;
 	}
-	static void write(const u32 &src, std::vector<u8> &result)
+	static void write(const u32 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(4);
 		writeU32(&result[0], src);
@@ -207,7 +209,7 @@ struct STraits<s8>
 			*result = src[0];
 		return true;
 	}
-	static void write(const s8 &src, std::vector<s8> &result)
+	static void write(const s8 &src, std::vector<s8> &result, u16 protocol_version)
 	{
 		result.push_back((u8)src);
 	}
@@ -228,7 +230,7 @@ struct STraits<s16>
 			*result = readS16(&src[0]);
 		return true;
 	}
-	static void write(const s16 &src, std::vector<u8> &result)
+	static void write(const s16 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(2);
 		writeS16(&result[0], src);
@@ -250,7 +252,7 @@ struct STraits<s32>
 			*result = readS32(&src[0]);
 		return true;
 	}
-	static void write(const s32 &src, std::vector<u8> &result)
+	static void write(const s32 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(4);
 		writeS32(&result[0], src);
@@ -272,7 +274,7 @@ struct STraits<f32>
 			*result = readF32(&src[0]);
 		return true;
 	}
-	static void write(const f32 &src, std::vector<u8> &result)
+	static void write(const f32 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(4);
 		writeF32(&result[0], src);
@@ -302,7 +304,7 @@ struct STraits<F1000>
 			result->v = readF1000(&src[0]);
 		return true;
 	}
-	static void write(const F1000 &src, std::vector<u8> &result)
+	static void write(const F1000 &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(4);
 		writeF1000(&result[0], src.v);
@@ -324,7 +326,7 @@ struct STraits<video::SColor>
 			*result = readARGB8(&src[0]);
 		return true;
 	}
-	static void write(const video::SColor &src, std::vector<u8> &result)
+	static void write(const video::SColor &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		result.resize(4);
 		writeARGB8(&result[0], src);
@@ -450,10 +452,10 @@ public:
 
 	// To enable new types, define an STraits<type> for them.
 	template<typename T>
-	void append(u32 key, const T &value)
+	void append(u32 key, const T &value, u16 protocol_version=0) //protocol_version = 0 is for things who don't need it
 	{
 		std::vector<u8> a;
-		STraits<T>::write(value, a);
+		STraits<T>::write(value, a, protocol_version);
 		appendRaw(key, Value(STraits<T>::type(), a));
 	}
 

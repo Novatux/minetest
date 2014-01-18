@@ -18,6 +18,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 #include "template_serialize.h"
+#include "exceptions.h"
+#include "debug.h"
 
 void BinaryKeyValueList::serialize(std::ostream &os)
 {

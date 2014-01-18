@@ -244,12 +244,12 @@ TileDef read_tiledef(lua_State *L, int index)
 }
 
 /******************************************************************************/
-ContentFeatures read_content_features(lua_State *L, int index)
+ContentFeatures read_content_features(lua_State *L, int index, ContentFeatures f_base)
 {
 	if(index < 0)
 		index = lua_gettop(L) + 1 + index;
 
-	ContentFeatures f;
+	ContentFeatures f = f_base;
 
 	/* Cache existence of some callbacks */
 	lua_getfield(L, index, "on_construct");
@@ -452,6 +452,13 @@ ContentFeatures read_content_features(lua_State *L, int index)
 	lua_pop(L, 1);
 
 	return f;
+}
+
+/******************************************************************************/
+void push_content_features(lua_State *L, const ContentFeatures &f)
+{
+        lua_newtable(L);
+        // TODO
 }
 
 /******************************************************************************/

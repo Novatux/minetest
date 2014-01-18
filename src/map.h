@@ -214,9 +214,6 @@ public:
 
 	// Returns a NULL pointer if not found
 	HybridPtr<const ContentFeatures> getNodeDefNoEx(v3s16 p);
-
-	// throws InvalidPositionException if not found
-	void setNode(v3s16 p, MapNode & n);
 	
 	NodeWithDef getNodeWithDef(v3s16 p);
 	NodeWithDef getNodeWithDefNoEx(v3s16 p);
@@ -248,22 +245,23 @@ public:
 			std::map<v3s16, MapBlock*> & modified_blocks);
 
 	void updateLighting(enum LightBank bank,
-			core::map<v3s16, MapBlock*>  & a_blocks,
-			core::map<v3s16, MapBlock*> & modified_blocks);
+			std::map<v3s16, MapBlock*>  & a_blocks,
+			std::map<v3s16, MapBlock*> & modified_blocks);
 			
-	void updateLighting(core::map<v3s16, MapBlock*>  & a_blocks,
-			core::map<v3s16, MapBlock*> & modified_blocks);
+	void updateLighting(std::map<v3s16, MapBlock*>  & a_blocks,
+			std::map<v3s16, MapBlock*> & modified_blocks);
 
-	void updateNodeLight(v3s16 p, core::map<v3s16, MapBlock*> &modified_blocks);
+	void updateNodeLight(v3s16 p, std::map<v3s16, MapBlock*> &modified_blocks);
 
 	/*
 		These handle lighting but not faces.
 	*/
 	void addNodeAndUpdate(v3s16 p, MapNode n,
-			core::map<v3s16, MapBlock*> &modified_blocks,
+			std::map<v3s16, MapBlock*> &modified_blocks,
 			bool remove_metadata = true);
 	void addNodeAndUpdate(v3s16 p, NodeWithDef nd,
-			core::map<v3s16, MapBlock*> &modified_blocks);
+			std::map<v3s16, MapBlock*> &modified_blocks,
+			bool remove_metadata = true);
 	void removeNodeAndUpdate(v3s16 p,
 			std::map<v3s16, MapBlock*> &modified_blocks);
 

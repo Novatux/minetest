@@ -127,10 +127,10 @@ struct STraits<NodeBox>
 		}
 		return true;
 	}
-	static void write(const NodeBox &src, std::vector<u8> &result)
+	static void write(const NodeBox &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		std::ostringstream os(std::ios::binary);
-		src.serialize(os);
+		src.serialize(os, protocol_version);
 		std::string s = os.str();
 		result.insert(result.begin(), (u8*)s.c_str(),
 				(u8*)s.c_str() + s.size());
@@ -184,10 +184,10 @@ struct STraits<TileDef>
 		}
 		return true;
 	}
-	static void write(const TileDef &src, std::vector<u8> &result)
+	static void write(const TileDef &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		std::ostringstream os(std::ios::binary);
-		src.serialize(os);
+		src.serialize(os, protocol_version);
 		std::string s = os.str();
 		result.insert(result.begin(), (u8*)s.c_str(),
 				(u8*)s.c_str() + s.size());
@@ -226,7 +226,7 @@ struct STraits<SimpleSoundSpec>
 		}
 		return true;
 	}
-	static void write(const SimpleSoundSpec &src, std::vector<u8> &result)
+	static void write(const SimpleSoundSpec &src, std::vector<u8> &result, u16 protocol_version)
 	{
 		std::ostringstream os(std::ios::binary);
 		serializeSimpleSoundSpec(src, os);
@@ -356,9 +356,9 @@ enum{
 	NODEDEF_WAVING,
 };
 
-void ContentFeatures::serialize(std::ostream &os, u16 protocol_version)
+void ContentFeatures::serialize(std::ostream &os, u16 protocol_version) const
 {
-	if(protocol_version < 15){
+	if(protocol_version < 22){ //TODO: Fix that number
 		serializeOld(os, protocol_version);
 		return;
 	}
@@ -374,9 +374,9 @@ void ContentFeatures::serialize(std::ostream &os, u16 protocol_version)
 	bv.append<u8>(NODEDEF_DRAWTYPE, drawtype);
 	bv.append(NODEDEF_VISUAL_SCALE, F1000(visual_scale));
 	for(u32 i=0; i<6; i++)
-		bv.append(NODEDEF_TILEDEFS, tiledef[i]);
+		bv.append(NODEDEF_TILEDEFS, tiledef[i], protocol_version);
 	for(u32 i=0; i<CF_SPECIAL_COUNT; i++)
-		bv.append(NODEDEF_TILEDEF_SPECIALS, tiledef_special[i]);
+		bv.append(NODEDEF_TILEDEF_SPECIALS, tiledef_special[i], protocol_version);
 	bv.append(NODEDEF_ALPHA, alpha);
 	bv.append(NODEDEF_POST_EFFECT_COLOR, post_effect_color);
 	bv.append<u8>(NODEDEF_PARAM_TYPE, param_type);
@@ -396,8 +396,8 @@ void ContentFeatures::serialize(std::ostream &os, u16 protocol_version)
 	bv.append(NODEDEF_LIQUID_RENEWABLE, liquid_renewable);
 	bv.append(NODEDEF_LIGHT_SOURCE, light_source);
 	bv.append(NODEDEF_DAMAGE_PER_SECOND, damage_per_second);
-	bv.append(NODEDEF_NODE_BOX, node_box);
-	bv.append(NODEDEF_SELECTION_BOX, selection_box);
+	bv.append(NODEDEF_NODE_BOX, node_box, protocol_version);
+	bv.append(NODEDEF_SELECTION_BOX, selection_box, protocol_version);
 	bv.append(NODEDEF_LEGACY_FACEDIR_SIMPLE, legacy_facedir_simple);
 	bv.append(NODEDEF_LEGACY_WALLMOUNTED, legacy_wallmounted);
 	bv.append(NODEDEF_SOUND_FOOTSTEP, sound_footstep);
@@ -408,8 +408,6 @@ void ContentFeatures::serialize(std::ostream &os, u16 protocol_version)
 	bv.append(NODEDEF_LEVELED, leveled);
 	bv.append(NODEDEF_LIQUID_RANGE, liquid_range);
 	bv.append(NODEDEF_WAVING, waving);
-	// Stuff below should be moved to correct place in a version that otherwise changes
-	// the protocol version
 	
 	bv.serialize(os);
 }
@@ -1005,7 +1003,7 @@ IWritableNodeDefManager* createNodeDefManager()
 	Serialization of old ContentFeatures formats
 */
 
-void ContentFeatures::serializeOld(std::ostream &os, u16 protocol_version)
+void ContentFeatures::serializeOld(std::ostream &os, u16 protocol_version) const
 {
 	if(protocol_version == 14)
 	{
@@ -1021,10 +1019,10 @@ void ContentFeatures::serializeOld(std::ostream &os, u16 protocol_version)
 		writeF1000(os, visual_scale);
 		writeU8(os, 6);
 		for(u32 i=0; i<6; i++)
-			tiledef[i].serialize(os);
+			tiledef[i].serialize(os, protocol_version);
 		writeU8(os, CF_SPECIAL_COUNT);
 		for(u32 i=0; i<CF_SPECIAL_COUNT; i++){
-			tiledef_special[i].serialize(os);
+			tiledef_special[i].serialize(os, protocol_version);
 		}
 		writeU8(os, alpha);
 		writeU8(os, post_effect_color.getAlpha());
@@ -1049,8 +1047,8 @@ void ContentFeatures::serializeOld(std::ostream &os, u16 protocol_version)
 		writeU8(os, liquid_renewable);
 		writeU8(os, light_source);
 		writeU32(os, damage_per_second);
-		node_box.serialize(os);
-		selection_box.serialize(os);
+		node_box.serialize(os, protocol_version);
+		selection_box.serialize(os, protocol_version);
 		writeU8(os, legacy_facedir_simple);
 		writeU8(os, legacy_wallmounted);
 		serializeSimpleSoundSpec(sound_footstep, os);

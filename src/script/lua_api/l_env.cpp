@@ -138,35 +138,20 @@ int ModApiEnvMod::l_swap_node(lua_State *L)
 
 // minetest.set_node_with_def(pos, node, basedef, adddef)
 // pos = {x=num, y=num, z=num}
-static int l_set_node_with_def(lua_State *L)
+int ModApiEnvMod::l_set_node_with_def(lua_State *L)
 {
 	GET_ENV_PTR;
 	
 	INodeDefManager *ndef = env->getGameDef()->ndef();
 	// parameters
-	v3s16 pos = read_v3s16(L, 2);
-	MapNode n = readnode(L, 3, ndef);
+	v3s16 pos = read_v3s16(L, 1);
+	MapNode n = readnode(L, 2, ndef);
+	luaL_checktype(L, 3, LUA_TTABLE);
 	luaL_checktype(L, 4, LUA_TTABLE);
-	luaL_checktype(L, 5, LUA_TTABLE);
-	ContentFeatures def_base = read_content_features(L, 4);
-	ContentFeatures def = read_content_features(L, 5, def_base);
+	ContentFeatures def_base = read_content_features(L, 3);
+	ContentFeatures def = read_content_features(L, 4, def_base);
+	bool succeeded = env->setNode(pos, n, def);
 	// Do it
-	MapNode n_old = env->getMap().getNodeNoEx(pos);
-	// Call destructor
-	if(ndef->get(n_old).has_on_destruct)
-		scriptapi_node_on_destruct(L, pos, n_old);
-	// Replace node
-	HybridPtr<const ContentFeatures> def_ptr(new ContentFeatures(def));
-	NodeWithDef nd(n, def_ptr);
-	bool succeeded = env->getMap().addNodeWithEvent(pos, nd);
-	if(succeeded){
-		// Call post-destructor
-		if(ndef->get(n_old).has_after_destruct)
-			scriptapi_node_after_destruct(L, pos, n_old);
-		// Call constructor
-		if(ndef->get(n).has_on_construct)
-			scriptapi_node_on_construct(L, pos, n);
-	}
 	lua_pushboolean(L, succeeded);
 	return 1;
 }
@@ -417,12 +402,12 @@ int ModApiEnvMod::l_add_entity(lua_State *L)
 
 // minetest.get_nodedef(pos, entityname)
 // pos = {x=num, y=num, z=num}
-static int l_get_nodedef(lua_State *L)
+int ModApiEnvMod::l_get_nodedef(lua_State *L)
 {
 	GET_ENV_PTR;
 	
 	// Do it
-	v3s16 p = read_v3s16(L, 2);
+	v3s16 p = read_v3s16(L, 1);
 	MapNode n = env->getMap().getNodeNoEx(p);
 	HybridPtr<const ContentFeatures> f_ptr = env->getMap().getNodeDefNoEx(p);
 	INodeDefManager *ndef = env->getGameDef()->ndef();
@@ -433,9 +418,6 @@ static int l_get_nodedef(lua_State *L)
 		lua_getglobal(L, "minetest");
 		lua_getfield(L, -1, "registered_nodes");
 		lua_getfield(L, -1, f_current->name.c_str());
-		if(lua_type(L, -1) != LUA_TTABLE)
-			errorstream<<"ERROR: Field \""<<f_current->name
-					<<"\" in registered_nodes is not a table"<<std::endl;
 		return 1;
 	}
 	// Otherwise convert f_current to lua table
