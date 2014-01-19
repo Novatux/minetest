@@ -46,7 +46,7 @@ float srgb_linear_multiply(float f, float m, float max)
 class MeshNodeDefManager: public INodeDefManager
 {
 	INodeDefManager *m_orig;
-	ContentFeatures m_content_features[MAX_REGISTERED_CONTENT+1];
+	ContentFeatures m_content_features[10];
 public:
 	MeshNodeDefManager(INodeDefManager *orig):
 		m_orig(orig)
@@ -58,8 +58,9 @@ public:
 	// Get node definition
 	const ContentFeatures& get(content_t c) const
 	{
-		if(m_content_features[c].name != "")
-			return m_content_features[c];
+		//if(m_content_features[c].name != "")
+		if (c >= 2000)
+			return m_content_features[c-2000];
 		return m_orig->get(c);
 	}
 	const ContentFeatures& get(const MapNode &n) const
@@ -90,7 +91,7 @@ public:
 	/* Special interface */
 	void setSpecial(content_t id, const ContentFeatures &def)
 	{
-		m_content_features[id] = def;
+		m_content_features[id-2000] = def;
 	}
 	/* Copied from nodedef.cpp */
 	virtual void updateTextures(ITextureSource *tsrc)
@@ -100,7 +101,7 @@ public:
 		bool new_style_leaves = g_settings->getBool("new_style_leaves");
 		bool opaque_water = g_settings->getBool("opaque_water");
 
-		for(u32 i=0; i<=MAX_REGISTERED_CONTENT; i++)
+		for(u32 i=0; i<10; i++)
 		{
 			ContentFeatures *f = &m_content_features[i];
 
