@@ -46,7 +46,7 @@ float srgb_linear_multiply(float f, float m, float max)
 class MeshNodeDefManager: public INodeDefManager
 {
 	INodeDefManager *m_orig;
-	ContentFeatures m_content_features[10];
+	std::vector<ContentFeatures> m_content_features;
 public:
 	MeshNodeDefManager(INodeDefManager *orig):
 		m_orig(orig)
@@ -58,9 +58,9 @@ public:
 	// Get node definition
 	const ContentFeatures& get(content_t c) const
 	{
-		//if(m_content_features[c].name != "")
-		if (c >= 2000)
-			return m_content_features[c-2000];
+		if ((c > MAX_REGISTERED_CONTENT) &&
+				(c-(MAX_REGISTERED_CONTENT+1) < m_content_features.size()))
+			return m_content_features[c-(MAX_REGISTERED_CONTENT+1)];
 		return m_orig->get(c);
 	}
 	const ContentFeatures& get(const MapNode &n) const
@@ -91,7 +91,9 @@ public:
 	/* Special interface */
 	void setSpecial(content_t id, const ContentFeatures &def)
 	{
-		m_content_features[id-2000] = def;
+		if (id-(MAX_REGISTERED_CONTENT+1) >= m_content_features.size())
+			m_content_features.resize(id-MAX_REGISTERED_CONTENT);
+		m_content_features[id-(MAX_REGISTERED_CONTENT+1)] = def;
 	}
 	/* Copied from nodedef.cpp */
 	virtual void updateTextures(ITextureSource *tsrc)
@@ -101,7 +103,7 @@ public:
 		bool new_style_leaves = g_settings->getBool("new_style_leaves");
 		bool opaque_water = g_settings->getBool("opaque_water");
 
-		for(u32 i=0; i<10; i++)
+		for(u32 i=0; i<m_content_features.size(); i++)
 		{
 			ContentFeatures *f = &m_content_features[i];
 
@@ -407,7 +409,7 @@ void MeshMakeData::fill(MapBlock *block)
 			v3s16(-1, 0, 0) // left
 		};
 		MeshNodeDefManager *nodedef = NULL;
-		u16 special_id = 2000; // TODO: Choose first id that isn't already used
+		u16 special_id = MAX_REGISTERED_CONTENT+1;
 		for(u16 i=0; i<7; i++)
 		{
 			const v3s16 &dir = dirs[i];
@@ -432,11 +434,7 @@ void MeshMakeData::fill(MapBlock *block)
 					m_vmanip.getNodeRef(blockpos_nodes+p).setContent(special_id);
 					nodedef->setSpecial(special_id, def);
 					special_id++;
-					if(special_id >= MAX_REGISTERED_CONTENT)
-						break;
 				}
-				if(special_id >= MAX_REGISTERED_CONTENT)
-					break;
 			}
 		}
 		if(nodedef)
