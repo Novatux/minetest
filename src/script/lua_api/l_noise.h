@@ -76,7 +76,7 @@ private:
 	static int l_get3dMap_flat(lua_State *L);
 
 public:
-	LuaPerlinNoiseMap(NoiseParams *np, int seed, v3s16 size);
+	LuaPerlinNoiseMap(NoiseParams *np, int seed, v3POS size);
 
 	~LuaPerlinNoiseMap();
 

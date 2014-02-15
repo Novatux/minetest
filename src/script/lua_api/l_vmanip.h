@@ -34,7 +34,7 @@ class ManualMapVoxelManipulator;
 class LuaVoxelManip : public ModApiBase {
 private:
 	ManualMapVoxelManipulator *vm;
-	std::map<v3s16, MapBlock *> modified_blocks;
+	std::map<v3POS, MapBlock *> modified_blocks;
 	bool is_mapgen_vm;
 
 	static const char className[];

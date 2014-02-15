@@ -56,7 +56,7 @@ void NodeMetaRef::reportMetadataChange(NodeMetaRef *ref)
 {
 	// NOTE: This same code is in rollback_interface.cpp
 	// Inform other things that the metadata has changed
-	v3s16 blockpos = getNodeBlockPos(ref->m_p);
+	v3POS blockpos = getNodeBlockPos(ref->m_p);
 	MapEditEvent event;
 	event.type = MEET_BLOCK_NODE_METADATA_CHANGED;
 	event.p = blockpos;
@@ -274,7 +274,7 @@ int NodeMetaRef::l_from_table(lua_State *L)
 }
 
 
-NodeMetaRef::NodeMetaRef(v3s16 p, ServerEnvironment *env):
+NodeMetaRef::NodeMetaRef(v3POS p, ServerEnvironment *env):
 	m_p(p),
 	m_env(env)
 {
@@ -286,7 +286,7 @@ NodeMetaRef::~NodeMetaRef()
 
 // Creates an NodeMetaRef and leaves it on top of stack
 // Not callable from Lua; all references are created on the C side.
-void NodeMetaRef::create(lua_State *L, v3s16 p, ServerEnvironment *env)
+void NodeMetaRef::create(lua_State *L, v3POS p, ServerEnvironment *env)
 {
 	NodeMetaRef *o = new NodeMetaRef(p, env);
 	//infostream<<"NodeMetaRef::create: o="<<o<<std::endl;

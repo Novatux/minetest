@@ -50,10 +50,10 @@ class Settings;
 struct BlockMakeData {
 	ManualMapVoxelManipulator *vmanip;
 	u64 seed;
-	v3s16 blockpos_min;
-	v3s16 blockpos_max;
-	v3s16 blockpos_requested;
-	UniqueQueue<v3s16> transforming_liquid;
+	v3POS blockpos_min;
+	v3POS blockpos_max;
+	v3POS blockpos_requested;
+	UniqueQueue<v3POS> transforming_liquid;
 	INodeDefManager *nodedef;
 
 	BlockMakeData():
@@ -73,7 +73,7 @@ struct BlockEmergeData {
 class IBackgroundBlockEmerger
 {
 public:
-	virtual bool enqueueBlockEmerge(u16 peer_id, v3s16 p,
+	virtual bool enqueueBlockEmerge(u16 peer_id, v3POS p,
 			bool allow_generate) = 0;
 	virtual ~IBackgroundBlockEmerger() {}
 };
@@ -104,7 +104,7 @@ public:
 
 	//block emerge queue data structures
 	JMutex queuemutex;
-	std::map<v3s16, BlockEmergeData *> blocks_enqueued;
+	std::map<v3POS, BlockEmergeData *> blocks_enqueued;
 	std::map<u16, u16> peer_queue_count;
 
 	//Mapgen-related structures
@@ -123,17 +123,17 @@ public:
 	MapgenParams *createMapgenParams(std::string mgname);
 	void startThreads();
 	void stopThreads();
-	bool enqueueBlockEmerge(u16 peer_id, v3s16 p, bool allow_generate);
+	bool enqueueBlockEmerge(u16 peer_id, v3POS p, bool allow_generate);
 
 	void registerMapgen(std::string name, MapgenFactory *mgfactory);
 	MapgenParams *getParamsFromSettings(Settings *settings);
 	void setParamsToSettings(Settings *settings);
 
 	//mapgen helper methods
-	Biome *getBiomeAtPoint(v3s16 p);
-	int getGroundLevelAtPoint(v2s16 p);
-	bool isBlockUnderground(v3s16 blockpos);
-	u32 getBlockSeed(v3s16 p);
+	Biome *getBiomeAtPoint(v3POS p);
+	int getGroundLevelAtPoint(v2POS p);
+	bool isBlockUnderground(v3POS blockpos);
+	u32 getBlockSeed(v3POS p);
 };
 
 #endif

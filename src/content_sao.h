@@ -242,12 +242,12 @@ public:
 		m_time_from_last_punch = 0.0;
 		return r;
 	}
-	void noCheatDigStart(v3s16 p)
+	void noCheatDigStart(v3POS p)
 	{
 		m_nocheat_dig_pos = p;
 		m_nocheat_dig_time = 0;
 	}
-	v3s16 getNoCheatDigPos()
+	v3POS getNoCheatDigPos()
 	{
 		return m_nocheat_dig_pos;
 	}
@@ -257,7 +257,7 @@ public:
 	}
 	void noCheatDigEnd()
 	{
-		m_nocheat_dig_pos = v3s16(32767, 32767, 32767);
+		m_nocheat_dig_pos = v3POS(32767, 32767, 32767);
 	}
 	LagPool& getDigPool()
 	{
@@ -291,7 +291,7 @@ private:
 	LagPool m_move_pool;
 	v3f m_last_good_position;
 	float m_time_from_last_punch;
-	v3s16 m_nocheat_dig_pos;
+	v3POS m_nocheat_dig_pos;
 	float m_nocheat_dig_time;
 
 	int m_wield_index;

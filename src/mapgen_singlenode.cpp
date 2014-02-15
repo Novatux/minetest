@@ -63,12 +63,12 @@ void MapgenSinglenode::makeChunk(BlockMakeData *data) {
 	this->vm   = data->vmanip;	
 	this->ndef = data->nodedef;
 			
-	v3s16 blockpos_min = data->blockpos_min;
-	v3s16 blockpos_max = data->blockpos_max;
+	v3POS blockpos_min = data->blockpos_min;
+	v3POS blockpos_max = data->blockpos_max;
 
 	// Area of central chunk
-	v3s16 node_min = blockpos_min*MAP_BLOCKSIZE;
-	v3s16 node_max = (blockpos_max+v3s16(1,1,1))*MAP_BLOCKSIZE-v3s16(1,1,1);
+	v3POS node_min = blockpos_min*MAP_BLOCKSIZE;
+	v3POS node_max = (blockpos_max+v3POS(1,1,1))*MAP_BLOCKSIZE-v3POS(1,1,1);
 
 	content_t c_node = ndef->getId("mapgen_singlenode");
 	if (c_node == CONTENT_IGNORE)
@@ -91,13 +91,13 @@ void MapgenSinglenode::makeChunk(BlockMakeData *data) {
 
 	// Calculate lighting
 	if (!(flags & MG_NOLIGHT))
-		calcLighting(node_min - v3s16(1, 0, 1) * MAP_BLOCKSIZE,
-					 node_max + v3s16(1, 0, 1) * MAP_BLOCKSIZE);
+		calcLighting(node_min - v3POS(1, 0, 1) * MAP_BLOCKSIZE,
+					 node_max + v3POS(1, 0, 1) * MAP_BLOCKSIZE);
 	
 	this->generating = false;
 }
 
-int MapgenSinglenode::getGroundLevelAtPoint(v2s16 p) {
+int MapgenSinglenode::getGroundLevelAtPoint(v2POS p) {
 	return 0;
 }
 

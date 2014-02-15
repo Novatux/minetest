@@ -218,7 +218,7 @@ public:
 		The block from which the object was loaded from, and in which
 		a copy of the static data resides.
 	*/
-	v3s16 m_static_block;
+	v3POS m_static_block;
 	
 	/*
 		Queue of messages to be sent to the client

@@ -129,7 +129,7 @@ enum ToClientCommand
 
 		[0] u16 TOSERVER_INIT
 		[2] u8 deployed version
-		[3] v3s16 player's position + v3f(0,BS/2,0) floatToInt'd 
+		[3] v3POS player's position + v3f(0,BS/2,0) floatToInt'd 
 		[12] u64 map seed (new as of 2011-02-27)
 		[20] f1000 recommended send interval (in seconds) (new as of 14)
 
@@ -141,7 +141,7 @@ enum ToClientCommand
 	TOCLIENT_ADDNODE = 0x21,
 	/*
 		u16 command
-		v3s16 position
+		v3POS position
 		serialized mapnode
 		u8 keep_metadata // Added in protocol version 22
 	*/
@@ -174,7 +174,7 @@ enum ToClientCommand
 	/*
 		[0] u16 command
 		[2] u8 sector count
-		[3...] v2s16 pos + sector metadata
+		[3...] v2POS pos + sector metadata
 	*/
 
 	TOCLIENT_INVENTORY = 0x27,
@@ -197,7 +197,7 @@ enum ToClientCommand
 			s32 yaw*100
 		u16 count of blocks
 		for each block:
-			v3s16 blockpos
+			v3POS blockpos
 			block objects
 	*/
 
@@ -549,8 +549,8 @@ enum ToServerCommand
 	/*
 		[0] u16 command
 		[2] u8 count
-		[3] v3s16 pos_0
-		[3+6] v3s16 pos_1
+		[3] v3POS pos_0
+		[3+6] v3POS pos_1
 		...
 	*/
 
@@ -558,15 +558,15 @@ enum ToServerCommand
 	/*
 		[0] u16 command
 		[2] u8 count
-		[3] v3s16 pos_0
-		[3+6] v3s16 pos_1
+		[3] v3POS pos_0
+		[3+6] v3POS pos_1
 		...
 	*/
 
 	TOSERVER_ADDNODE_FROM_INVENTORY = 0x26, // Obsolete
 	/*
 		[0] u16 command
-		[2] v3s16 pos
+		[2] v3POS pos
 		[8] u16 i
 	*/
 
@@ -575,7 +575,7 @@ enum ToServerCommand
 		length: 13
 		[0] u16 command
 		[2] u8 button (0=left, 1=right)
-		[3] v3s16 blockpos
+		[3] v3POS blockpos
 		[9] s16 id
 		[11] u16 item
 	*/
@@ -585,8 +585,8 @@ enum ToServerCommand
 		length: 17
 		[0] u16 command
 		[2] u8 action
-		[3] v3s16 nodepos_undersurface
-		[9] v3s16 nodepos_abovesurface
+		[3] v3POS nodepos_undersurface
+		[9] v3POS nodepos_abovesurface
 		[15] u16 item
 		actions:
 		0: start digging (from undersurface)
@@ -602,7 +602,7 @@ enum ToServerCommand
 	TOSERVER_SIGNTEXT = 0x30, // Old signs, obsolete
 	/*
 		u16 command
-		v3s16 blockpos
+		v3POS blockpos
 		s16 id
 		u16 textlen
 		textdata
@@ -623,7 +623,7 @@ enum ToServerCommand
 	TOSERVER_SIGNNODETEXT = 0x33, // obsolete
 	/*
 		u16 command
-		v3s16 p
+		v3POS p
 		u16 textlen
 		textdata
 	*/
@@ -692,7 +692,7 @@ enum ToServerCommand
 	TOSERVER_NODEMETA_FIELDS = 0x3b,
 	/*
 		u16 command
-		v3s16 p
+		v3POS p
 		u16 len
 		u8[len] form name (reserved for future use)
 		u16 number of fields

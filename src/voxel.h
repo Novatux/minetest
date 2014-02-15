@@ -65,12 +65,12 @@ public:
 		MaxEdge(0,0,0)
 	{
 	}
-	VoxelArea(v3s16 min_edge, v3s16 max_edge):
+	VoxelArea(v3POS min_edge, v3POS max_edge):
 		MinEdge(min_edge),
 		MaxEdge(max_edge)
 	{
 	}
-	VoxelArea(v3s16 p):
+	VoxelArea(v3POS p):
 		MinEdge(p),
 		MaxEdge(p)
 	{
@@ -82,7 +82,7 @@ public:
 
 	void addArea(VoxelArea &a)
 	{
-		if(getExtent() == v3s16(0,0,0))
+		if(getExtent() == v3POS(0,0,0))
 		{
 			*this = a;
 			return;
@@ -94,9 +94,9 @@ public:
 		if(a.MaxEdge.Y > MaxEdge.Y) MaxEdge.Y = a.MaxEdge.Y;
 		if(a.MaxEdge.Z > MaxEdge.Z) MaxEdge.Z = a.MaxEdge.Z;
 	}
-	void addPoint(v3s16 p)
+	void addPoint(v3POS p)
 	{
-		if(getExtent() == v3s16(0,0,0))
+		if(getExtent() == v3POS(0,0,0))
 		{
 			MinEdge = p;
 			MaxEdge = p;
@@ -111,19 +111,19 @@ public:
 	}
 
 	// Pad with d nodes
-	void pad(v3s16 d)
+	void pad(v3POS d)
 	{
 		MinEdge -= d;
 		MaxEdge += d;
 	}
 
-	/*void operator+=(v3s16 off)
+	/*void operator+=(v3POS off)
 	{
 		MinEdge += off;
 		MaxEdge += off;
 	}
 
-	void operator-=(v3s16 off)
+	void operator-=(v3POS off)
 	{
 		MinEdge -= off;
 		MaxEdge -= off;
@@ -133,20 +133,20 @@ public:
 		const methods
 	*/
 
-	v3s16 getExtent() const
+	v3POS getExtent() const
 	{
-		return MaxEdge - MinEdge + v3s16(1,1,1);
+		return MaxEdge - MinEdge + v3POS(1,1,1);
 	}
 	s32 getVolume() const
 	{
-		v3s16 e = getExtent();
+		v3POS e = getExtent();
 		return (s32)e.X * (s32)e.Y * (s32)e.Z;
 	}
 	bool contains(const VoxelArea &a) const
 	{
 		// No area contains an empty area
 		// NOTE: Algorithms depend on this, so do not change.
-		if(a.getExtent() == v3s16(0,0,0))
+		if(a.getExtent() == v3POS(0,0,0))
 			return false;
 
 		return(
@@ -155,7 +155,7 @@ public:
 			a.MinEdge.Z >= MinEdge.Z && a.MaxEdge.Z <= MaxEdge.Z
 		);
 	}
-	bool contains(v3s16 p) const
+	bool contains(v3POS p) const
 	{
 		return(
 			p.X >= MinEdge.X && p.X <= MaxEdge.X &&
@@ -173,12 +173,12 @@ public:
 				&& MaxEdge == other.MaxEdge);
 	}
 
-	VoxelArea operator+(v3s16 off) const
+	VoxelArea operator+(v3POS off) const
 	{
 		return VoxelArea(MinEdge+off, MaxEdge+off);
 	}
 
-	VoxelArea operator-(v3s16 off) const
+	VoxelArea operator-(v3POS off) const
 	{
 		return VoxelArea(MinEdge-off, MaxEdge-off);
 	}
@@ -196,7 +196,7 @@ public:
 		*/
 
 		// If a is an empty area, return the current area as a whole
-		if(a.getExtent() == v3s16(0,0,0))
+		if(a.getExtent() == v3POS(0,0,0))
 		{
 			VoxelArea b = *this;
 			if(b.getVolume() != 0)
@@ -208,8 +208,8 @@ public:
 
 		// Take back area, XY inclusive
 		{
-			v3s16 min(MinEdge.X, MinEdge.Y, a.MaxEdge.Z+1);
-			v3s16 max(MaxEdge.X, MaxEdge.Y, MaxEdge.Z);
+			v3POS min(MinEdge.X, MinEdge.Y, a.MaxEdge.Z+1);
+			v3POS max(MaxEdge.X, MaxEdge.Y, MaxEdge.Z);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -217,8 +217,8 @@ public:
 
 		// Take front area, XY inclusive
 		{
-			v3s16 min(MinEdge.X, MinEdge.Y, MinEdge.Z);
-			v3s16 max(MaxEdge.X, MaxEdge.Y, a.MinEdge.Z-1);
+			v3POS min(MinEdge.X, MinEdge.Y, MinEdge.Z);
+			v3POS max(MaxEdge.X, MaxEdge.Y, a.MinEdge.Z-1);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -226,8 +226,8 @@ public:
 
 		// Take top area, X inclusive
 		{
-			v3s16 min(MinEdge.X, a.MaxEdge.Y+1, a.MinEdge.Z);
-			v3s16 max(MaxEdge.X, MaxEdge.Y, a.MaxEdge.Z);
+			v3POS min(MinEdge.X, a.MaxEdge.Y+1, a.MinEdge.Z);
+			v3POS max(MaxEdge.X, MaxEdge.Y, a.MaxEdge.Z);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -235,8 +235,8 @@ public:
 
 		// Take bottom area, X inclusive
 		{
-			v3s16 min(MinEdge.X, MinEdge.Y, a.MinEdge.Z);
-			v3s16 max(MaxEdge.X, a.MinEdge.Y-1, a.MaxEdge.Z);
+			v3POS min(MinEdge.X, MinEdge.Y, a.MinEdge.Z);
+			v3POS max(MaxEdge.X, a.MinEdge.Y-1, a.MaxEdge.Z);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -244,8 +244,8 @@ public:
 
 		// Take left area, non-inclusive
 		{
-			v3s16 min(MinEdge.X, a.MinEdge.Y, a.MinEdge.Z);
-			v3s16 max(a.MinEdge.X-1, a.MaxEdge.Y, a.MaxEdge.Z);
+			v3POS min(MinEdge.X, a.MinEdge.Y, a.MinEdge.Z);
+			v3POS max(a.MinEdge.X-1, a.MaxEdge.Y, a.MaxEdge.Z);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -253,8 +253,8 @@ public:
 
 		// Take right area, non-inclusive
 		{
-			v3s16 min(a.MaxEdge.X+1, a.MinEdge.Y, a.MinEdge.Z);
-			v3s16 max(MaxEdge.X, a.MaxEdge.Y, a.MaxEdge.Z);
+			v3POS min(a.MaxEdge.X+1, a.MinEdge.Y, a.MinEdge.Z);
+			v3POS max(MaxEdge.X, a.MaxEdge.Y, a.MaxEdge.Z);
 			VoxelArea b(min, max);
 			if(b.getVolume() != 0)
 				result.push_back(b);
@@ -265,36 +265,36 @@ public:
 	/*
 		Translates position from virtual coordinates to array index
 	*/
-	s32 index(s16 x, s16 y, s16 z) const
+	s32 index(POS x, POS y, POS z) const
 	{
-		v3s16 em = getExtent();
-		v3s16 off = MinEdge;
+		v3POS em = getExtent();
+		v3POS off = MinEdge;
 		s32 i = (s32)(z-off.Z)*em.Y*em.X + (y-off.Y)*em.X + (x-off.X);
 		//dstream<<" i("<<x<<","<<y<<","<<z<<")="<<i<<" ";
 		return i;
 	}
-	s32 index(v3s16 p) const
+	s32 index(v3POS p) const
 	{
 		return index(p.X, p.Y, p.Z);
 	}
 
 	// Translate index in the X coordinate
-	void add_x(const v3s16 &extent, u32 &i, s16 a)
+	void add_x(const v3POS &extent, u32 &i, s16 a)
 	{
 		i += a;
 	}
 	// Translate index in the Y coordinate
-	void add_y(const v3s16 &extent, u32 &i, s16 a)
+	void add_y(const v3POS &extent, u32 &i, s16 a)
 	{
 		i += a * extent.X;
 	}
 	// Translate index in the Z coordinate
-	void add_z(const v3s16 &extent, u32 &i, s16 a)
+	void add_z(const v3POS &extent, u32 &i, s16 a)
 	{
 		i += a * extent.X*extent.Y;
 	}
 	// Translate index in space
-	void add_p(const v3s16 &extent, u32 &i, v3s16 a)
+	void add_p(const v3POS &extent, u32 &i, v3POS a)
 	{
 		i += a.Z*extent.X*extent.Y + a.Y*extent.X + a.X;
 	}
@@ -304,7 +304,7 @@ public:
 	*/
 	void print(std::ostream &o) const
 	{
-		v3s16 e = getExtent();
+		v3POS e = getExtent();
 		o<<"("<<MinEdge.X
 		 <<","<<MinEdge.Y
 		 <<","<<MinEdge.Z
@@ -316,8 +316,8 @@ public:
 	}
 
 	// Edges are inclusive
-	v3s16 MinEdge;
-	v3s16 MaxEdge;
+	v3POS MinEdge;
+	v3POS MaxEdge;
 };
 
 // Hasn't been copied from source (emerged)
@@ -354,7 +354,7 @@ public:
 	{
 		return NODECONTAINER_ID_VOXELMANIPULATOR;
 	}
-	bool isValidPosition(v3s16 p)
+	bool isValidPosition(v3POS p)
 	{
 		emerge(p);
 		return !(m_flags[m_area.index(p)] & VOXELFLAG_INEXISTENT);
@@ -364,7 +364,7 @@ public:
 		These are a bit slow and shouldn't be used internally.
 		Use m_data[m_area.index(p)] instead.
 	*/
-	MapNode getNode(v3s16 p)
+	MapNode getNode(v3POS p)
 	{
 		emerge(p);
 
@@ -381,7 +381,7 @@ public:
 
 		return m_data[m_area.index(p)];
 	}
-	MapNode getNodeNoEx(v3s16 p)
+	MapNode getNodeNoEx(v3POS p)
 	{
 		emerge(p);
 
@@ -392,7 +392,7 @@ public:
 
 		return m_data[m_area.index(p)];
 	}
-	MapNode getNodeNoExNoEmerge(v3s16 p)
+	MapNode getNodeNoExNoEmerge(v3POS p)
 	{
 		if(m_area.contains(p) == false)
 			return MapNode(CONTENT_IGNORE);
@@ -402,20 +402,20 @@ public:
 	}
 	// Stuff explodes if non-emerged area is touched with this.
 	// Emerge first, and check VOXELFLAG_INEXISTENT if appropriate.
-	MapNode & getNodeRefUnsafe(v3s16 p)
+	MapNode & getNodeRefUnsafe(v3POS p)
 	{
 		return m_data[m_area.index(p)];
 	}
-	u8 & getFlagsRefUnsafe(v3s16 p)
+	u8 & getFlagsRefUnsafe(v3POS p)
 	{
 		return m_flags[m_area.index(p)];
 	}
-	bool exists(v3s16 p)
+	bool exists(v3POS p)
 	{
 		return m_area.contains(p) &&
 			!(getFlagsRefUnsafe(p) & VOXELFLAG_INEXISTENT);
 	}
-	MapNode & getNodeRef(v3s16 p)
+	MapNode & getNodeRef(v3POS p)
 	{
 		emerge(p);
 		if(getFlagsRefUnsafe(p) & VOXELFLAG_INEXISTENT)
@@ -430,7 +430,7 @@ public:
 		}
 		return getNodeRefUnsafe(p);
 	}
-	void setNode(v3s16 p, const MapNode &n)
+	void setNode(v3POS p, const MapNode &n)
 	{
 		emerge(p);
 
@@ -439,7 +439,7 @@ public:
 		m_flags[m_area.index(p)] &= ~VOXELFLAG_NOT_LOADED;
 	}
 	// TODO: Should be removed and replaced with setNode
-	void setNodeNoRef(v3s16 p, const MapNode &n)
+	void setNodeNoRef(v3POS p, const MapNode &n)
 	{
 		setNode(p, n);
 	}
@@ -455,7 +455,7 @@ public:
 		}
 	}*/
 
-	/*MapNode & operator[](v3s16 p)
+	/*MapNode & operator[](v3POS p)
 	{
 		//dstream<<"operator[] p=("<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;
 		if(isValidPosition(p) == false)
@@ -470,7 +470,7 @@ public:
 		This is convenient but slower than playing around directly
 		with the m_data table with indices.
 	*/
-	bool setNodeNoEmerge(v3s16 p, MapNode n)
+	bool setNodeNoEmerge(v3POS p, MapNode n)
 	{
 		if(m_area.contains(p) == false)
 			return false;
@@ -484,7 +484,7 @@ public:
 		m_data[i] = n;
 		return true;
 	}
-	/*bool setContentNoEmerge(v3s16 p, u8 c)
+	/*bool setContentNoEmerge(v3POS p, u8 c)
 	{
 		if(isValidPosition(p) == false)
 			return false;
@@ -507,11 +507,11 @@ public:
 		dst_area.getExtent() <= src_area.getExtent()
 	*/
 	void copyFrom(MapNode *src, VoxelArea src_area,
-			v3s16 from_pos, v3s16 to_pos, v3s16 size);
+			v3POS from_pos, v3POS to_pos, v3POS size);
 
 	// Copy data
 	void copyTo(MapNode *dst, VoxelArea dst_area,
-			v3s16 dst_pos, v3s16 from_pos, v3s16 size);
+			v3POS dst_pos, v3POS from_pos, v3POS size);
 
 	/*
 		Algorithms
@@ -521,15 +521,15 @@ public:
 
 	// TODO: Move to voxelalgorithms.h
 
-	void unspreadLight(enum LightBank bank, v3s16 p, u8 oldlight,
-			std::set<v3s16> & light_sources, INodeDefManager *nodemgr);
+	void unspreadLight(enum LightBank bank, v3POS p, u8 oldlight,
+			std::set<v3POS> & light_sources, INodeDefManager *nodemgr);
 	void unspreadLight(enum LightBank bank,
-			std::map<v3s16, u8> & from_nodes,
-			std::set<v3s16> & light_sources, INodeDefManager *nodemgr);
+			std::map<v3POS, u8> & from_nodes,
+			std::set<v3POS> & light_sources, INodeDefManager *nodemgr);
 
-	void spreadLight(enum LightBank bank, v3s16 p, INodeDefManager *nodemgr);
+	void spreadLight(enum LightBank bank, v3POS p, INodeDefManager *nodemgr);
 	void spreadLight(enum LightBank bank,
-			std::set<v3s16> & from_nodes, INodeDefManager *nodemgr);
+			std::set<v3POS> & from_nodes, INodeDefManager *nodemgr);
 
 	/*
 		Virtual functions
@@ -564,7 +564,7 @@ public:
 
 	/*
 		The area that is stored in m_data.
-		addInternalBox should not be used if getExtent() == v3s16(0,0,0)
+		addInternalBox should not be used if getExtent() == v3POS(0,0,0)
 		MaxEdge is 1 higher than maximum allowed position
 	*/
 	VoxelArea m_area;
@@ -583,7 +583,7 @@ public:
 	//TODO: Use these or remove them
 	//TODO: Would these make any speed improvement?
 	//bool m_pressure_route_valid;
-	//v3s16 m_pressure_route_surface;
+	//v3POS m_pressure_route_surface;
 
 	/*
 		Some settings

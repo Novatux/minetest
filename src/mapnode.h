@@ -212,7 +212,7 @@ struct MapNode
 
 	u8 getFaceDir(INodeDefManager *nodemgr) const;
 	u8 getWallMounted(INodeDefManager *nodemgr) const;
-	v3s16 getWallMountedDir(INodeDefManager *nodemgr) const;
+	v3POS getWallMountedDir(INodeDefManager *nodemgr) const;
 	
 	void rotateAlongYAxis(INodeDefManager *nodemgr, Rotation rot);
 

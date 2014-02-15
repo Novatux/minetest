@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mapblock.h"
 #include "serialization.h"
 
-MapSector::MapSector(Map *parent, v2s16 pos, IGameDef *gamedef):
+MapSector::MapSector(Map *parent, v2POS pos, IGameDef *gamedef):
 		differs_from_disk(false),
 		m_parent(parent),
 		m_pos(pos),
@@ -87,7 +87,7 @@ MapBlock * MapSector::createBlankBlockNoInsert(s16 y)
 {
 	assert(getBlockBuffered(y) == NULL);
 
-	v3s16 blockpos_map(m_pos.X, y, m_pos.Y);
+	v3POS blockpos_map(m_pos.X, y, m_pos.Y);
 	
 	MapBlock *block = new MapBlock(m_parent, blockpos_map, m_gamedef);
 	
@@ -112,7 +112,7 @@ void MapSector::insertBlock(MapBlock *block)
 		throw AlreadyExistsException("Block already exists");
 	}
 
-	v2s16 p2d(block->getPos().X, block->getPos().Z);
+	v2POS p2d(block->getPos().X, block->getPos().Z);
 	assert(p2d == m_pos);
 	
 	// Insert into container
@@ -146,7 +146,7 @@ void MapSector::getBlocks(std::list<MapBlock*> &dest)
 	ServerMapSector
 */
 
-ServerMapSector::ServerMapSector(Map *parent, v2s16 pos, IGameDef *gamedef):
+ServerMapSector::ServerMapSector(Map *parent, v2POS pos, IGameDef *gamedef):
 		MapSector(parent, pos, gamedef)
 {
 }
@@ -180,8 +180,8 @@ void ServerMapSector::serialize(std::ostream &os, u8 version)
 ServerMapSector* ServerMapSector::deSerialize(
 		std::istream &is,
 		Map *parent,
-		v2s16 p2d,
-		std::map<v2s16, MapSector*> & sectors,
+		v2POS p2d,
+		std::map<v2POS, MapSector*> & sectors,
 		IGameDef *gamedef
 	)
 {
@@ -211,7 +211,7 @@ ServerMapSector* ServerMapSector::deSerialize(
 
 	ServerMapSector *sector = NULL;
 
-	std::map<v2s16, MapSector*>::iterator n = sectors.find(p2d);
+	std::map<v2POS, MapSector*>::iterator n = sectors.find(p2d);
 
 	if(n != sectors.end())
 	{
@@ -243,7 +243,7 @@ ServerMapSector* ServerMapSector::deSerialize(
 	ClientMapSector
 */
 
-ClientMapSector::ClientMapSector(Map *parent, v2s16 pos, IGameDef *gamedef):
+ClientMapSector::ClientMapSector(Map *parent, v2POS pos, IGameDef *gamedef):
 		MapSector(parent, pos, gamedef)
 {
 }

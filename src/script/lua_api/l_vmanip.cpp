@@ -42,14 +42,14 @@ int LuaVoxelManip::l_read_from_map(lua_State *L)
 	LuaVoxelManip *o = checkobject(L, 1);
 	ManualMapVoxelManipulator *vm = o->vm;
 	
-	v3s16 bp1 = getNodeBlockPos(read_v3s16(L, 2));
-	v3s16 bp2 = getNodeBlockPos(read_v3s16(L, 3));
+	v3POS bp1 = getNodeBlockPos(read_v3POS(L, 2));
+	v3POS bp2 = getNodeBlockPos(read_v3POS(L, 3));
 	sortBoxVerticies(bp1, bp2);
 	
 	vm->initialEmerge(bp1, bp2);
 	
-	push_v3s16(L, vm->m_area.MinEdge);
-	push_v3s16(L, vm->m_area.MaxEdge);
+	push_v3POS(L, vm->m_area.MinEdge);
+	push_v3POS(L, vm->m_area.MaxEdge);
 	
 	return 2;
 }
@@ -140,10 +140,10 @@ int LuaVoxelManip::l_calc_lighting(lua_State *L)
 	EmergeManager *emerge = getServer(L)->getEmergeManager();
 	ManualMapVoxelManipulator *vm = o->vm;
 
-	v3s16 p1 = lua_istable(L, 2) ? read_v3s16(L, 2) :
-		vm->m_area.MinEdge + v3s16(0, 1, 0) * MAP_BLOCKSIZE;
-	v3s16 p2 = lua_istable(L, 3) ? read_v3s16(L, 3) :
-		vm->m_area.MaxEdge - v3s16(0, 1, 0) * MAP_BLOCKSIZE;
+	v3POS p1 = lua_istable(L, 2) ? read_v3POS(L, 2) :
+		vm->m_area.MinEdge + v3POS(0, 1, 0) * MAP_BLOCKSIZE;
+	v3POS p2 = lua_istable(L, 3) ? read_v3POS(L, 3) :
+		vm->m_area.MaxEdge - v3POS(0, 1, 0) * MAP_BLOCKSIZE;
 	sortBoxVerticies(p1, p2);
 
 	Mapgen mg;
@@ -173,10 +173,10 @@ int LuaVoxelManip::l_set_lighting(lua_State *L)
 	
 	ManualMapVoxelManipulator *vm = o->vm;
 	
-	v3s16 p1 = lua_istable(L, 3) ? read_v3s16(L, 3) :
-		vm->m_area.MinEdge + v3s16(0, 1, 0) * MAP_BLOCKSIZE;
-	v3s16 p2 = lua_istable(L, 4) ? read_v3s16(L, 4) :
-		vm->m_area.MaxEdge - v3s16(0, 1, 0) * MAP_BLOCKSIZE;
+	v3POS p1 = lua_istable(L, 3) ? read_v3POS(L, 3) :
+		vm->m_area.MinEdge + v3POS(0, 1, 0) * MAP_BLOCKSIZE;
+	v3POS p2 = lua_istable(L, 4) ? read_v3POS(L, 4) :
+		vm->m_area.MaxEdge - v3POS(0, 1, 0) * MAP_BLOCKSIZE;
 	sortBoxVerticies(p1, p2);
 
 	Mapgen mg;
@@ -284,8 +284,8 @@ int LuaVoxelManip::l_update_map(lua_State *L)
 	Map *map = &(env->getMap());
 
 	// TODO: Optimize this by using Mapgen::calcLighting() instead
-	std::map<v3s16, MapBlock *> lighting_mblocks;
-	std::map<v3s16, MapBlock *> *mblocks = &o->modified_blocks;
+	std::map<v3POS, MapBlock *> lighting_mblocks;
+	std::map<v3POS, MapBlock *> *mblocks = &o->modified_blocks;
 	
 	lighting_mblocks.insert(mblocks->begin(), mblocks->end());
 	
@@ -293,7 +293,7 @@ int LuaVoxelManip::l_update_map(lua_State *L)
 
 	MapEditEvent event;
 	event.type = MEET_OTHER;
-	for (std::map<v3s16, MapBlock *>::iterator
+	for (std::map<v3POS, MapBlock *>::iterator
 		it = mblocks->begin();
 		it != mblocks->end(); ++it)
 		event.modified_blocks.insert(it->first);

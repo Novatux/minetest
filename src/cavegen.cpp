@@ -61,14 +61,14 @@ CaveV6::CaveV6(MapgenV6 *mg, PseudoRandom *ps, PseudoRandom *ps2, bool is_large_
 }
 
 
-void CaveV6::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
+void CaveV6::makeCave(v3POS nmin, v3POS nmax, int max_stone_height) {
 	node_min = nmin;
 	node_max = nmax;
 	max_stone_y = max_stone_height;
 	main_direction = v3f(0, 0, 0);
 
 	// Allowed route area size in nodes
-	ar = node_max - node_min + v3s16(1, 1, 1);
+	ar = node_max - node_min + v3POS(1, 1, 1);
 	// Area starting point in nodes
 	of = node_min;
 
@@ -77,8 +77,8 @@ void CaveV6::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 	const s16 max_spread_amount = MAP_BLOCKSIZE;
 	s16 insure = 10;
 	s16 more = MYMAX(max_spread_amount - max_tunnel_diameter / 2 - insure, 1);
-	ar += v3s16(1,0,1) * more * 2;
-	of -= v3s16(1,0,1) * more;
+	ar += v3POS(1,0,1) * more * 2;
+	of -= v3POS(1,0,1) * more;
 
 	route_y_min = 0;
 	// Allow half a diameter + 7 over stone surface
@@ -112,8 +112,8 @@ void CaveV6::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 
 	int notifytype = large_cave ? GENNOTIFY_LARGECAVE_BEGIN : GENNOTIFY_CAVE_BEGIN;
 	if (mg->gennotify & (1 << notifytype)) {
-		std::vector <v3s16> *nvec = mg->gen_notifications[notifytype];
-		nvec->push_back(v3s16(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
+		std::vector <v3POS> *nvec = mg->gen_notifications[notifytype];
+		nvec->push_back(v3POS(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
 	}
 
 	// Generate some tunnel starting from orp
@@ -122,8 +122,8 @@ void CaveV6::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 
 	notifytype = large_cave ? GENNOTIFY_LARGECAVE_END : GENNOTIFY_CAVE_END;
 	if (mg->gennotify & (1 << notifytype)) {
-		std::vector <v3s16> *nvec = mg->gen_notifications[notifytype];
-		nvec->push_back(v3s16(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
+		std::vector <v3POS> *nvec = mg->gen_notifications[notifytype];
+		nvec->push_back(v3POS(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
 	}
 }
 
@@ -143,15 +143,15 @@ void CaveV6::makeTunnel(bool dirswitch) {
 	s16 max_d = max_tunnel_diameter;
 	rs = ps->range(min_d, max_d);
 
-	v3s16 maxlen;
+	v3POS maxlen;
 	if (large_cave) {
-		maxlen = v3s16(
+		maxlen = v3POS(
 			rs * part_max_length_rs,
 			rs * part_max_length_rs / 2,
 			rs * part_max_length_rs
 		);
 	} else {
-		maxlen = v3s16(
+		maxlen = v3POS(
 			rs * part_max_length_rs,
 			ps->range(1, rs * part_max_length_rs),
 			rs * part_max_length_rs
@@ -214,13 +214,13 @@ void CaveV6::carveRoute(v3f vec, float f, bool randomize_xz) {
 	MapNode waternode(c_water_source);
 	MapNode lavanode(c_lava_source);
 	
-	v3s16 startp(orp.X, orp.Y, orp.Z);
+	v3POS startp(orp.X, orp.Y, orp.Z);
 	startp += of;
 	
 	v3f fp = orp + vec * f;
 	fp.X += 0.1 * ps->range(-10, 10);
 	fp.Z += 0.1 * ps->range(-10, 10);
-	v3s16 cp(fp.X, fp.Y, fp.Z);
+	v3POS cp(fp.X, fp.Y, fp.Z);
 
 	s16 d0 = -rs/2;
 	s16 d1 = d0 + rs;
@@ -241,7 +241,7 @@ void CaveV6::carveRoute(v3f vec, float f, bool randomize_xz) {
 						continue;
 				}
 
-				v3s16 p(cp.X + x0, cp.Y + y0, cp.Z + z0);
+				v3POS p(cp.X + x0, cp.Y + y0, cp.Z + z0);
 				p += of;
 
 				if (vm->m_area.contains(p) == false)
@@ -311,14 +311,14 @@ CaveV7::CaveV7(MapgenV7 *mg, PseudoRandom *ps, bool is_large_cave) {
 }
 
 
-void CaveV7::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
+void CaveV7::makeCave(v3POS nmin, v3POS nmax, int max_stone_height) {
 	node_min = nmin;
 	node_max = nmax;
 	max_stone_y = max_stone_height;
 	main_direction = v3f(0, 0, 0);
 
 	// Allowed route area size in nodes
-	ar = node_max - node_min + v3s16(1, 1, 1);
+	ar = node_max - node_min + v3POS(1, 1, 1);
 	// Area starting point in nodes
 	of = node_min;
 
@@ -326,8 +326,8 @@ void CaveV7::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 	//(this should be more than the maximum radius of the tunnel)
 	s16 insure = 10;
 	s16 more = MYMAX(MAP_BLOCKSIZE - max_tunnel_diameter / 2 - insure, 1);
-	ar += v3s16(1,0,1) * more * 2;
-	of -= v3s16(1,0,1) * more;
+	ar += v3POS(1,0,1) * more * 2;
+	of -= v3POS(1,0,1) * more;
 
 	route_y_min = 0;
 	// Allow half a diameter + 7 over stone surface
@@ -361,8 +361,8 @@ void CaveV7::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 
 	int notifytype = large_cave ? GENNOTIFY_LARGECAVE_BEGIN : GENNOTIFY_CAVE_BEGIN;
 	if (mg->gennotify & (1 << notifytype)) {
-		std::vector <v3s16> *nvec = mg->gen_notifications[notifytype];
-		nvec->push_back(v3s16(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
+		std::vector <v3POS> *nvec = mg->gen_notifications[notifytype];
+		nvec->push_back(v3POS(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
 	}
 
 	// Generate some tunnel starting from orp
@@ -371,8 +371,8 @@ void CaveV7::makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height) {
 
 	notifytype = large_cave ? GENNOTIFY_LARGECAVE_END : GENNOTIFY_CAVE_END;
 	if (mg->gennotify & (1 << notifytype)) {
-		std::vector <v3s16> *nvec = mg->gen_notifications[notifytype];
-		nvec->push_back(v3s16(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
+		std::vector <v3POS> *nvec = mg->gen_notifications[notifytype];
+		nvec->push_back(v3POS(of.X + orp.X, of.Y + orp.Y, of.Z + orp.Z));
 	}
 }
 
@@ -392,15 +392,15 @@ void CaveV7::makeTunnel(bool dirswitch) {
 	s16 max_d = max_tunnel_diameter;
 	rs = ps->range(min_d, max_d);
 
-	v3s16 maxlen;
+	v3POS maxlen;
 	if (large_cave) {
-		maxlen = v3s16(
+		maxlen = v3POS(
 			rs * part_max_length_rs,
 			rs * part_max_length_rs / 2,
 			rs * part_max_length_rs
 		);
 	} else {
-		maxlen = v3s16(
+		maxlen = v3POS(
 			rs * part_max_length_rs,
 			ps->range(1, rs * part_max_length_rs),
 			rs * part_max_length_rs
@@ -426,9 +426,9 @@ void CaveV7::makeTunnel(bool dirswitch) {
 	// Do not make large caves that are above ground.
 	// It is only necessary to check the startpoint and endpoint.
 	if (large_cave) {
-		v3s16 orpi(orp.X, orp.Y, orp.Z);
-		v3s16 veci(vec.X, vec.Y, vec.Z);
-		v3s16 p;
+		v3POS orpi(orp.X, orp.Y, orp.Z);
+		v3POS veci(vec.X, vec.Y, vec.Z);
+		v3POS p;
 		
 		p = orpi + veci + of + rs / 2;
 		if (p.Z >= node_min.Z && p.Z <= node_max.Z &&
@@ -498,7 +498,7 @@ void CaveV7::carveRoute(v3f vec, float f, bool randomize_xz, bool is_ravine) {
 	MapNode waternode(c_water_source);
 	MapNode lavanode(c_lava_source);
 	
-	v3s16 startp(orp.X, orp.Y, orp.Z);
+	v3POS startp(orp.X, orp.Y, orp.Z);
 	startp += of;
 	
 	float nval = NoisePerlin3D(np_caveliquids, startp.X,
@@ -508,7 +508,7 @@ void CaveV7::carveRoute(v3f vec, float f, bool randomize_xz, bool is_ravine) {
 	v3f fp = orp + vec * f;
 	fp.X += 0.1 * ps->range(-10, 10);
 	fp.Z += 0.1 * ps->range(-10, 10);
-	v3s16 cp(fp.X, fp.Y, fp.Z);
+	v3POS cp(fp.X, fp.Y, fp.Z);
 
 	s16 d0 = -rs/2;
 	s16 d1 = d0 + rs;
@@ -539,7 +539,7 @@ void CaveV7::carveRoute(v3f vec, float f, bool randomize_xz, bool is_ravine) {
 						continue;
 				}
 
-				v3s16 p(cp.X + x0, cp.Y + y0, cp.Z + z0);
+				v3POS p(cp.X + x0, cp.Y + y0, cp.Z + z0);
 				p += of;
 				
 				if (!is_ravine && mg->heightmap && should_make_cave_hole &&

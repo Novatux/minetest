@@ -27,7 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "lua_api/l_item.h"
 
 // Return number of accepted items to be moved
-int ScriptApiNodemeta::nodemeta_inventory_AllowMove(v3s16 p,
+int ScriptApiNodemeta::nodemeta_inventory_AllowMove(v3POS p,
 		const std::string &from_list, int from_index,
 		const std::string &to_list, int to_index,
 		int count, ServerActiveObject *player)
@@ -50,7 +50,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowMove(v3s16 p,
 		return count;
 
 	// function(pos, from_list, from_index, to_list, to_index, count, player)
-	push_v3s16(L, p);                     // pos
+	push_v3POS(L, p);                     // pos
 	lua_pushstring(L, from_list.c_str()); // from_list
 	lua_pushinteger(L, from_index + 1);   // from_index
 	lua_pushstring(L, to_list.c_str());   // to_list
@@ -69,7 +69,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowMove(v3s16 p,
 }
 
 // Return number of accepted items to be put
-int ScriptApiNodemeta::nodemeta_inventory_AllowPut(v3s16 p,
+int ScriptApiNodemeta::nodemeta_inventory_AllowPut(v3POS p,
 		const std::string &listname, int index, ItemStack &stack,
 		ServerActiveObject *player)
 {
@@ -91,7 +91,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowPut(v3s16 p,
 		return stack.count;
 
 	// Call function(pos, listname, index, stack, player)
-	push_v3s16(L, p);                    // pos
+	push_v3POS(L, p);                    // pos
 	lua_pushstring(L, listname.c_str()); // listname
 	lua_pushinteger(L, index + 1);       // index
 	LuaItemStack::create(L, stack);      // stack
@@ -108,7 +108,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowPut(v3s16 p,
 }
 
 // Return number of accepted items to be taken
-int ScriptApiNodemeta::nodemeta_inventory_AllowTake(v3s16 p,
+int ScriptApiNodemeta::nodemeta_inventory_AllowTake(v3POS p,
 		const std::string &listname, int index, ItemStack &stack,
 		ServerActiveObject *player)
 {
@@ -130,7 +130,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowTake(v3s16 p,
 		return stack.count;
 
 	// Call function(pos, listname, index, count, player)
-	push_v3s16(L, p);                    // pos
+	push_v3POS(L, p);                    // pos
 	lua_pushstring(L, listname.c_str()); // listname
 	lua_pushinteger(L, index + 1);       // index
 	LuaItemStack::create(L, stack);      // stack
@@ -147,7 +147,7 @@ int ScriptApiNodemeta::nodemeta_inventory_AllowTake(v3s16 p,
 }
 
 // Report moved items
-void ScriptApiNodemeta::nodemeta_inventory_OnMove(v3s16 p,
+void ScriptApiNodemeta::nodemeta_inventory_OnMove(v3POS p,
 		const std::string &from_list, int from_index,
 		const std::string &to_list, int to_index,
 		int count, ServerActiveObject *player)
@@ -170,7 +170,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnMove(v3s16 p,
 		return;
 
 	// function(pos, from_list, from_index, to_list, to_index, count, player)
-	push_v3s16(L, p);                     // pos
+	push_v3POS(L, p);                     // pos
 	lua_pushstring(L, from_list.c_str()); // from_list
 	lua_pushinteger(L, from_index + 1);   // from_index
 	lua_pushstring(L, to_list.c_str());   // to_list
@@ -183,7 +183,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnMove(v3s16 p,
 }
 
 // Report put items
-void ScriptApiNodemeta::nodemeta_inventory_OnPut(v3s16 p,
+void ScriptApiNodemeta::nodemeta_inventory_OnPut(v3POS p,
 		const std::string &listname, int index, ItemStack &stack,
 		ServerActiveObject *player)
 {
@@ -205,7 +205,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnPut(v3s16 p,
 		return;
 
 	// Call function(pos, listname, index, stack, player)
-	push_v3s16(L, p);                    // pos
+	push_v3POS(L, p);                    // pos
 	lua_pushstring(L, listname.c_str()); // listname
 	lua_pushinteger(L, index + 1);       // index
 	LuaItemStack::create(L, stack);      // stack
@@ -216,7 +216,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnPut(v3s16 p,
 }
 
 // Report taken items
-void ScriptApiNodemeta::nodemeta_inventory_OnTake(v3s16 p,
+void ScriptApiNodemeta::nodemeta_inventory_OnTake(v3POS p,
 		const std::string &listname, int index, ItemStack &stack,
 		ServerActiveObject *player)
 {
@@ -238,7 +238,7 @@ void ScriptApiNodemeta::nodemeta_inventory_OnTake(v3s16 p,
 		return;
 
 	// Call function(pos, listname, index, stack, player)
-	push_v3s16(L, p);                    // pos
+	push_v3POS(L, p);                    // pos
 	lua_pushstring(L, listname.c_str()); // listname
 	lua_pushinteger(L, index + 1);       // index
 	LuaItemStack::create(L, stack);      // stack

@@ -58,7 +58,7 @@ void MeshMakeData::fill(MapBlock *block)
 {
 	m_blockpos = block->getPos();
 
-	v3s16 blockpos_nodes = m_blockpos*MAP_BLOCKSIZE;
+	v3POS blockpos_nodes = m_blockpos*MAP_BLOCKSIZE;
 	
 	/*
 		Copy data
@@ -66,8 +66,8 @@ void MeshMakeData::fill(MapBlock *block)
 
 	// Allocate this block + neighbors
 	m_vmanip.clear();
-	m_vmanip.addArea(VoxelArea(blockpos_nodes-v3s16(1,1,1)*MAP_BLOCKSIZE,
-			blockpos_nodes+v3s16(1,1,1)*MAP_BLOCKSIZE*2-v3s16(1,1,1)));
+	m_vmanip.addArea(VoxelArea(blockpos_nodes-v3POS(1,1,1)*MAP_BLOCKSIZE,
+			blockpos_nodes+v3POS(1,1,1)*MAP_BLOCKSIZE*2-v3POS(1,1,1)));
 
 	{
 		//TimeTaker timer("copy central block data");
@@ -90,8 +90,8 @@ void MeshMakeData::fill(MapBlock *block)
 
 		for(u16 i=0; i<26; i++)
 		{
-			const v3s16 &dir = g_26dirs[i];
-			v3s16 bp = m_blockpos + dir;
+			const v3POS &dir = g_26dirs[i];
+			v3POS bp = m_blockpos + dir;
 			MapBlock *b = map->getBlockNoCreateNoEx(bp);
 			if(b)
 				b->copyTo(m_vmanip);
@@ -101,11 +101,11 @@ void MeshMakeData::fill(MapBlock *block)
 
 void MeshMakeData::fillSingleNode(MapNode *node)
 {
-	m_blockpos = v3s16(0,0,0);
+	m_blockpos = v3POS(0,0,0);
 	
-	v3s16 blockpos_nodes = v3s16(0,0,0);
-	VoxelArea area(blockpos_nodes-v3s16(1,1,1)*MAP_BLOCKSIZE,
-			blockpos_nodes+v3s16(1,1,1)*MAP_BLOCKSIZE*2-v3s16(1,1,1));
+	v3POS blockpos_nodes = v3POS(0,0,0);
+	VoxelArea area(blockpos_nodes-v3POS(1,1,1)*MAP_BLOCKSIZE,
+			blockpos_nodes+v3POS(1,1,1)*MAP_BLOCKSIZE*2-v3POS(1,1,1));
 	s32 volume = area.getVolume();
 	s32 our_node_index = area.index(1,1,1);
 
@@ -130,7 +130,7 @@ void MeshMakeData::fillSingleNode(MapNode *node)
 	delete[] data;
 }
 
-void MeshMakeData::setCrack(int crack_level, v3s16 crack_pos)
+void MeshMakeData::setCrack(int crack_level, v3POS crack_pos)
 {
 	if(crack_level >= 0)
 		m_crack_pos_relative = crack_pos - m_blockpos*MAP_BLOCKSIZE;
@@ -185,7 +185,7 @@ u16 getInteriorLight(MapNode n, s32 increment, MeshMakeData *data)
 	Single light bank.
 */
 static u8 getFaceLight(enum LightBank bank, MapNode n, MapNode n2,
-		v3s16 face_dir, MeshMakeData *data)
+		v3POS face_dir, MeshMakeData *data)
 {
 	INodeDefManager *ndef = data->m_gamedef->ndef();
 
@@ -227,7 +227,7 @@ static u8 getFaceLight(enum LightBank bank, MapNode n, MapNode n2,
 	Calculate non-smooth lighting at face of node.
 	Both light banks.
 */
-u16 getFaceLight(MapNode n, MapNode n2, v3s16 face_dir, MeshMakeData *data)
+u16 getFaceLight(MapNode n, MapNode n2, v3POS face_dir, MeshMakeData *data)
 {
 	u16 day = getFaceLight(LIGHTBANK_DAY, n, n2, face_dir, data);
 	u16 night = getFaceLight(LIGHTBANK_NIGHT, n, n2, face_dir, data);
@@ -238,17 +238,17 @@ u16 getFaceLight(MapNode n, MapNode n2, v3s16 face_dir, MeshMakeData *data)
 	Calculate smooth lighting at the XYZ- corner of p.
 	Single light bank.
 */
-static u8 getSmoothLight(enum LightBank bank, v3s16 p, MeshMakeData *data)
+static u8 getSmoothLight(enum LightBank bank, v3POS p, MeshMakeData *data)
 {
-	static v3s16 dirs8[8] = {
-		v3s16(0,0,0),
-		v3s16(0,0,1),
-		v3s16(0,1,0),
-		v3s16(0,1,1),
-		v3s16(1,0,0),
-		v3s16(1,1,0),
-		v3s16(1,0,1),
-		v3s16(1,1,1),
+	static v3POS dirs8[8] = {
+		v3POS(0,0,0),
+		v3POS(0,0,1),
+		v3POS(0,1,0),
+		v3POS(0,1,1),
+		v3POS(1,0,0),
+		v3POS(1,1,0),
+		v3POS(1,0,1),
+		v3POS(1,1,1),
 	};
 
 	INodeDefManager *ndef = data->m_gamedef->ndef();
@@ -307,7 +307,7 @@ static u8 getSmoothLight(enum LightBank bank, v3s16 p, MeshMakeData *data)
 	Calculate smooth lighting at the XYZ- corner of p.
 	Both light banks.
 */
-static u16 getSmoothLight(v3s16 p, MeshMakeData *data)
+static u16 getSmoothLight(v3POS p, MeshMakeData *data)
 {
 	u16 day = getSmoothLight(LIGHTBANK_DAY, p, data);
 	u16 night = getSmoothLight(LIGHTBANK_NIGHT, p, data);
@@ -318,7 +318,7 @@ static u16 getSmoothLight(v3s16 p, MeshMakeData *data)
 	Calculate smooth lighting at the given corner of p.
 	Both light banks.
 */
-u16 getSmoothLight(v3s16 p, v3s16 corner, MeshMakeData *data)
+u16 getSmoothLight(v3POS p, v3POS corner, MeshMakeData *data)
 {
 	if(corner.X == 1) p.X += 1;
 	else              assert(corner.X == -1);
@@ -376,9 +376,9 @@ static void finalColorBlend(video::SColor& result,
 */
 
 /*
-	vertex_dirs: v3s16[4]
+	vertex_dirs: v3POS[4]
 */
-static void getNodeVertexDirs(v3s16 dir, v3s16 *vertex_dirs)
+static void getNodeVertexDirs(v3POS dir, v3POS *vertex_dirs)
 {
 	/*
 		If looked from outside the node towards the face, the corners are:
@@ -387,54 +387,54 @@ static void getNodeVertexDirs(v3s16 dir, v3s16 *vertex_dirs)
 		2: top-left
 		3: top-right
 	*/
-	if(dir == v3s16(0,0,1))
+	if(dir == v3POS(0,0,1))
 	{
 		// If looking towards z+, this is the face that is behind
 		// the center point, facing towards z+.
-		vertex_dirs[0] = v3s16(-1,-1, 1);
-		vertex_dirs[1] = v3s16( 1,-1, 1);
-		vertex_dirs[2] = v3s16( 1, 1, 1);
-		vertex_dirs[3] = v3s16(-1, 1, 1);
+		vertex_dirs[0] = v3POS(-1,-1, 1);
+		vertex_dirs[1] = v3POS( 1,-1, 1);
+		vertex_dirs[2] = v3POS( 1, 1, 1);
+		vertex_dirs[3] = v3POS(-1, 1, 1);
 	}
-	else if(dir == v3s16(0,0,-1))
+	else if(dir == v3POS(0,0,-1))
 	{
 		// faces towards Z-
-		vertex_dirs[0] = v3s16( 1,-1,-1);
-		vertex_dirs[1] = v3s16(-1,-1,-1);
-		vertex_dirs[2] = v3s16(-1, 1,-1);
-		vertex_dirs[3] = v3s16( 1, 1,-1);
+		vertex_dirs[0] = v3POS( 1,-1,-1);
+		vertex_dirs[1] = v3POS(-1,-1,-1);
+		vertex_dirs[2] = v3POS(-1, 1,-1);
+		vertex_dirs[3] = v3POS( 1, 1,-1);
 	}
-	else if(dir == v3s16(1,0,0))
+	else if(dir == v3POS(1,0,0))
 	{
 		// faces towards X+
-		vertex_dirs[0] = v3s16( 1,-1, 1);
-		vertex_dirs[1] = v3s16( 1,-1,-1);
-		vertex_dirs[2] = v3s16( 1, 1,-1);
-		vertex_dirs[3] = v3s16( 1, 1, 1);
+		vertex_dirs[0] = v3POS( 1,-1, 1);
+		vertex_dirs[1] = v3POS( 1,-1,-1);
+		vertex_dirs[2] = v3POS( 1, 1,-1);
+		vertex_dirs[3] = v3POS( 1, 1, 1);
 	}
-	else if(dir == v3s16(-1,0,0))
+	else if(dir == v3POS(-1,0,0))
 	{
 		// faces towards X-
-		vertex_dirs[0] = v3s16(-1,-1,-1);
-		vertex_dirs[1] = v3s16(-1,-1, 1);
-		vertex_dirs[2] = v3s16(-1, 1, 1);
-		vertex_dirs[3] = v3s16(-1, 1,-1);
+		vertex_dirs[0] = v3POS(-1,-1,-1);
+		vertex_dirs[1] = v3POS(-1,-1, 1);
+		vertex_dirs[2] = v3POS(-1, 1, 1);
+		vertex_dirs[3] = v3POS(-1, 1,-1);
 	}
-	else if(dir == v3s16(0,1,0))
+	else if(dir == v3POS(0,1,0))
 	{
 		// faces towards Y+ (assume Z- as "down" in texture)
-		vertex_dirs[0] = v3s16( 1, 1,-1);
-		vertex_dirs[1] = v3s16(-1, 1,-1);
-		vertex_dirs[2] = v3s16(-1, 1, 1);
-		vertex_dirs[3] = v3s16( 1, 1, 1);
+		vertex_dirs[0] = v3POS( 1, 1,-1);
+		vertex_dirs[1] = v3POS(-1, 1,-1);
+		vertex_dirs[2] = v3POS(-1, 1, 1);
+		vertex_dirs[3] = v3POS( 1, 1, 1);
 	}
-	else if(dir == v3s16(0,-1,0))
+	else if(dir == v3POS(0,-1,0))
 	{
 		// faces towards Y- (assume Z+ as "down" in texture)
-		vertex_dirs[0] = v3s16( 1,-1, 1);
-		vertex_dirs[1] = v3s16(-1,-1, 1);
-		vertex_dirs[2] = v3s16(-1,-1,-1);
-		vertex_dirs[3] = v3s16( 1,-1,-1);
+		vertex_dirs[0] = v3POS( 1,-1, 1);
+		vertex_dirs[1] = v3POS(-1,-1, 1);
+		vertex_dirs[2] = v3POS(-1,-1,-1);
+		vertex_dirs[3] = v3POS( 1,-1,-1);
 	}
 }
 
@@ -445,7 +445,7 @@ struct FastFace
 };
 
 static void makeFastFace(TileSpec tile, u16 li0, u16 li1, u16 li2, u16 li3,
-		v3f p, v3s16 dir, v3f scale, u8 light_source, std::vector<FastFace> &dest)
+		v3f p, v3POS dir, v3f scale, u8 light_source, std::vector<FastFace> &dest)
 {
 	FastFace face;
 
@@ -458,10 +458,10 @@ static void makeFastFace(TileSpec tile, u16 li0, u16 li1, u16 li2, u16 li3,
 	float h = 1.0;
 
 	v3f vertex_pos[4];
-	v3s16 vertex_dirs[4];
+	v3POS vertex_dirs[4];
 	getNodeVertexDirs(dir, vertex_dirs);
 
-	v3s16 t;
+	v3POS t;
 	u16 t1;
 	switch (tile.rotation)
 	{
@@ -675,7 +675,7 @@ static u8 face_contents(content_t m1, content_t m2, bool *equivalent,
 /*
 	Gets nth node tile (0 <= n <= 5).
 */
-TileSpec getNodeTileN(MapNode mn, v3s16 p, u8 tileindex, MeshMakeData *data)
+TileSpec getNodeTileN(MapNode mn, v3POS p, u8 tileindex, MeshMakeData *data)
 {
 	INodeDefManager *ndef = data->m_gamedef->ndef();
 	TileSpec spec = ndef->get(mn).tiles[tileindex];
@@ -690,7 +690,7 @@ TileSpec getNodeTileN(MapNode mn, v3s16 p, u8 tileindex, MeshMakeData *data)
 /*
 	Gets node tile given a face direction.
 */
-TileSpec getNodeTile(MapNode mn, v3s16 p, v3s16 dir, MeshMakeData *data)
+TileSpec getNodeTile(MapNode mn, v3POS p, v3POS dir, MeshMakeData *data)
 {
 	INodeDefManager *ndef = data->m_gamedef->ndef();
 
@@ -757,12 +757,12 @@ TileSpec getNodeTile(MapNode mn, v3s16 p, v3s16 dir, MeshMakeData *data)
 static void getTileInfo(
 		// Input:
 		MeshMakeData *data,
-		v3s16 p,
-		v3s16 face_dir,
+		v3POS p,
+		v3POS face_dir,
 		// Output:
 		bool &makes_face,
-		v3s16 &p_corrected,
-		v3s16 &face_dir_corrected,
+		v3POS &p_corrected,
+		v3POS &face_dir_corrected,
 		u16 *lights,
 		TileSpec &tile,
 		u8 &light_source
@@ -770,7 +770,7 @@ static void getTileInfo(
 {
 	VoxelManipulator &vmanip = data->m_vmanip;
 	INodeDefManager *ndef = data->m_gamedef->ndef();
-	v3s16 blockpos_nodes = data->m_blockpos * MAP_BLOCKSIZE;
+	v3POS blockpos_nodes = data->m_blockpos * MAP_BLOCKSIZE;
 
 	MapNode n0 = vmanip.getNodeNoEx(blockpos_nodes + p);
 	MapNode n1 = vmanip.getNodeNoEx(blockpos_nodes + p + face_dir);
@@ -816,7 +816,7 @@ static void getTileInfo(
 	}
 	else
 	{
-		v3s16 vertex_dirs[4];
+		v3POS vertex_dirs[4];
 		getNodeVertexDirs(face_dir_corrected, vertex_dirs);
 		for(u16 i=0; i<4; i++)
 		{
@@ -836,20 +836,20 @@ static void getTileInfo(
 */
 static void updateFastFaceRow(
 		MeshMakeData *data,
-		v3s16 startpos,
-		v3s16 translate_dir,
+		v3POS startpos,
+		v3POS translate_dir,
 		v3f translate_dir_f,
-		v3s16 face_dir,
+		v3POS face_dir,
 		v3f face_dir_f,
 		std::vector<FastFace> &dest)
 {
-	v3s16 p = startpos;
+	v3POS p = startpos;
 	
 	u16 continuous_tiles_count = 0;
 	
 	bool makes_face = false;
-	v3s16 p_corrected;
-	v3s16 face_dir_corrected;
+	v3POS p_corrected;
+	v3POS face_dir_corrected;
 	u16 lights[4] = {0,0,0,0};
 	TileSpec tile;
 	u8 light_source = 0;
@@ -862,11 +862,11 @@ static void updateFastFaceRow(
 		// If tiling can be done, this is set to false in the next step
 		bool next_is_different = true;
 		
-		v3s16 p_next;
+		v3POS p_next;
 		
 		bool next_makes_face = false;
-		v3s16 next_p_corrected;
-		v3s16 next_face_dir_corrected;
+		v3POS next_p_corrected;
+		v3POS next_face_dir_corrected;
 		u16 next_lights[4] = {0,0,0,0};
 		TileSpec next_tile;
 		u8 next_light_source = 0;
@@ -986,10 +986,10 @@ static void updateAllFastFaceRows(MeshMakeData *data,
 	for(s16 y=0; y<MAP_BLOCKSIZE; y++){
 		for(s16 z=0; z<MAP_BLOCKSIZE; z++){
 			updateFastFaceRow(data,
-					v3s16(0,y,z),
-					v3s16(1,0,0), //dir
+					v3POS(0,y,z),
+					v3POS(1,0,0), //dir
 					v3f  (1,0,0),
-					v3s16(0,1,0), //face dir
+					v3POS(0,1,0), //face dir
 					v3f  (0,1,0),
 					dest);
 		}
@@ -1001,10 +1001,10 @@ static void updateAllFastFaceRows(MeshMakeData *data,
 	for(s16 x=0; x<MAP_BLOCKSIZE; x++){
 		for(s16 y=0; y<MAP_BLOCKSIZE; y++){
 			updateFastFaceRow(data,
-					v3s16(x,y,0),
-					v3s16(0,0,1), //dir
+					v3POS(x,y,0),
+					v3POS(0,0,1), //dir
 					v3f  (0,0,1),
-					v3s16(1,0,0), //face dir
+					v3POS(1,0,0), //face dir
 					v3f  (1,0,0),
 					dest);
 		}
@@ -1016,10 +1016,10 @@ static void updateAllFastFaceRows(MeshMakeData *data,
 	for(s16 z=0; z<MAP_BLOCKSIZE; z++){
 		for(s16 y=0; y<MAP_BLOCKSIZE; y++){
 			updateFastFaceRow(data,
-					v3s16(0,y,z),
-					v3s16(1,0,0), //dir
+					v3POS(0,y,z),
+					v3POS(1,0,0), //dir
 					v3f  (1,0,0),
-					v3s16(0,0,1), //face dir
+					v3POS(0,0,1), //face dir
 					v3f  (0,0,1),
 					dest);
 		}
@@ -1030,7 +1030,7 @@ static void updateAllFastFaceRows(MeshMakeData *data,
 	MapBlockMesh
 */
 
-MapBlockMesh::MapBlockMesh(MeshMakeData *data, v3s16 camera_offset):
+MapBlockMesh::MapBlockMesh(MeshMakeData *data, v3POS camera_offset):
 	m_mesh(new scene::SMesh()),
 	m_gamedef(data->m_gamedef),
 	m_animation_force_timer(0), // force initial animation
@@ -1417,7 +1417,7 @@ bool MapBlockMesh::animate(bool faraway, float time, int crack, u32 daynight_rat
 	return true;
 }
 
-void MapBlockMesh::updateCameraOffset(v3s16 camera_offset)
+void MapBlockMesh::updateCameraOffset(v3POS camera_offset)
 {
 	if (camera_offset != m_camera_offset) {
 		translateMesh(m_mesh, intToFloat(m_camera_offset-camera_offset, BS));

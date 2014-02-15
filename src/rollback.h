@@ -35,14 +35,14 @@ public:
 	virtual std::string getActor() = 0;
 	virtual bool isActorGuess() = 0;
 	virtual void setActor(const std::string &actor, bool is_guess) = 0;
-	virtual std::string getSuspect(v3s16 p, float nearness_shortcut,
+	virtual std::string getSuspect(v3POS p, float nearness_shortcut,
 	                               float min_nearness) = 0;
 
 	virtual ~IRollbackManager() {}
 	virtual void flush() = 0;
 	// Get all actors that did something to position p, but not further than
 	// <seconds> in history
-	virtual std::list<RollbackAction> getNodeActors(v3s16 pos, int range,
+	virtual std::list<RollbackAction> getNodeActors(v3POS pos, int range,
 	                time_t seconds, int limit) = 0;
 	// Get actions to revert <seconds> of history made by <actor>
 	virtual std::list<RollbackAction> getRevertActions(const std::string &actor,

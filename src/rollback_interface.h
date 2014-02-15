@@ -52,7 +52,7 @@ struct RollbackNode
 		param2(0)
 	{}
 
-	RollbackNode(Map *map, v3s16 p, IGameDef *gamedef);
+	RollbackNode(Map *map, v3POS p, IGameDef *gamedef);
 };
 
 struct RollbackAction
@@ -67,7 +67,7 @@ struct RollbackAction
 	std::string actor;
 	bool actor_is_guess;
 
-	v3s16 p;
+	v3POS p;
 	RollbackNode n_old;
 	RollbackNode n_new;
 	
@@ -83,7 +83,7 @@ struct RollbackAction
 		actor_is_guess(false)
 	{}
 
-	void setSetNode(v3s16 p_, const RollbackNode &n_old_,
+	void setSetNode(v3POS p_, const RollbackNode &n_old_,
 			const RollbackNode &n_new_)
 	{
 		type = TYPE_SET_NODE;
@@ -111,7 +111,7 @@ struct RollbackAction
 	// Eg. flowing water level changes are not important
 	bool isImportant(IGameDef *gamedef) const;
 	
-	bool getPosition(v3s16 *dst) const;
+	bool getPosition(v3POS *dst) const;
 
 	bool applyRevert(Map *map, InventoryManager *imgr, IGameDef *gamedef) const;
 };
@@ -124,7 +124,7 @@ public:
 	virtual std::string getActor() = 0;
 	virtual bool isActorGuess() = 0;
 	virtual void setActor(const std::string &actor, bool is_guess) = 0;
-	virtual std::string getSuspect(v3s16 p, float nearness_shortcut,
+	virtual std::string getSuspect(v3POS p, float nearness_shortcut,
 			float min_nearness) = 0;
 };
 

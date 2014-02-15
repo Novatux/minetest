@@ -39,8 +39,8 @@ std::string PointedThing::dump() const
 	}
 	else if(type == POINTEDTHING_NODE)
 	{
-		const v3s16 &u = node_undersurface;
-		const v3s16 &a = node_abovesurface;
+		const v3POS &u = node_undersurface;
+		const v3POS &a = node_abovesurface;
 		os<<"[node under="<<u.X<<","<<u.Y<<","<<u.Z
 			<< " above="<<a.X<<","<<a.Y<<","<<a.Z<<"]";
 	}
@@ -65,8 +65,8 @@ void PointedThing::serialize(std::ostream &os) const
 	}
 	else if(type == POINTEDTHING_NODE)
 	{
-		writeV3S16(os, node_undersurface);
-		writeV3S16(os, node_abovesurface);
+		writeV3POS(os, node_undersurface);
+		writeV3POS(os, node_abovesurface);
 	}
 	else if(type == POINTEDTHING_OBJECT)
 	{
@@ -86,8 +86,8 @@ void PointedThing::deSerialize(std::istream &is)
 	}
 	else if(type == POINTEDTHING_NODE)
 	{
-		node_undersurface = readV3S16(is);
-		node_abovesurface = readV3S16(is);
+		node_undersurface = readV3POS(is);
+		node_abovesurface = readV3POS(is);
 	}
 	else if(type == POINTEDTHING_OBJECT)
 	{

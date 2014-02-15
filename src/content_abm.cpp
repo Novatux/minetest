@@ -50,7 +50,7 @@ class LiquidFlowABM : public ActiveBlockModifier {
 		{ return 10.0; }
 		virtual u32 getTriggerChance()
 		{ return 10; }
-		virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n) {
+		virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n) {
 			ServerMap *map = &env->getServerMap();
 			if (map->transforming_liquid_size() > 500)
 				return;
@@ -80,15 +80,15 @@ class LiquidDropABM : public ActiveBlockModifier {
 		{ return 20.0; }
 		virtual u32 getTriggerChance()
 		{ return 10; }
-		virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n) {
+		virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n) {
 			ServerMap *map = &env->getServerMap();
 			if (map->transforming_liquid_size() > 500)
 				return;
-			if (   map->getNodeNoEx(p - v3s16(0,  1, 0 )).getContent() != CONTENT_AIR  // below
-			    && map->getNodeNoEx(p - v3s16(1,  0, 0 )).getContent() != CONTENT_AIR  // right
-			    && map->getNodeNoEx(p - v3s16(-1, 0, 0 )).getContent() != CONTENT_AIR  // left
-			    && map->getNodeNoEx(p - v3s16(0,  0, 1 )).getContent() != CONTENT_AIR  // back
-			    && map->getNodeNoEx(p - v3s16(0,  0, -1)).getContent() != CONTENT_AIR  // front
+			if (   map->getNodeNoEx(p - v3POS(0,  1, 0 )).getContent() != CONTENT_AIR  // below
+			    && map->getNodeNoEx(p - v3POS(1,  0, 0 )).getContent() != CONTENT_AIR  // right
+			    && map->getNodeNoEx(p - v3POS(-1, 0, 0 )).getContent() != CONTENT_AIR  // left
+			    && map->getNodeNoEx(p - v3POS(0,  0, 1 )).getContent() != CONTENT_AIR  // back
+			    && map->getNodeNoEx(p - v3POS(0,  0, -1)).getContent() != CONTENT_AIR  // front
 			   )
 				return;
 			map->transforming_liquid_add(p);
@@ -113,13 +113,13 @@ class LiquidFreeze : public ActiveBlockModifier {
 		{ return 10.0; }
 		virtual u32 getTriggerChance()
 		{ return 20; }
-		virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n) {
+		virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n) {
 			ServerMap *map = &env->getServerMap();
 			INodeDefManager *ndef = env->getGameDef()->ndef();
 
 			float heat = map->updateBlockHeat(env, p);
 			//heater = rare
-			content_t c = map->getNodeNoEx(p - v3s16(0,  -1, 0 )).getContent(); // top
+			content_t c = map->getNodeNoEx(p - v3POS(0,  -1, 0 )).getContent(); // top
 			//more chance to freeze if air at top
 			if (heat <= -1 && (heat <= -50 || (myrand_range(-50, heat) <= (c == CONTENT_AIR ? -10 : -40)))) {
 				content_t c_self = n.getContent();
@@ -128,21 +128,21 @@ class LiquidFreeze : public ActiveBlockModifier {
 				bool allow = heat < -40;
 				// todo: make for(...)
 				if (!allow) {
-				 c = map->getNodeNoEx(p - v3s16(0,  1, 0 )).getContent(); // below
+				 c = map->getNodeNoEx(p - v3POS(0,  1, 0 )).getContent(); // below
 				 if (c == CONTENT_AIR || c == CONTENT_IGNORE)
 					return; // do not freeze when falling
 				 if (c != c_self && c != CONTENT_IGNORE) allow = 1;
 				 if (!allow) {
-				  c = map->getNodeNoEx(p - v3s16(1,  0, 0 )).getContent(); // right
+				  c = map->getNodeNoEx(p - v3POS(1,  0, 0 )).getContent(); // right
 				  if (c != c_self && c != CONTENT_IGNORE) allow = 1;
 				  if (!allow) {
-				   c = map->getNodeNoEx(p - v3s16(-1, 0, 0 )).getContent(); // left
+				   c = map->getNodeNoEx(p - v3POS(-1, 0, 0 )).getContent(); // left
 				   if (c != c_self && c != CONTENT_IGNORE) allow = 1;
 				   if (!allow) {
-				    c = map->getNodeNoEx(p - v3s16(0,  0, 1 )).getContent(); // back
+				    c = map->getNodeNoEx(p - v3POS(0,  0, 1 )).getContent(); // back
 				    if (c != c_self && c != CONTENT_IGNORE) allow = 1;
 				    if (!allow) {
-				     c = map->getNodeNoEx(p - v3s16(0,  0, -1)).getContent(); // front
+				     c = map->getNodeNoEx(p - v3POS(0,  0, -1)).getContent(); // front
 				     if (c != c_self && c != CONTENT_IGNORE) allow = 1;
 				    }
 				   }
@@ -175,12 +175,12 @@ class LiquidMeltWeather : public ActiveBlockModifier {
 		{ return 10.0; }
 		virtual u32 getTriggerChance()
 		{ return 20; }
-		virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n) {
+		virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n) {
 			ServerMap *map = &env->getServerMap();
 			INodeDefManager *ndef = env->getGameDef()->ndef();
 
 			float heat = map->updateBlockHeat(env, p);
-			content_t c = map->getNodeNoEx(p - v3s16(0,  -1, 0 )).getContent(); // top
+			content_t c = map->getNodeNoEx(p - v3POS(0,  -1, 0 )).getContent(); // top
 			if (heat >= 1 && (heat >= 40 || ((myrand_range(heat, 40)) >= (c == CONTENT_AIR ? 10 : 20)))) {
 				n.freezeMelt(ndef);
 				map->addNodeWithEvent(p, n);
@@ -207,7 +207,7 @@ class LiquidMeltHot : public ActiveBlockModifier {
 		{ return 2.0; }
 		virtual u32 getTriggerChance()
 		{ return 4; }
-		virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n) {
+		virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n) {
 			ServerMap *map = &env->getServerMap();
 			INodeDefManager *ndef = env->getGameDef()->ndef();
 			n.freezeMelt(ndef);

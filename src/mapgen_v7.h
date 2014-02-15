@@ -71,10 +71,10 @@ public:
 	u32 flags;
 
 	u32 blockseed;
-	v3s16 node_min;
-	v3s16 node_max;
-	v3s16 full_node_min;
-	v3s16 full_node_max;
+	v3POS node_min;
+	v3POS node_max;
+	v3POS full_node_min;
+	v3POS full_node_max;
 	
 	s16 *ridge_heightmap;
 	
@@ -107,8 +107,8 @@ public:
 	~MapgenV7();
 	
 	virtual void makeChunk(BlockMakeData *data);
-	int getGroundLevelAtPoint(v2s16 p);
-	Biome *getBiomeAtPoint(v3s16 p);
+	int getGroundLevelAtPoint(v2POS p);
+	Biome *getBiomeAtPoint(v3POS p);
 
 	float baseTerrainLevelAtPoint(int x, int z);
 	float baseTerrainLevelFromMap(int index);

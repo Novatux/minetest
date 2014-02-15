@@ -115,7 +115,7 @@ v3f checkFloatPos(lua_State *L, int index)
 	return check_v3f(L, index) * BS;
 }
 
-void push_v3s16(lua_State *L, v3s16 p)
+void push_v3POS(lua_State *L, v3POS p)
 {
 	lua_newtable(L);
 	lua_pushnumber(L, p.X);
@@ -126,14 +126,14 @@ void push_v3s16(lua_State *L, v3s16 p)
 	lua_setfield(L, -2, "z");
 }
 
-v3s16 read_v3s16(lua_State *L, int index)
+v3POS read_v3POS(lua_State *L, int index)
 {
 	// Correct rounding at <0
 	v3f pf = read_v3f(L, index);
 	return floatToInt(pf, 1.0);
 }
 
-v3s16 check_v3s16(lua_State *L, int index)
+v3POS check_v3POS(lua_State *L, int index)
 {
 	// Correct rounding at <0
 	v3f pf = check_v3f(L, index);

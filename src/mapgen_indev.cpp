@@ -205,7 +205,7 @@ void MapgenIndevParams::writeParams(Settings *settings) {
 }
 
 
-float MapgenIndev::baseTerrainLevelFromNoise(v2s16 p) {
+float MapgenIndev::baseTerrainLevelFromNoise(v2POS p) {
 	if (flags & MG_FLAT)
 		return water_level;
 		
@@ -259,7 +259,7 @@ void MapgenIndev::generateCaves(int max_stone_y) {
 	if (ps.range(1, 6) == 1)
 		bruises_count = ps.range(0, ps.range(0, 2));
 	
-	if (getBiome(v2s16(node_min.X, node_min.Z)) == BT_DESERT) {
+	if (getBiome(v2POS(node_min.X, node_min.Z)) == BT_DESERT) {
 		caves_count   /= 3;
 		bruises_count /= 3;
 	}
@@ -273,7 +273,7 @@ void MapgenIndev::generateCaves(int max_stone_y) {
 }
 
 CaveIndev::CaveIndev(MapgenIndev *mg, PseudoRandom *ps, PseudoRandom *ps2,
-				v3s16 node_min, bool is_large_cave) {
+				v3POS node_min, bool is_large_cave) {
 	this->mg = mg;
 	this->vm = mg->vm;
 	this->ndef = mg->ndef;
@@ -313,7 +313,7 @@ CaveIndev::CaveIndev(MapgenIndev *mg, PseudoRandom *ps, PseudoRandom *ps2,
 settings->setDefault("mgindev_np_float_islands1",  "-9.5, 10,  (20,  50,  50 ), 45123, 5, 0.6,  1.5, 5");
 void MapgenIndev::generateFloatIslands(int min_y) {
 	if (node_min.Y < min_y) return;
-	v3s16 p0(node_min.X, node_min.Y, node_min.Z);
+	v3POS p0(node_min.X, node_min.Y, node_min.Z);
 	MapNode n1(c_stone), n2(c_desert_stone);
 	int xl = node_max.X - node_min.X;
 	int yl = node_max.Y - node_min.Y;
@@ -331,7 +331,7 @@ void MapgenIndev::generateFloatIslands(int min_y) {
 				float noise = noiseindev_float_islands1->result[index];
 				//dstream << " y1="<<y1<< " x1="<<x1<<" z1="<<z1<< " noise="<<noise << std::endl;
 				if (noise > 0 ) {
-					v3s16 p = p0 + v3s16(x1, y1, z1);
+					v3POS p = p0 + v3POS(x1, y1, z1);
 					u32 i = vm->m_area.index(p);
 					if (!vm->m_area.contains(i))
 						continue;
@@ -355,7 +355,7 @@ void MapgenIndev::generateFloatIslands(int min_y) {
 	float TGRAD = 24; // 24; // Noise gradient to create top surface. Tallness of island top.
 	float BGRAD = 24; // 24; // Noise gradient to create bottom surface. Tallness of island bottom.
 
-	v3s16 p0(node_min.X, node_min.Y, node_min.Z);
+	v3POS p0(node_min.X, node_min.Y, node_min.Z);
 	MapNode n1(c_stone);
 
 	float xl = node_max.X - node_min.X;
@@ -377,7 +377,7 @@ void MapgenIndev::generateFloatIslands(int min_y) {
 		if (noise1off > 0 && noise1off < 0.7) {
 			float noise2 = noiseindev_float_islands2->result[index];
 			if (noise2 - noise1off > -0.7) {
-				v3s16 p = p0 + v3s16(x1, y1, z1);
+				v3POS p = p0 + v3POS(x1, y1, z1);
 				u32 i = vm->m_area.index(p);
 				if (!vm->m_area.contains(i))
 					continue;

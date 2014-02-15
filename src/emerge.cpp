@@ -58,7 +58,7 @@ public:
 	int id;
 
 	Event qevent;
-	std::queue<v3s16> blockqueue;
+	std::queue<v3POS> blockqueue;
 
 	EmergeThread(Server *server, int ethreadid):
 		JThread(),
@@ -72,8 +72,8 @@ public:
 	}
 
 	void *Thread();
-	bool popBlockEmerge(v3s16 *pos, u8 *flags);
-	bool getBlockOrStartGen(v3s16 p, MapBlock **b,
+	bool popBlockEmerge(v3POS *pos, u8 *flags);
+	bool getBlockOrStartGen(v3POS p, MapBlock **b,
 			BlockMakeData *data, bool allow_generate);
 };
 
@@ -288,8 +288,8 @@ void EmergeManager::stopThreads() {
 }
 
 
-bool EmergeManager::enqueueBlockEmerge(u16 peer_id, v3s16 p, bool allow_generate) {
-	std::map<v3s16, BlockEmergeData *>::const_iterator iter;
+bool EmergeManager::enqueueBlockEmerge(u16 peer_id, v3POS p, bool allow_generate) {
+	std::map<v3POS, BlockEmergeData *>::const_iterator iter;
 	BlockEmergeData *bedata;
 	u16 count;
 	u8 flags = 0;
@@ -342,7 +342,7 @@ bool EmergeManager::enqueueBlockEmerge(u16 peer_id, v3s16 p, bool allow_generate
 }
 
 
-int EmergeManager::getGroundLevelAtPoint(v2s16 p) {
+int EmergeManager::getGroundLevelAtPoint(v2POS p) {
 	if (mapgen.size() == 0 || !mapgen[0]) {
 		errorstream << "EmergeManager: getGroundLevelAtPoint() called"
 			" before mapgen initialized" << std::endl;
@@ -353,9 +353,9 @@ int EmergeManager::getGroundLevelAtPoint(v2s16 p) {
 }
 
 
-bool EmergeManager::isBlockUnderground(v3s16 blockpos) {
+bool EmergeManager::isBlockUnderground(v3POS blockpos) {
 	/*
-	v2s16 p = v2s16((blockpos.X * MAP_BLOCKSIZE) + MAP_BLOCKSIZE / 2,
+	v2POS p = v2POS((blockpos.X * MAP_BLOCKSIZE) + MAP_BLOCKSIZE / 2,
 					(blockpos.Y * MAP_BLOCKSIZE) + MAP_BLOCKSIZE / 2);
 	int ground_level = getGroundLevelAtPoint(p);
 	return blockpos.Y * (MAP_BLOCKSIZE + 1) <= min(water_level, ground_level);
@@ -367,7 +367,7 @@ bool EmergeManager::isBlockUnderground(v3s16 blockpos) {
 }
 
 
-u32 EmergeManager::getBlockSeed(v3s16 p) {
+u32 EmergeManager::getBlockSeed(v3POS p) {
 	return (u32)(params->seed & 0xFFFFFFFF) +
 		p.Z * 38134234 +
 		p.Y * 42123 +
@@ -446,13 +446,13 @@ void EmergeManager::registerMapgen(std::string mgname, MapgenFactory *mgfactory)
 
 ////////////////////////////// Emerge Thread //////////////////////////////////
 
-bool EmergeThread::popBlockEmerge(v3s16 *pos, u8 *flags) {
-	std::map<v3s16, BlockEmergeData *>::iterator iter;
+bool EmergeThread::popBlockEmerge(v3POS *pos, u8 *flags) {
+	std::map<v3POS, BlockEmergeData *>::iterator iter;
 	JMutexAutoLock queuelock(emerge->queuemutex);
 
 	if (blockqueue.empty())
 		return false;
-	v3s16 p = blockqueue.front();
+	v3POS p = blockqueue.front();
 	blockqueue.pop();
 
 	*pos = p;
@@ -473,9 +473,9 @@ bool EmergeThread::popBlockEmerge(v3s16 *pos, u8 *flags) {
 }
 
 
-bool EmergeThread::getBlockOrStartGen(v3s16 p, MapBlock **b,
+bool EmergeThread::getBlockOrStartGen(v3POS p, MapBlock **b,
 									BlockMakeData *data, bool allow_gen) {
-	v2s16 p2d(p.X, p.Z);
+	v2POS p2d(p.X, p.Z);
 	//envlock: usually takes <=1ms, sometimes 90ms or ~400ms to acquire
 	JMutexAutoLock envlock(m_server->m_env_mutex);
 
@@ -511,8 +511,8 @@ void *EmergeThread::Thread() {
 	DSTACK(__FUNCTION_NAME);
 	BEGIN_DEBUG_EXCEPTION_HANDLER
 
-	v3s16 last_tried_pos(-32768,-32768,-32768); // For error output
-	v3s16 p;
+	v3POS last_tried_pos(-32768,-32768,-32768); // For error output
+	v3POS p;
 	u8 flags;
 
 	map    = (ServerMap *)&(m_server->m_env->getMap());
@@ -540,7 +540,7 @@ void *EmergeThread::Thread() {
 		*/
 		BlockMakeData data;
 		MapBlock *block = NULL;
-		std::map<v3s16, MapBlock *> modified_blocks;
+		std::map<v3POS, MapBlock *> modified_blocks;
 
 		if (getBlockOrStartGen(p, &block, &data, allow_generate) && mapgen) {
 			{
@@ -566,9 +566,9 @@ void *EmergeThread::Thread() {
 					/*
 						Do some post-generate stuff
 					*/
-					v3s16 minp = data.blockpos_min * MAP_BLOCKSIZE;
-					v3s16 maxp = data.blockpos_max * MAP_BLOCKSIZE +
-								 v3s16(1,1,1) * (MAP_BLOCKSIZE - 1);
+					v3POS minp = data.blockpos_min * MAP_BLOCKSIZE;
+					v3POS maxp = data.blockpos_max * MAP_BLOCKSIZE +
+								 v3POS(1,1,1) * (MAP_BLOCKSIZE - 1);
 
 					// Ignore map edit events, they will not need to be sent
 					// to anybody because the block hasn't been sent to anybody

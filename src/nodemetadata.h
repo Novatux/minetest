@@ -101,16 +101,16 @@ public:
 	void deSerialize(std::istream &is, IGameDef *gamedef);
 	
 	// Get pointer to data
-	NodeMetadata* get(v3s16 p);
+	NodeMetadata* get(v3POS p);
 	// Deletes data
-	void remove(v3s16 p);
+	void remove(v3POS p);
 	// Deletes old data and sets a new one
-	void set(v3s16 p, NodeMetadata *d);
+	void set(v3POS p, NodeMetadata *d);
 	// Deletes all
 	void clear();
 	
 private:
-	std::map<v3s16, NodeMetadata*> m_data;
+	std::map<v3POS, NodeMetadata*> m_data;
 };
 
 #endif

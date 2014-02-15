@@ -134,11 +134,11 @@ class MapgenIndev : public MapgenV6 {
 	~MapgenIndev();
 	void calculateNoise();
 
-	float baseTerrainLevelFromNoise(v2s16 p);
+	float baseTerrainLevelFromNoise(v2POS p);
 	float baseTerrainLevelFromMap(int index);
 	float getMudAmount(int index);
 	void generateCaves(int max_stone_y);
-	//void defineCave(Cave & cave, PseudoRandom ps, v3s16 node_min, bool large_cave);
+	//void defineCave(Cave & cave, PseudoRandom ps, v3POS node_min, bool large_cave);
 	void generateExperimental();
 	
 	void generateFloatIslands(int min_y);
@@ -157,7 +157,7 @@ struct MapgenFactoryIndev : public MapgenFactoryV6 {
 class CaveIndev : public CaveV6 {
 public:
 	CaveIndev(MapgenIndev *mg, PseudoRandom *ps, PseudoRandom *ps2,
-			v3s16 node_min, bool is_large_cave);
+			v3POS node_min, bool is_large_cave);
 };
 
 #endif

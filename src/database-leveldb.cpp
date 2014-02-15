@@ -67,7 +67,7 @@ void Database_LevelDB::saveBlock(MapBlock *block)
 	// Format used for writing
 	u8 version = SER_FMT_VER_HIGHEST_WRITE;
 	// Get destination
-	v3s16 p3d = block->getPos();
+	v3POS p3d = block->getPos();
 
 	/*
 		[0] u8 serialization version
@@ -87,9 +87,9 @@ void Database_LevelDB::saveBlock(MapBlock *block)
 	block->resetModified();
 }
 
-MapBlock* Database_LevelDB::loadBlock(v3s16 blockpos)
+MapBlock* Database_LevelDB::loadBlock(v3POS blockpos)
 {
-	v2s16 p2d(blockpos.X, blockpos.Z);
+	v2POS p2d(blockpos.X, blockpos.Z);
 
 	std::string datastr;
 	leveldb::Status s = m_database->Get(leveldb::ReadOptions(),
@@ -170,7 +170,7 @@ MapBlock* Database_LevelDB::loadBlock(v3s16 blockpos)
 	return NULL;
 }
 
-void Database_LevelDB::listAllLoadableBlocks(std::list<v3s16> &dst)
+void Database_LevelDB::listAllLoadableBlocks(std::list<v3POS> &dst)
 {
 	leveldb::Iterator* it = m_database->NewIterator(leveldb::ReadOptions());
 	for (it->SeekToFirst(); it->Valid(); it->Next()) {

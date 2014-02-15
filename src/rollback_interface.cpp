@@ -34,7 +34,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #define PP(x) "("<<(x).X<<","<<(x).Y<<","<<(x).Z<<")"
 
-RollbackNode::RollbackNode(Map *map, v3s16 p, IGameDef *gamedef)
+RollbackNode::RollbackNode(Map *map, v3POS p, IGameDef *gamedef)
 {
 	INodeDefManager *ndef = gamedef->ndef();
 	MapNode n = map->getNodeNoEx(p);
@@ -125,7 +125,7 @@ void RollbackAction::fromStream(std::istream &is) throw(SerializationError)
 			is.putback(c);
 			throw SerializationError("RollbackAction: after-p ' ' not found");
 		}
-		v3s16 loaded_p(stoi(px_raw), stoi(py_raw), stoi(pz_raw));
+		v3POS loaded_p(stoi(px_raw), stoi(py_raw), stoi(pz_raw));
 		// Old node
 		std::string old_name;
 		try{
@@ -289,7 +289,7 @@ bool RollbackAction::isImportant(IGameDef *gamedef) const
 	}
 }
 
-bool RollbackAction::getPosition(v3s16 *dst) const
+bool RollbackAction::getPosition(v3POS *dst) const
 {
 	switch(type){
 	case RollbackAction::TYPE_SET_NODE:
@@ -355,7 +355,7 @@ bool RollbackAction::applyRevert(Map *map, InventoryManager *imgr, IGameDef *gam
 				}
 				// NOTE: This same code is in scriptapi.cpp
 				// Inform other things that the metadata has changed
-				v3s16 blockpos = getContainerPos(p, MAP_BLOCKSIZE);
+				v3POS blockpos = getContainerPos(p, MAP_BLOCKSIZE);
 				MapEditEvent event;
 				event.type = MEET_BLOCK_NODE_METADATA_CHANGED;
 				event.p = blockpos;

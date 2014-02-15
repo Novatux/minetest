@@ -951,7 +951,7 @@ bool read_schematic(lua_State *L, int index, DecoSchematic *dschem, Server *serv
 
 	if (lua_istable(L, index)) {
 		lua_getfield(L, index, "size");
-		v3s16 size = read_v3s16(L, -1);
+		v3POS size = read_v3POS(L, -1);
 		lua_pop(L, 1);
 		
 		int numnodes = size.X * size.Y * size.Z;

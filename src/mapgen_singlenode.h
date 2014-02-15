@@ -39,7 +39,7 @@ public:
 	~MapgenSinglenode();
 	
 	void makeChunk(BlockMakeData *data);
-	int getGroundLevelAtPoint(v2s16 p);
+	int getGroundLevelAtPoint(v2POS p);
 };
 
 struct MapgenFactorySinglenode : public MapgenFactory {

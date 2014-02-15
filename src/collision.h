@@ -37,7 +37,7 @@ enum CollisionType
 struct CollisionInfo
 {
 	enum CollisionType type;
-	v3s16 node_p; // COLLISION_NODE
+	v3POS node_p; // COLLISION_NODE
 	bool bouncy;
 	v3f old_speed;
 	v3f new_speed;

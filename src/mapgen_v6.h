@@ -87,11 +87,11 @@ public:
 	u32 flags;
 
 	u32 blockseed;
-	v3s16 node_min;
-	v3s16 node_max;
-	v3s16 full_node_min;
-	v3s16 full_node_max;
-	v3s16 central_area_size;
+	v3POS node_min;
+	v3POS node_max;
+	v3POS full_node_min;
+	v3POS full_node_max;
+	v3POS central_area_size;
 	int volume_nodes;
 
 	Noise *noise_terrain_base;
@@ -128,29 +128,29 @@ public:
 	~MapgenV6();
 	
 	void makeChunk(BlockMakeData *data);
-	int getGroundLevelAtPoint(v2s16 p);
+	int getGroundLevelAtPoint(v2POS p);
 
 	float baseTerrainLevel(float terrain_base, float terrain_higher,
 						   float steepness, float height_select);
-	virtual float baseTerrainLevelFromNoise(v2s16 p);
-	virtual float baseTerrainLevelFromMap(v2s16 p);
+	virtual float baseTerrainLevelFromNoise(v2POS p);
+	virtual float baseTerrainLevelFromMap(v2POS p);
 	virtual float baseTerrainLevelFromMap(int index);
 
-	s16 find_stone_level(v2s16 p2d);
-	bool block_is_underground(u64 seed, v3s16 blockpos);
-	s16 find_ground_level_from_noise(u64 seed, v2s16 p2d, s16 precision);
+	s16 find_stone_level(v2POS p2d);
+	bool block_is_underground(u64 seed, v3POS blockpos);
+	s16 find_ground_level_from_noise(u64 seed, v2POS p2d, s16 precision);
 	
-	float getHumidity(v2s16 p);
-	float getTreeAmount(v2s16 p);
-	bool getHaveAppleTree(v2s16 p);
-	float getMudAmount(v2s16 p);
+	float getHumidity(v2POS p);
+	float getTreeAmount(v2POS p);
+	bool getHaveAppleTree(v2POS p);
+	float getMudAmount(v2POS p);
 	virtual float getMudAmount(int index);
-	bool getHaveBeach(v2s16 p);
+	bool getHaveBeach(v2POS p);
 	bool getHaveBeach(int index);
-	BiomeType getBiome(v2s16 p);
-	BiomeType getBiome(int index, v2s16 p);
+	BiomeType getBiome(v2POS p);
+	BiomeType getBiome(int index, v2POS p);
 	
-	u32 get_blockseed(u64 seed, v3s16 p);
+	u32 get_blockseed(u64 seed, v3POS p);
 	
 	virtual void calculateNoise();
 	int generateGround();

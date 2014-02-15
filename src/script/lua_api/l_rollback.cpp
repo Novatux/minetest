@@ -38,7 +38,7 @@ void push_RollbackNode(lua_State *L, RollbackNode &node)
 // rollback_get_node_actions(pos, range, seconds, limit) -> {{actor, pos, time, oldnode, newnode}, ...}
 int ModApiRollback::l_rollback_get_node_actions(lua_State *L)
 {
-	v3s16 pos = read_v3s16(L, 1);
+	v3POS pos = read_v3POS(L, 1);
 	int range = luaL_checknumber(L, 2);
 	time_t seconds = (time_t) luaL_checknumber(L, 3);
 	int limit = luaL_checknumber(L, 4);
@@ -55,7 +55,7 @@ int ModApiRollback::l_rollback_get_node_actions(lua_State *L)
 		lua_pushstring(L, iter->actor.c_str());
 		lua_setfield(L, -2, "actor");
 
-		push_v3s16(L, iter->p);
+		push_v3POS(L, iter->p);
 		lua_setfield(L, -2, "pos");
 
 		lua_pushnumber(L, iter->unix_time);

@@ -182,13 +182,13 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 	if(new_style_water)
 		node_liquid_level = 0.85;
 	
-	v3s16 blockpos_nodes = data->m_blockpos*MAP_BLOCKSIZE;
+	v3POS blockpos_nodes = data->m_blockpos*MAP_BLOCKSIZE;
 
 	for(s16 z=0; z<MAP_BLOCKSIZE; z++)
 	for(s16 y=0; y<MAP_BLOCKSIZE; y++)
 	for(s16 x=0; x<MAP_BLOCKSIZE; x++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 
 		MapNode n = data->m_vmanip.getNodeNoEx(blockpos_nodes+p);
 		const ContentFeatures &f = nodedef->get(n);
@@ -210,10 +210,10 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				Add water sources to mesh if using new style
 			*/
 			TileSpec tile_liquid = f.special_tiles[0];
-			TileSpec tile_liquid_bfculled = getNodeTile(n, p, v3s16(0,0,0), data);
+			TileSpec tile_liquid_bfculled = getNodeTile(n, p, v3POS(0,0,0), data);
 
 			bool top_is_same_liquid = false;
-			MapNode ntop = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x,y+1,z));
+			MapNode ntop = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x,y+1,z));
 			content_t c_flowing = nodedef->getId(f.liquid_alternative_flowing);
 			content_t c_source = nodedef->getId(f.liquid_alternative_source);
 			if(ntop.getContent() == c_flowing || ntop.getContent() == c_source)
@@ -225,20 +225,20 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			/*
 				Generate sides
 			 */
-			v3s16 side_dirs[4] = {
-				v3s16(1,0,0),
-				v3s16(-1,0,0),
-				v3s16(0,0,1),
-				v3s16(0,0,-1),
+			v3POS side_dirs[4] = {
+				v3POS(1,0,0),
+				v3POS(-1,0,0),
+				v3POS(0,0,1),
+				v3POS(0,0,-1),
 			};
 			for(u32 i=0; i<4; i++)
 			{
-				v3s16 dir = side_dirs[i];
+				v3POS dir = side_dirs[i];
 
 				MapNode neighbor = data->m_vmanip.getNodeNoEx(blockpos_nodes + p + dir);
 				content_t neighbor_content = neighbor.getContent();
 				const ContentFeatures &n_feat = nodedef->get(neighbor_content);
-				MapNode n_top = data->m_vmanip.getNodeNoEx(blockpos_nodes + p + dir+ v3s16(0,1,0));
+				MapNode n_top = data->m_vmanip.getNodeNoEx(blockpos_nodes + p + dir+ v3POS(0,1,0));
 				content_t n_top_c = n_top.getContent();
 
 				if(neighbor_content == CONTENT_IGNORE)
@@ -315,13 +315,13 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 
 				for(s32 j=0; j<4; j++)
 				{
-					if(dir == v3s16(0,0,1))
+					if(dir == v3POS(0,0,1))
 						vertices[j].Pos.rotateXZBy(0);
-					if(dir == v3s16(0,0,-1))
+					if(dir == v3POS(0,0,-1))
 						vertices[j].Pos.rotateXZBy(180);
-					if(dir == v3s16(-1,0,0))
+					if(dir == v3POS(-1,0,0))
 						vertices[j].Pos.rotateXZBy(90);
-					if(dir == v3s16(1,0,-0))
+					if(dir == v3POS(1,0,-0))
 						vertices[j].Pos.rotateXZBy(-90);
 
 					// Do this to not cause glitches when two liquids are
@@ -372,7 +372,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			TileSpec tile_liquid_bfculled = f.special_tiles[1];
 
 			bool top_is_same_liquid = false;
-			MapNode ntop = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x,y+1,z));
+			MapNode ntop = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x,y+1,z));
 			content_t c_flowing = nodedef->getId(f.liquid_alternative_flowing);
 			content_t c_source = nodedef->getId(f.liquid_alternative_source);
 			if(ntop.getContent() == c_flowing || ntop.getContent() == c_source)
@@ -399,20 +399,20 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 
 			// Neighbor liquid levels (key = relative position)
 			// Includes current node
-			std::map<v3s16, f32> neighbor_levels;
-			std::map<v3s16, content_t> neighbor_contents;
-			std::map<v3s16, u8> neighbor_flags;
+			std::map<v3POS, f32> neighbor_levels;
+			std::map<v3POS, content_t> neighbor_contents;
+			std::map<v3POS, u8> neighbor_flags;
 			const u8 neighborflag_top_is_same_liquid = 0x01;
-			v3s16 neighbor_dirs[9] = {
-				v3s16(0,0,0),
-				v3s16(0,0,1),
-				v3s16(0,0,-1),
-				v3s16(1,0,0),
-				v3s16(-1,0,0),
-				v3s16(1,0,1),
-				v3s16(-1,0,-1),
-				v3s16(1,0,-1),
-				v3s16(-1,0,1),
+			v3POS neighbor_dirs[9] = {
+				v3POS(0,0,0),
+				v3POS(0,0,1),
+				v3POS(0,0,-1),
+				v3POS(1,0,0),
+				v3POS(-1,0,0),
+				v3POS(1,0,1),
+				v3POS(-1,0,-1),
+				v3POS(1,0,-1),
+				v3POS(-1,0,1),
 			};
 			for(u32 i=0; i<9; i++)
 			{
@@ -420,7 +420,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				float level = -0.5 * BS;
 				u8 flags = 0;
 				// Check neighbor
-				v3s16 p2 = p + neighbor_dirs[i];
+				v3POS p2 = p + neighbor_dirs[i];
 				MapNode n2 = data->m_vmanip.getNodeNoEx(blockpos_nodes + p2);
 				if(n2.getContent() != CONTENT_IGNORE)
 				{
@@ -455,21 +455,21 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			// Corner heights (average between four liquids)
 			f32 corner_levels[4];
 			
-			v3s16 halfdirs[4] = {
-				v3s16(0,0,0),
-				v3s16(1,0,0),
-				v3s16(1,0,1),
-				v3s16(0,0,1),
+			v3POS halfdirs[4] = {
+				v3POS(0,0,0),
+				v3POS(1,0,0),
+				v3POS(1,0,1),
+				v3POS(0,0,1),
 			};
 			for(u32 i=0; i<4; i++)
 			{
-				v3s16 cornerdir = halfdirs[i];
+				v3POS cornerdir = halfdirs[i];
 				float cornerlevel = 0;
 				u32 valid_count = 0;
 				u32 air_count = 0;
 				for(u32 j=0; j<4; j++)
 				{
-					v3s16 neighbordir = cornerdir - halfdirs[j];
+					v3POS neighbordir = cornerdir - halfdirs[j];
 					content_t content = neighbor_contents[neighbordir];
 					// If top is liquid, draw starting from top of node
 					if(neighbor_flags[neighbordir] &
@@ -508,11 +508,11 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				Generate sides
 			*/
 
-			v3s16 side_dirs[4] = {
-				v3s16(1,0,0),
-				v3s16(-1,0,0),
-				v3s16(0,0,1),
-				v3s16(0,0,-1),
+			v3POS side_dirs[4] = {
+				v3POS(1,0,0),
+				v3POS(-1,0,0),
+				v3POS(0,0,1),
+				v3POS(0,0,-1),
 			};
 			s16 side_corners[4][2] = {
 				{1, 2},
@@ -522,7 +522,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			};
 			for(u32 i=0; i<4; i++)
 			{
-				v3s16 dir = side_dirs[i];
+				v3POS dir = side_dirs[i];
 
 				/*
 					If our topside is liquid and neighbor's topside
@@ -601,13 +601,13 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				
 				for(s32 j=0; j<4; j++)
 				{
-					if(dir == v3s16(0,0,1))
+					if(dir == v3POS(0,0,1))
 						vertices[j].Pos.rotateXZBy(0);
-					if(dir == v3s16(0,0,-1))
+					if(dir == v3POS(0,0,-1))
 						vertices[j].Pos.rotateXZBy(180);
-					if(dir == v3s16(-1,0,0))
+					if(dir == v3POS(-1,0,0))
 						vertices[j].Pos.rotateXZBy(90);
-					if(dir == v3s16(1,0,-0))
+					if(dir == v3POS(1,0,-0))
 						vertices[j].Pos.rotateXZBy(-90);
 						
 					// Do this to not cause glitches when two liquids are
@@ -647,7 +647,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				for(s32 i=0; i<4; i++)
 				{
 					//vertices[i].Pos.Y += liquid_level;
-					//vertices[i].Pos.Y += neighbor_levels[v3s16(0,0,0)];
+					//vertices[i].Pos.Y += neighbor_levels[v3POS(0,0,0)];
 					s32 j = corner_resolve[i];
 					vertices[i].Pos.Y += corner_levels[j];
 					vertices[i].Pos += intToFloat(p, BS);
@@ -694,7 +694,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 		break;}
 		case NDT_GLASSLIKE:
 		{
-			TileSpec tile = getNodeTile(n, p, v3s16(0,0,0), data);
+			TileSpec tile = getNodeTile(n, p, v3POS(0,0,0), data);
 
 			u16 l = getInteriorLight(n, 1, data);
 			video::SColor c = MapBlock_LightColor(255, l, decode_light(f.light_source));
@@ -702,7 +702,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			for(u32 j=0; j<6; j++)
 			{
 				// Check this neighbor
-				v3s16 n2p = blockpos_nodes + p + g_6dirs[j];
+				v3POS n2p = blockpos_nodes + p + g_6dirs[j];
 				MapNode n2 = data->m_vmanip.getNodeNoEx(n2p);
 				// Don't make face if neighbor is of same type
 				if(n2.getContent() == n.getContent())
@@ -747,13 +747,13 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 		break;}
 		case NDT_GLASSLIKE_FRAMED:
 		{
-			static const v3s16 dirs[6] = {
-				v3s16( 0, 1, 0),
-				v3s16( 0,-1, 0),
-				v3s16( 1, 0, 0),
-				v3s16(-1, 0, 0),
-				v3s16( 0, 0, 1),
-				v3s16( 0, 0,-1)
+			static const v3POS dirs[6] = {
+				v3POS( 0, 1, 0),
+				v3POS( 0,-1, 0),
+				v3POS( 1, 0, 0),
+				v3POS(-1, 0, 0),
+				v3POS( 0, 0, 1),
+				v3POS( 0, 0,-1)
 			};
 			TileSpec tiles[2];
 			tiles[0] = getNodeTile(n, p, dirs[0], data);
@@ -792,7 +792,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			content_t current = n.getContent();
 			content_t content;
 			MapNode n2;
-			v3s16 n2p;
+			v3POS n2p;
 			for(i=0; i<18; i++)
 			{
 				n2p = blockpos_nodes + p + g_26dirs[i];
@@ -874,7 +874,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 		case NDT_ALLFACES:
 		{
 			TileSpec tile_leaves = getNodeTile(n, p,
-					v3s16(0,0,0), data);
+					v3POS(0,0,0), data);
 
 			u16 l = getInteriorLight(n, 1, data);
 			video::SColor c = MapBlock_LightColor(255, l, decode_light(f.light_source));
@@ -891,15 +891,15 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			break;
 		case NDT_TORCHLIKE:
 		{
-			v3s16 dir = n.getWallMountedDir(nodedef);
+			v3POS dir = n.getWallMountedDir(nodedef);
 			
 			u8 tileindex = 0;
-			if(dir == v3s16(0,-1,0)){
+			if(dir == v3POS(0,-1,0)){
 				tileindex = 0; // floor
-			} else if(dir == v3s16(0,1,0)){
+			} else if(dir == v3POS(0,1,0)){
 				tileindex = 1; // ceiling
 			// For backwards compatibility
-			} else if(dir == v3s16(0,0,0)){
+			} else if(dir == v3POS(0,0,0)){
 				tileindex = 0; // floor
 			} else {
 				tileindex = 2; // side
@@ -924,17 +924,17 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 
 			for(s32 i=0; i<4; i++)
 			{
-				if(dir == v3s16(1,0,0))
+				if(dir == v3POS(1,0,0))
 					vertices[i].Pos.rotateXZBy(0);
-				if(dir == v3s16(-1,0,0))
+				if(dir == v3POS(-1,0,0))
 					vertices[i].Pos.rotateXZBy(180);
-				if(dir == v3s16(0,0,1))
+				if(dir == v3POS(0,0,1))
 					vertices[i].Pos.rotateXZBy(90);
-				if(dir == v3s16(0,0,-1))
+				if(dir == v3POS(0,0,-1))
 					vertices[i].Pos.rotateXZBy(-90);
-				if(dir == v3s16(0,-1,0))
+				if(dir == v3POS(0,-1,0))
 					vertices[i].Pos.rotateXZBy(45);
-				if(dir == v3s16(0,1,0))
+				if(dir == v3POS(0,1,0))
 					vertices[i].Pos.rotateXZBy(-45);
 
 				vertices[i].Pos += intToFloat(p, BS);
@@ -964,21 +964,21 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 				video::S3DVertex(BS/2-d, -s,  s, 0,0,0, c, 0,1),
 			};
 
-			v3s16 dir = n.getWallMountedDir(nodedef);
+			v3POS dir = n.getWallMountedDir(nodedef);
 
 			for(s32 i=0; i<4; i++)
 			{
-				if(dir == v3s16(1,0,0))
+				if(dir == v3POS(1,0,0))
 					vertices[i].Pos.rotateXZBy(0);
-				if(dir == v3s16(-1,0,0))
+				if(dir == v3POS(-1,0,0))
 					vertices[i].Pos.rotateXZBy(180);
-				if(dir == v3s16(0,0,1))
+				if(dir == v3POS(0,0,1))
 					vertices[i].Pos.rotateXZBy(90);
-				if(dir == v3s16(0,0,-1))
+				if(dir == v3POS(0,0,-1))
 					vertices[i].Pos.rotateXZBy(-90);
-				if(dir == v3s16(0,-1,0))
+				if(dir == v3POS(0,-1,0))
 					vertices[i].Pos.rotateXYBy(-90);
-				if(dir == v3s16(0,1,0))
+				if(dir == v3POS(0,1,0))
 					vertices[i].Pos.rotateXYBy(90);
 
 				vertices[i].Pos += intToFloat(p, BS);
@@ -1032,7 +1032,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 		break;}
 		case NDT_FENCELIKE:
 		{
-			TileSpec tile = getNodeTile(n, p, v3s16(0,0,0), data);
+			TileSpec tile = getNodeTile(n, p, v3POS(0,0,0), data);
 			TileSpec tile_nocrack = tile;
 			tile_nocrack.material_flags &= ~MATERIAL_FLAG_CRACK;
 			
@@ -1068,7 +1068,7 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			makeCuboid(&collector, post, &tile_rot, 1, c, postuv);
 
 			// Now a section of fence, +X, if there's a post there
-			v3s16 p2 = p;
+			v3POS p2 = p;
 			p2.X++;
 			MapNode n2 = data->m_vmanip.getNodeNoEx(blockpos_nodes + p2);
 			const ContentFeatures *f2 = &nodedef->get(n2);
@@ -1129,18 +1129,18 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 			bool is_rail_z_plus_y [] = { false, false };  /* z-1, z+1; y+1 */
 			bool is_rail_x_plus_y [] = { false, false };  /* x-1, x+1; y+1 */
 
-			MapNode n_minus_x = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x-1,y,z));
-			MapNode n_plus_x = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x+1,y,z));
-			MapNode n_minus_z = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x,y,z-1));
-			MapNode n_plus_z = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x,y,z+1));
-			MapNode n_plus_x_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x+1, y+1, z));
-			MapNode n_plus_x_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x+1, y-1, z));
-			MapNode n_minus_x_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x-1, y+1, z));
-			MapNode n_minus_x_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x-1, y-1, z));
-			MapNode n_plus_z_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x, y+1, z+1));
-			MapNode n_minus_z_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x, y+1, z-1));
-			MapNode n_plus_z_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x, y-1, z+1));
-			MapNode n_minus_z_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3s16(x, y-1, z-1));
+			MapNode n_minus_x = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x-1,y,z));
+			MapNode n_plus_x = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x+1,y,z));
+			MapNode n_minus_z = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x,y,z-1));
+			MapNode n_plus_z = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x,y,z+1));
+			MapNode n_plus_x_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x+1, y+1, z));
+			MapNode n_plus_x_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x+1, y-1, z));
+			MapNode n_minus_x_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x-1, y+1, z));
+			MapNode n_minus_x_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x-1, y-1, z));
+			MapNode n_plus_z_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x, y+1, z+1));
+			MapNode n_minus_z_plus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x, y+1, z-1));
+			MapNode n_plus_z_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x, y-1, z+1));
+			MapNode n_minus_z_minus_y = data->m_vmanip.getNodeNoEx(blockpos_nodes + v3POS(x, y-1, z-1));
 
 			content_t thiscontent = n.getContent();
 			std::string groupname = "connect_to_raillike"; // name of the group that enables connecting to raillike nodes of different kind
@@ -1323,13 +1323,13 @@ void mapblock_mesh_generate_special(MeshMakeData *data,
 		break;}
 		case NDT_NODEBOX:
 		{
-			static const v3s16 tile_dirs[6] = {
-				v3s16(0, 1, 0),
-				v3s16(0, -1, 0),
-				v3s16(1, 0, 0),
-				v3s16(-1, 0, 0),
-				v3s16(0, 0, 1),
-				v3s16(0, 0, -1)
+			static const v3POS tile_dirs[6] = {
+				v3POS(0, 1, 0),
+				v3POS(0, -1, 0),
+				v3POS(1, 0, 0),
+				v3POS(-1, 0, 0),
+				v3POS(0, 0, 1),
+				v3POS(0, 0, -1)
 			};
 			TileSpec tiles[6];
 			

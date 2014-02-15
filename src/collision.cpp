@@ -232,13 +232,13 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 	std::vector<bool> is_step_up;
 	std::vector<bool> is_object;
 	std::vector<int> bouncy_values;
-	std::vector<v3s16> node_positions;
+	std::vector<v3POS> node_positions;
 	{
 	//TimeTaker tt2("collisionMoveSimple collect boxes");
     ScopeProfiler sp(g_profiler, "collisionMoveSimple collect boxes avg", SPT_AVG);
 
-	v3s16 oldpos_i = floatToInt(pos_f, BS);
-	v3s16 newpos_i = floatToInt(pos_f + speed_f * dtime, BS);
+	v3POS oldpos_i = floatToInt(pos_f, BS);
+	v3POS newpos_i = floatToInt(pos_f + speed_f * dtime, BS);
 	s16 min_x = MYMIN(oldpos_i.X, newpos_i.X) + (box_0.MinEdge.X / BS) - 1;
 	s16 min_y = MYMIN(oldpos_i.Y, newpos_i.Y) + (box_0.MinEdge.Y / BS) - 1;
 	s16 min_z = MYMIN(oldpos_i.Z, newpos_i.Z) + (box_0.MinEdge.Z / BS) - 1;
@@ -250,7 +250,7 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 	for(s16 y = min_y; y <= max_y; y++)
 	for(s16 z = min_z; z <= max_z; z++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 		try{
 			// Object collides into walkable nodes
 			MapNode n = map->getNode(p);
@@ -344,7 +344,7 @@ collisionMoveResult collisionMoveSimple(Environment *env, IGameDef *gamedef,
 					is_unloaded.push_back(false);
 					is_step_up.push_back(false);
 					bouncy_values.push_back(0);
-					node_positions.push_back(v3s16(0,0,0));
+					node_positions.push_back(v3POS(0,0,0));
 					is_object.push_back(true);
 				}
 			}

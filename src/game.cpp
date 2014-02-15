@@ -95,7 +95,7 @@ struct TextDestChat : public TextDest
 
 struct TextDestNodeMetadata : public TextDest
 {
-	TextDestNodeMetadata(v3s16 p, Client *client)
+	TextDestNodeMetadata(v3POS p, Client *client)
 	{
 		m_p = p;
 		m_client = client;
@@ -115,7 +115,7 @@ struct TextDestNodeMetadata : public TextDest
 		m_client->sendNodemetaFields(m_p, "", fields);
 	}
 
-	v3s16 m_p;
+	v3POS m_p;
 	Client *m_client;
 };
 
@@ -169,7 +169,7 @@ private:
 class NodeMetadataFormSource: public IFormSource
 {
 public:
-	NodeMetadataFormSource(ClientMap *map, v3s16 p):
+	NodeMetadataFormSource(ClientMap *map, v3POS p):
 		m_map(map),
 		m_p(p)
 	{
@@ -190,7 +190,7 @@ public:
 	}
 
 	ClientMap *m_map;
-	v3s16 m_p;
+	v3POS m_p;
 };
 
 class PlayerInventoryFormSource: public IFormSource
@@ -228,7 +228,7 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 		core::line3d<f32> shootline, f32 d,
 		bool liquids_pointable,
 		bool look_for_object,
-		v3s16 camera_offset,
+		v3POS camera_offset,
 		std::vector<aabb3f> &hilightboxes,
 		ClientActiveObject *&selected_object)
 {
@@ -273,35 +273,35 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 	// That didn't work, try to find a pointed at node
 
 	
-	v3s16 pos_i = floatToInt(player_position, BS);
+	v3POS pos_i = floatToInt(player_position, BS);
 
 	/*infostream<<"pos_i=("<<pos_i.X<<","<<pos_i.Y<<","<<pos_i.Z<<")"
 			<<std::endl;*/
 
-	s16 a = d;
-	s16 ystart = pos_i.Y + 0 - (camera_direction.Y<0 ? a : 1);
-	s16 zstart = pos_i.Z - (camera_direction.Z<0 ? a : 1);
-	s16 xstart = pos_i.X - (camera_direction.X<0 ? a : 1);
-	s16 yend = pos_i.Y + 1 + (camera_direction.Y>0 ? a : 1);
-	s16 zend = pos_i.Z + (camera_direction.Z>0 ? a : 1);
-	s16 xend = pos_i.X + (camera_direction.X>0 ? a : 1);
+	POS a = d;
+	POS ystart = pos_i.Y + 0 - (camera_direction.Y<0 ? a : 1);
+	POS zstart = pos_i.Z - (camera_direction.Z<0 ? a : 1);
+	POS xstart = pos_i.X - (camera_direction.X<0 ? a : 1);
+	POS yend = pos_i.Y + 1 + (camera_direction.Y>0 ? a : 1);
+	POS zend = pos_i.Z + (camera_direction.Z>0 ? a : 1);
+	POS xend = pos_i.X + (camera_direction.X>0 ? a : 1);
 	
 	// Prevent signed number overflow
-	if(yend==32767)
-		yend=32766;
-	if(zend==32767)
-		zend=32766;
-	if(xend==32767)
-		xend=32766;
+	//if(yend==32767)
+	//	yend=32766;
+	//if(zend==32767)
+	//	zend=32766;
+	//if(xend==32767)
+	//	xend=32766;
 
-	for(s16 y = ystart; y <= yend; y++)
-	for(s16 z = zstart; z <= zend; z++)
-	for(s16 x = xstart; x <= xend; x++)
+	for(POS y = ystart; y <= yend; y++)
+	for(POS z = zstart; z <= zend; z++)
+	for(POS x = xstart; x <= xend; x++)
 	{
 		MapNode n;
 		try
 		{
-			n = map.getNode(v3s16(x,y,z));
+			n = map.getNode(v3POS(x,y,z));
 		}
 		catch(InvalidPositionException &e)
 		{
@@ -312,7 +312,7 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 
 		std::vector<aabb3f> boxes = n.getSelectionBoxes(nodedef);
 
-		v3s16 np(x,y,z);
+		v3POS np(x,y,z);
 		v3f npf = intToFloat(np, BS);
 
 		for(std::vector<aabb3f>::const_iterator
@@ -325,7 +325,7 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 
 			for(u16 j=0; j<6; j++)
 			{
-				v3s16 facedir = g_6dirs[j];
+				v3POS facedir = g_6dirs[j];
 				aabb3f facebox = box;
 
 				f32 d = 0.001*BS;
@@ -349,7 +349,7 @@ PointedThing getPointedThing(Client *client, v3f player_position,
 				if(!facebox.intersectsWithLine(shootline))
 					continue;
 
-				v3s16 np_above = np + facedir;
+				v3POS np_above = np + facedir;
 
 				result.type = POINTEDTHING_NODE;
 				result.node_undersurface = np;
@@ -632,10 +632,10 @@ public:
 class NodeDugEvent: public MtEvent
 {
 public:
-	v3s16 p;
+	v3POS p;
 	MapNode n;
 	
-	NodeDugEvent(v3s16 p, MapNode n):
+	NodeDugEvent(v3POS p, MapNode n):
 		p(p),
 		n(n)
 	{}
@@ -834,7 +834,7 @@ public:
 
 bool nodePlacementPrediction(Client &client,
 		const ItemDefinition &playeritem_def,
-		v3s16 nodepos, v3s16 neighbourpos)
+		v3POS nodepos, v3POS neighbourpos)
 {
 	std::string prediction = playeritem_def.node_placement_prediction;
 	INodeDefManager *nodedef = client.ndef();
@@ -845,7 +845,7 @@ bool nodePlacementPrediction(Client &client,
 		verbosestream<<"Node placement prediction for "
 				<<playeritem_def.name<<" is "
 				<<prediction<<std::endl;
-		v3s16 p = neighbourpos;
+		v3POS p = neighbourpos;
 		// Place inside node itself if buildable_to
 		try{
 			MapNode n_under = map.getNode(nodepos);
@@ -867,7 +867,7 @@ bool nodePlacementPrediction(Client &client,
 		// Predict param2 for facedir and wallmounted nodes
 		u8 param2 = 0;
 		if(nodedef->get(id).param_type_2 == CPT2_WALLMOUNTED){
-			v3s16 dir = nodepos - neighbourpos;
+			v3POS dir = nodepos - neighbourpos;
 			if(abs(dir.Y) > MYMAX(abs(dir.X), abs(dir.Z))){
 				param2 = dir.Y < 0 ? 1 : 0;
 			} else if(abs(dir.X) > abs(dir.Z)){
@@ -877,7 +877,7 @@ bool nodePlacementPrediction(Client &client,
 			}
 		}
 		if(nodedef->get(id).param_type_2 == CPT2_FACEDIR){
-			v3s16 dir = nodepos - floatToInt(client.getEnv().getLocalPlayer()->getPosition(), BS);
+			v3POS dir = nodepos - floatToInt(client.getEnv().getLocalPlayer()->getPosition(), BS);
 			if(abs(dir.X) > abs(dir.Z)){
 				param2 = dir.X < 0 ? 3 : 1;
 			} else {
@@ -887,19 +887,19 @@ bool nodePlacementPrediction(Client &client,
 		assert(param2 >= 0 && param2 <= 5);
 		//Check attachment if node is in group attached_node
 		if(((ItemGroupList) nodedef->get(id).groups)["attached_node"] != 0){
-			static v3s16 wallmounted_dirs[8] = {
-				v3s16(0,1,0),
-				v3s16(0,-1,0),
-				v3s16(1,0,0),
-				v3s16(-1,0,0),
-				v3s16(0,0,1),
-				v3s16(0,0,-1),
+			static v3POS wallmounted_dirs[8] = {
+				v3POS(0,1,0),
+				v3POS(0,-1,0),
+				v3POS(1,0,0),
+				v3POS(-1,0,0),
+				v3POS(0,0,1),
+				v3POS(0,0,-1),
 			};
-			v3s16 pp;
+			v3POS pp;
 			if(nodedef->get(id).param_type_2 == CPT2_WALLMOUNTED)
 				pp = p + wallmounted_dirs[param2];
 			else
-				pp = p + v3s16(0,-1,0);
+				pp = p + v3POS(0,-1,0);
 			if(!nodedef->get(map.getNode(pp)).walkable)
 				return false;
 		}
@@ -913,8 +913,8 @@ bool nodePlacementPrediction(Client &client,
 			if (!nodedef->get(n).walkable || 
 				(client.checkPrivilege("noclip") && g_settings->getBool("noclip")) || 
 				(nodedef->get(n).walkable &&
-				neighbourpos != player->getStandingNodePos() + v3s16(0,1,0) &&
-				neighbourpos != player->getStandingNodePos() + v3s16(0,2,0))) {
+				neighbourpos != player->getStandingNodePos() + v3POS(0,1,0) &&
+				neighbourpos != player->getStandingNodePos() + v3POS(0,2,0))) {
 
 					// This triggers the required mesh update too
 					client.addNode(p, n);
@@ -2492,11 +2492,11 @@ void the_game(
 		camera.step(dtime);
 
 		v3f player_position = player->getPosition();
-		v3s16 pos_i = floatToInt(player_position, BS);
+		v3POS pos_i = floatToInt(player_position, BS);
 		v3f camera_position = camera.getPosition();
 		v3f camera_direction = camera.getDirection();
 		f32 camera_fov = camera.getFovMax();
-		v3s16 camera_offset = camera.getOffset();
+		v3POS camera_offset = camera.getOffset();
 		
 		if(!disable_camera_update){
 			client.getEnv().getClientMap().updateCamera(camera_position,
@@ -2589,7 +2589,7 @@ void the_game(
 			if(!digging)
 			{
 				client.interact(1, pointed_old);
-				client.setCrack(-1, v3s16(0,0,0));
+				client.setCrack(-1, v3POS(0,0,0));
 				dig_time = 0.0;
 			}
 		}
@@ -2613,8 +2613,8 @@ void the_game(
 		}
 		else if(pointed.type == POINTEDTHING_NODE)
 		{
-			v3s16 nodepos = pointed.node_undersurface;
-			v3s16 neighbourpos = pointed.node_abovesurface;
+			v3POS nodepos = pointed.node_undersurface;
+			v3POS neighbourpos = pointed.node_abovesurface;
 
 			/*
 				Check information text of node
@@ -2720,7 +2720,7 @@ void the_game(
 				{
 					infostream<<"Digging completed"<<std::endl;
 					client.interact(2, pointed);
-					client.setCrack(-1, v3s16(0,0,0));
+					client.setCrack(-1, v3POS(0,0,0));
 					MapNode wasnode = map.getNode(nodepos);
 					client.removeNode(nodepos);
 

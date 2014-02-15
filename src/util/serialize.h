@@ -193,6 +193,8 @@ inline v3s16 readV3S16(const u8 *data)
 	return p;
 }
 
+
+
 inline void writeARGB8(u8 *data, video::SColor p)
 {
 	writeU8(&data[0], p.getAlpha());
@@ -358,6 +360,27 @@ inline v3s16 readV3S16(std::istream &is)
 	is.read(buf, 6);
 	return readV3S16((u8*)buf);
 }
+
+inline void writeV3S32(std::ostream &os, v3s32 p)
+{
+	char buf[12] = {0};
+	writeV3S32((u8*)buf, p);
+	os.write(buf, 12);
+}
+inline v3s32 readV3S32(std::istream &is)
+{
+	char buf[12] = {0};
+	is.read(buf, 12);
+	return readV3S32((u8*)buf);
+}
+
+#if (POS_SIZE == 2)
+	#define writeV3POS writeV3S16
+	#define readV3POS readV3S16
+#else
+	#define writeV3POS writeV3S32
+	#define readV3POS readV3S32
+#endif
 
 inline void writeARGB8(std::ostream &os, video::SColor p)
 {

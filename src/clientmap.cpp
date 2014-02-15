@@ -65,7 +65,7 @@ ClientMap::~ClientMap()
 	}*/
 }
 
-MapSector * ClientMap::emergeSector(v2s16 p2d)
+MapSector * ClientMap::emergeSector(v2POS p2d)
 {
 	DSTACK(__FUNCTION_NAME);
 	// Check that it doesn't exist already
@@ -88,14 +88,14 @@ MapSector * ClientMap::emergeSector(v2s16 p2d)
 }
 
 #if 0
-void ClientMap::deSerializeSector(v2s16 p2d, std::istream &is)
+void ClientMap::deSerializeSector(v2POS p2d, std::istream &is)
 {
 	DSTACK(__FUNCTION_NAME);
 	ClientMapSector *sector = NULL;
 
 	//JMutexAutoLock lock(m_sector_mutex); // Bulk comment-out
 	
-	core::map<v2s16, MapSector*>::Node *n = m_sectors.find(p2d);
+	core::map<v2POS, MapSector*>::Node *n = m_sectors.find(p2d);
 
 	if(n != NULL)
 	{
@@ -126,18 +126,18 @@ void ClientMap::OnRegisterSceneNode()
 	ISceneNode::OnRegisterSceneNode();
 }
 
-static bool isOccluded(Map *map, v3s16 p0, v3s16 p1, float step, float stepfac,
+static bool isOccluded(Map *map, v3POS p0, v3POS p1, float step, float stepfac,
 		float start_off, float end_off, u32 needed_count, INodeDefManager *nodemgr)
 {
 	float d0 = (float)BS * p0.getDistanceFrom(p1);
-	v3s16 u0 = p1 - p0;
+	v3POS u0 = p1 - p0;
 	v3f uf = v3f(u0.X, u0.Y, u0.Z) * BS;
 	uf.normalize();
 	v3f p0f = v3f(p0.X, p0.Y, p0.Z) * BS;
 	u32 count = 0;
 	for(float s=start_off; s<d0+end_off; s+=step){
 		v3f pf = p0f + uf * s;
-		v3s16 p = floatToInt(pf, BS);
+		v3POS p = floatToInt(pf, BS);
 		MapNode n = map->getNodeNoEx(p);
 		bool is_transparent = false;
 		const ContentFeatures &f = nodemgr->get(n);
@@ -162,7 +162,7 @@ void ClientMap::updateDrawList(video::IVideoDriver* driver)
 
 	INodeDefManager *nodemgr = m_gamedef->ndef();
 
-	for(std::map<v3s16, MapBlock*>::iterator
+	for(std::map<v3POS, MapBlock*>::iterator
 			i = m_drawlist.begin();
 			i != m_drawlist.end(); ++i)
 	{
@@ -175,7 +175,7 @@ void ClientMap::updateDrawList(video::IVideoDriver* driver)
 	v3f camera_position = m_camera_position;
 	v3f camera_direction = m_camera_direction;
 	f32 camera_fov = m_camera_fov;
-	v3s16 camera_offset = m_camera_offset;
+	v3POS camera_offset = m_camera_offset;
 	m_camera_mutex.Unlock();
 
 	// Use a higher fov to accomodate faster camera movements.
@@ -183,17 +183,17 @@ void ClientMap::updateDrawList(video::IVideoDriver* driver)
 	// Or maybe they aren't? Well whatever.
 	camera_fov *= 1.2;
 
-	v3s16 cam_pos_nodes = floatToInt(camera_position, BS);
-	v3s16 box_nodes_d = m_control.wanted_range * v3s16(1,1,1);
-	v3s16 p_nodes_min = cam_pos_nodes - box_nodes_d;
-	v3s16 p_nodes_max = cam_pos_nodes + box_nodes_d;
+	v3POS cam_pos_nodes = floatToInt(camera_position, BS);
+	v3POS box_nodes_d = m_control.wanted_range * v3POS(1,1,1);
+	v3POS p_nodes_min = cam_pos_nodes - box_nodes_d;
+	v3POS p_nodes_max = cam_pos_nodes + box_nodes_d;
 	// Take a fair amount as we will be dropping more out later
 	// Umm... these additions are a bit strange but they are needed.
-	v3s16 p_blocks_min(
+	v3POS p_blocks_min(
 			p_nodes_min.X / MAP_BLOCKSIZE - 3,
 			p_nodes_min.Y / MAP_BLOCKSIZE - 3,
 			p_nodes_min.Z / MAP_BLOCKSIZE - 3);
-	v3s16 p_blocks_max(
+	v3POS p_blocks_max(
 			p_nodes_max.X / MAP_BLOCKSIZE + 1,
 			p_nodes_max.Y / MAP_BLOCKSIZE + 1,
 			p_nodes_max.Z / MAP_BLOCKSIZE + 1);
@@ -216,12 +216,12 @@ void ClientMap::updateDrawList(video::IVideoDriver* driver)
 	// Distance to farthest drawn block
 	float farthest_drawn = 0;
 
-	for(std::map<v2s16, MapSector*>::iterator
+	for(std::map<v2POS, MapSector*>::iterator
 			si = m_sectors.begin();
 			si != m_sectors.end(); ++si)
 	{
 		MapSector *sector = si->second;
-		v2s16 sp = sector->getPos();
+		v2POS sp = sector->getPos();
 		
 		if(m_control.range_all == false)
 		{
@@ -298,34 +298,34 @@ void ClientMap::updateDrawList(video::IVideoDriver* driver)
 					occlusion_culling_enabled = false;
 			}
 
-			v3s16 cpn = block->getPos() * MAP_BLOCKSIZE;
-			cpn += v3s16(MAP_BLOCKSIZE/2, MAP_BLOCKSIZE/2, MAP_BLOCKSIZE/2);
+			v3POS cpn = block->getPos() * MAP_BLOCKSIZE;
+			cpn += v3POS(MAP_BLOCKSIZE/2, MAP_BLOCKSIZE/2, MAP_BLOCKSIZE/2);
 			float step = BS*1;
 			float stepfac = 1.1;
 			float startoff = BS*1;
 			float endoff = -BS*MAP_BLOCKSIZE*1.42*1.42;
-			v3s16 spn = cam_pos_nodes + v3s16(0,0,0);
+			v3POS spn = cam_pos_nodes + v3POS(0,0,0);
 			s16 bs2 = MAP_BLOCKSIZE/2 + 1;
 			u32 needed_count = 1;
 			if(
 				occlusion_culling_enabled &&
-				isOccluded(this, spn, cpn + v3s16(0,0,0),
+				isOccluded(this, spn, cpn + v3POS(0,0,0),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(bs2,bs2,bs2),
+				isOccluded(this, spn, cpn + v3POS(bs2,bs2,bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(bs2,bs2,-bs2),
+				isOccluded(this, spn, cpn + v3POS(bs2,bs2,-bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(bs2,-bs2,bs2),
+				isOccluded(this, spn, cpn + v3POS(bs2,-bs2,bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(bs2,-bs2,-bs2),
+				isOccluded(this, spn, cpn + v3POS(bs2,-bs2,-bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(-bs2,bs2,bs2),
+				isOccluded(this, spn, cpn + v3POS(-bs2,bs2,bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(-bs2,bs2,-bs2),
+				isOccluded(this, spn, cpn + v3POS(-bs2,bs2,-bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(-bs2,-bs2,bs2),
+				isOccluded(this, spn, cpn + v3POS(-bs2,-bs2,bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr) &&
-				isOccluded(this, spn, cpn + v3s16(-bs2,-bs2,-bs2),
+				isOccluded(this, spn, cpn + v3POS(-bs2,-bs2,-bs2),
 					step, stepfac, startoff, endoff, needed_count, nodemgr)
 			)
 			{
@@ -453,20 +453,20 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 		Get all blocks and draw all visible ones
 	*/
 
-	v3s16 cam_pos_nodes = floatToInt(camera_position, BS);
+	v3POS cam_pos_nodes = floatToInt(camera_position, BS);
 	
-	v3s16 box_nodes_d = m_control.wanted_range * v3s16(1,1,1);
+	v3POS box_nodes_d = m_control.wanted_range * v3POS(1,1,1);
 
-	v3s16 p_nodes_min = cam_pos_nodes - box_nodes_d;
-	v3s16 p_nodes_max = cam_pos_nodes + box_nodes_d;
+	v3POS p_nodes_min = cam_pos_nodes - box_nodes_d;
+	v3POS p_nodes_max = cam_pos_nodes + box_nodes_d;
 
 	// Take a fair amount as we will be dropping more out later
 	// Umm... these additions are a bit strange but they are needed.
-	v3s16 p_blocks_min(
+	v3POS p_blocks_min(
 			p_nodes_min.X / MAP_BLOCKSIZE - 3,
 			p_nodes_min.Y / MAP_BLOCKSIZE - 3,
 			p_nodes_min.Z / MAP_BLOCKSIZE - 3);
-	v3s16 p_blocks_max(
+	v3POS p_blocks_max(
 			p_nodes_max.X / MAP_BLOCKSIZE + 1,
 			p_nodes_max.Y / MAP_BLOCKSIZE + 1,
 			p_nodes_max.Z / MAP_BLOCKSIZE + 1);
@@ -494,7 +494,7 @@ void ClientMap::renderMap(video::IVideoDriver* driver, s32 pass)
 
 	MeshBufListList drawbufs;
 
-	for(std::map<v3s16, MapBlock*>::iterator
+	for(std::map<v3POS, MapBlock*>::iterator
 			i = m_drawlist.begin();
 			i != m_drawlist.end(); ++i)
 	{
@@ -694,7 +694,7 @@ static bool getVisibleBrightness(Map *map, v3f p0, v3f dir, float step,
 	bool allow_non_sunlight_propagates = false;
 	// Check content nearly at camera position
 	{
-		v3s16 p = floatToInt(p0 /*+ dir * 3*BS*/, BS);
+		v3POS p = floatToInt(p0 /*+ dir * 3*BS*/, BS);
 		MapNode n = map->getNodeNoEx(p);
 		if(ndef->get(n).param_type == CPT_LIGHT &&
 				!ndef->get(n).sunlight_propagates)
@@ -702,7 +702,7 @@ static bool getVisibleBrightness(Map *map, v3f p0, v3f dir, float step,
 	}
 	// If would start at CONTENT_IGNORE, start closer
 	{
-		v3s16 p = floatToInt(pf, BS);
+		v3POS p = floatToInt(pf, BS);
 		MapNode n = map->getNodeNoEx(p);
 		if(n.getContent() == CONTENT_IGNORE){
 			float newd = 2*BS;
@@ -716,7 +716,7 @@ static bool getVisibleBrightness(Map *map, v3f p0, v3f dir, float step,
 		distance += step;
 		step *= step_multiplier;
 		
-		v3s16 p = floatToInt(pf, BS);
+		v3POS p = floatToInt(pf, BS);
 		MapNode n = map->getNodeNoEx(p);
 		if(allow_allowing_non_sunlight_propagates && i == 0 &&
 				ndef->get(n).param_type == CPT_LIGHT &&

@@ -33,7 +33,7 @@ public:
 	// On environment step
 	void environment_Step(float dtime);
 	// After generating a piece of map
-	void environment_OnGenerated(v3s16 minp, v3s16 maxp,u32 blockseed);
+	void environment_OnGenerated(v3POS minp, v3POS maxp,u32 blockseed);
 	// After initializing mapgens
 	void environment_OnMapgenInit(MapgenParams *mgparams);
 

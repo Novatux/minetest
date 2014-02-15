@@ -196,9 +196,9 @@ void RemoteClient::GetNextBlocks(Server *server, float dtime,
 	// Predict to next block
 	v3f playerpos_predicted = playerpos + playerspeeddir*MAP_BLOCKSIZE*BS;
 
-	v3s16 center_nodepos = floatToInt(playerpos_predicted, BS);
+	v3POS center_nodepos = floatToInt(playerpos_predicted, BS);
 
-	v3s16 center = getNodeBlockPos(center_nodepos);
+	v3POS center = getNodeBlockPos(center_nodepos);
 
 	// Camera position and direction
 	v3f camera_pos = player->getEyePosition();
@@ -307,13 +307,13 @@ void RemoteClient::GetNextBlocks(Server *server, float dtime,
 			Get the border/face dot coordinates of a "d-radiused"
 			box
 		*/
-		std::list<v3s16> list;
+		std::list<v3POS> list;
 		getFacePositions(list, d);
 
-		std::list<v3s16>::iterator li;
+		std::list<v3POS>::iterator li;
 		for(li=list.begin(); li!=list.end(); ++li)
 		{
-			v3s16 p = *li + center;
+			v3POS p = *li + center;
 
 			/*
 				Send throttling
@@ -380,7 +380,7 @@ void RemoteClient::GetNextBlocks(Server *server, float dtime,
 					generate = false;
 	#endif
 	#if 0
-				v2s16 p2d_nodes_center(
+				v2POS p2d_nodes_center(
 					MAP_BLOCKSIZE*p.X,
 					MAP_BLOCKSIZE*p.Z);
 
@@ -452,9 +452,9 @@ void RemoteClient::GetNextBlocks(Server *server, float dtime,
 				}*/
 
 #if 0
-				v2s16 p2d(p.X, p.Z);
+				v2POS p2d(p.X, p.Z);
 				ServerMap *map = (ServerMap*)(&server->m_env->getMap());
-				v2s16 chunkpos = map->sector_to_chunk(p2d);
+				v2POS chunkpos = map->sector_to_chunk(p2d);
 				if(map->chunkNonVolatile(chunkpos) == false)
 					block_is_invalid = true;
 #endif
@@ -585,7 +585,7 @@ queue_full_break:
 		infostream<<"GetNextBlocks timeout: "<<timer_result<<" (!=0)"<<std::endl;*/
 }
 
-void RemoteClient::GotBlock(v3s16 p)
+void RemoteClient::GotBlock(v3POS p)
 {
 	if(m_blocks_sending.find(p) != m_blocks_sending.end())
 		m_blocks_sending.erase(p);
@@ -598,7 +598,7 @@ void RemoteClient::GotBlock(v3s16 p)
 	m_blocks_sent.insert(p);
 }
 
-void RemoteClient::SentBlock(v3s16 p)
+void RemoteClient::SentBlock(v3POS p)
 {
 	if(m_blocks_sending.find(p) == m_blocks_sending.end())
 		m_blocks_sending[p] = 0.0;
@@ -607,7 +607,7 @@ void RemoteClient::SentBlock(v3s16 p)
 				" already in m_blocks_sending"<<std::endl;
 }
 
-void RemoteClient::SetBlockNotSent(v3s16 p)
+void RemoteClient::SetBlockNotSent(v3POS p)
 {
 	m_nearest_unsent_d = 0;
 
@@ -617,15 +617,15 @@ void RemoteClient::SetBlockNotSent(v3s16 p)
 		m_blocks_sent.erase(p);
 }
 
-void RemoteClient::SetBlocksNotSent(std::map<v3s16, MapBlock*> &blocks)
+void RemoteClient::SetBlocksNotSent(std::map<v3POS, MapBlock*> &blocks)
 {
 	m_nearest_unsent_d = 0;
 
-	for(std::map<v3s16, MapBlock*>::iterator
+	for(std::map<v3POS, MapBlock*>::iterator
 			i = blocks.begin();
 			i != blocks.end(); ++i)
 	{
-		v3s16 p = i->first;
+		v3POS p = i->first;
 
 		if(m_blocks_sending.find(p) != m_blocks_sending.end())
 			m_blocks_sending.erase(p);
@@ -1199,18 +1199,18 @@ void Server::AsyncRunStep(bool initial_step)
 
 		ScopeProfiler sp(g_profiler, "Server: liquid transform");
 
-		std::map<v3s16, MapBlock*> modified_blocks;
+		std::map<v3POS, MapBlock*> modified_blocks;
 		m_env->getMap().transformLiquids(modified_blocks);
 #if 0
 		/*
 			Update lighting
 		*/
-		core::map<v3s16, MapBlock*> lighting_modified_blocks;
+		core::map<v3POS, MapBlock*> lighting_modified_blocks;
 		ServerMap &map = ((ServerMap&)m_env->getMap());
 		map.updateLighting(modified_blocks, lighting_modified_blocks);
 
 		// Add blocks modified by lighting to modified_blocks
-		for(core::map<v3s16, MapBlock*>::Iterator
+		for(core::map<v3POS, MapBlock*>::Iterator
 				i = lighting_modified_blocks.getIterator();
 				i.atEnd() == false; i++)
 		{
@@ -1318,7 +1318,7 @@ void Server::AsyncRunStep(bool initial_step)
 						<<" has no associated player"<<std::endl;*/
 				continue;
 			}
-			v3s16 pos = floatToInt(player->getPosition(), BS);
+			v3POS pos = floatToInt(player->getPosition(), BS);
 
 			std::set<u16> removed_objects;
 			std::set<u16> added_objects;
@@ -1619,7 +1619,7 @@ void Server::AsyncRunStep(bool initial_step)
 			{
 				infostream<<"Server: MEET_OTHER"<<std::endl;
 				prof.add("MEET_OTHER", 1);
-				for(std::set<v3s16>::iterator
+				for(std::set<v3POS>::iterator
 						i = event->modified_blocks.begin();
 						i != event->modified_blocks.end(); ++i)
 				{
@@ -1639,8 +1639,8 @@ void Server::AsyncRunStep(bool initial_step)
 			if(far_players.size() > 0)
 			{
 				// Convert list format to that wanted by SetBlocksNotSent
-				std::map<v3s16, MapBlock*> modified_blocks2;
-				for(std::set<v3s16>::iterator
+				std::map<v3POS, MapBlock*> modified_blocks2;
+				for(std::set<v3POS>::iterator
 						i = event->modified_blocks.begin();
 						i != event->modified_blocks.end(); ++i)
 				{
@@ -2101,12 +2101,12 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 			Answer with a TOCLIENT_INIT
 		*/
 		{
-			SharedBuffer<u8> reply(2+1+6+8+4);
+			SharedBuffer<u8> reply(2+1+3*POS_SIZE+8+4);
 			writeU16(&reply[0], TOCLIENT_INIT);
 			writeU8(&reply[2], deployed);
-			writeV3S16(&reply[2+1], floatToInt(playersao->getPlayer()->getPosition()+v3f(0,BS/2,0), BS));
-			writeU64(&reply[2+1+6], m_env->getServerMap().getSeed());
-			writeF1000(&reply[2+1+6+8], g_settings->getFloat("dedicated_server_step"));
+			writeV3POS(&reply[2+1], floatToInt(playersao->getPlayer()->getPosition()+v3f(0,BS/2,0), BS));
+			writeU64(&reply[2+1+3*POS_SIZE], m_env->getServerMap().getSeed());
+			writeF1000(&reply[2+1+3*POS_SIZE+8], g_settings->getFloat("dedicated_server_step"));
 
 			// Send as reliable
 			m_con.Send(peer_id, 0, reply, true);
@@ -2305,9 +2305,9 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 			m_script->on_cheat(playersao, "moved_too_fast");
 		}
 
-		/*infostream<<"Server::ProcessData(): Moved player "<<peer_id<<" to "
+		infostream<<"Server::ProcessData(): Moved player "<<peer_id<<" to "
 				<<"("<<position.X<<","<<position.Y<<","<<position.Z<<")"
-				<<" pitch="<<pitch<<" yaw="<<yaw<<std::endl;*/
+				<<" pitch="<<pitch<<" yaw="<<yaw<<std::endl;
 	}
 	else if(command == TOSERVER_GOTBLOCKS)
 	{
@@ -2317,18 +2317,18 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		/*
 			[0] u16 command
 			[2] u8 count
-			[3] v3s16 pos_0
-			[3+6] v3s16 pos_1
+			[3] v3POS pos_0
+			[3+6] v3POS pos_1
 			...
 		*/
 
 		u16 count = data[2];
 		for(u16 i=0; i<count; i++)
 		{
-			if((s16)datasize < 2+1+(i+1)*6)
+			if((s16)datasize < 2+1+(i+1)*3*POS_SIZE)
 				throw con::InvalidIncomingDataException
 					("GOTBLOCKS length is too short");
-			v3s16 p = readV3S16(&data[2+1+i*6]);
+			v3POS p = readV3POS(&data[2+1+i*3*POS_SIZE]);
 			/*infostream<<"Server: GOTBLOCKS ("
 					<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;*/
 			RemoteClient *client = getClient(peer_id);
@@ -2343,18 +2343,18 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		/*
 			[0] u16 command
 			[2] u8 count
-			[3] v3s16 pos_0
-			[3+6] v3s16 pos_1
+			[3] v3POS pos_0
+			[3+6] v3POS pos_1
 			...
 		*/
 
 		u16 count = data[2];
 		for(u16 i=0; i<count; i++)
 		{
-			if((s16)datasize < 2+1+(i+1)*6)
+			if((s16)datasize < 2+1+(i+1)*3*POS_SIZE)
 				throw con::InvalidIncomingDataException
 					("DELETEDBLOCKS length is too short");
-			v3s16 p = readV3S16(&data[2+1+i*6]);
+			v3POS p = readV3POS(&data[2+1+i*3*POS_SIZE]);
 			/*infostream<<"Server: DELETEDBLOCKS ("
 					<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;*/
 			RemoteClient *client = getClient(peer_id);
@@ -2815,8 +2815,8 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		playersao->setWieldIndex(item_i);
 
 		// Get pointed to node (undefined if not POINTEDTYPE_NODE)
-		v3s16 p_under = pointed.node_undersurface;
-		v3s16 p_above = pointed.node_abovesurface;
+		v3POS p_under = pointed.node_undersurface;
+		v3POS p_above = pointed.node_abovesurface;
 
 		// Get pointed to object (NULL if not POINTEDTYPE_OBJECT)
 		ServerActiveObject *pointed_object = NULL;
@@ -2857,11 +2857,12 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 				actionstream<<"Player "<<player->getName()
 						<<" tried to access "<<pointed.dump()
 						<<" from too far: "
-						<<"d="<<d<<", max_d="<<max_d
+						<<"pos="<<player_pos.X<<","<<player_pos.Y<<","<<player_pos.Z
+						<<", d="<<d<<", max_d="<<max_d
 						<<". ignoring."<<std::endl;
 				// Re-send block to revert change on client-side
 				RemoteClient *client = getClient(peer_id);
-				v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
+				v3POS blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
 				client->SetBlockNotSent(blockpos);
 				// Call callbacks
 				m_script->on_cheat(playersao, "interacted_too_far");
@@ -2882,12 +2883,12 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 			RemoteClient *client = getClient(peer_id);
 			// Digging completed -> under
 			if(action == 2){
-				v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
+				v3POS blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
 				client->SetBlockNotSent(blockpos);
 			}
 			// Placement -> above
 			if(action == 3){
-				v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_above, BS));
+				v3POS blockpos = getNodeBlockPos(floatToInt(pointed_pos_above, BS));
 				client->SetBlockNotSent(blockpos);
 			}
 			return;
@@ -2983,7 +2984,7 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 				bool is_valid_dig = true;
 				if(!isSingleplayer() && !g_settings->getBool("disable_anticheat"))
 				{
-					v3s16 nocheat_p = playersao->getNoCheatDigPos();
+					v3POS nocheat_p = playersao->getNoCheatDigPos();
 					float nocheat_t = playersao->getNoCheatDigTime();
 					playersao->noCheatDigEnd();
 					// If player didn't start digging this, ignore dig
@@ -3060,7 +3061,7 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 				{
 					// Re-send block to revert change on client-side
 					RemoteClient *client = getClient(peer_id);
-					v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
+					v3POS blockpos = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
 					client->SetBlockNotSent(blockpos);
 				}
 			}
@@ -3106,9 +3107,9 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 			// blocks to make sure the client knows what exactly happened
 			if(item.getDefinition(m_itemdef).node_placement_prediction != ""){
 				RemoteClient *client = getClient(peer_id);
-				v3s16 blockpos = getNodeBlockPos(floatToInt(pointed_pos_above, BS));
+				v3POS blockpos = getNodeBlockPos(floatToInt(pointed_pos_above, BS));
 				client->SetBlockNotSent(blockpos);
-				v3s16 blockpos2 = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
+				v3POS blockpos2 = getNodeBlockPos(floatToInt(pointed_pos_under, BS));
 				if(blockpos2 != blockpos){
 					client->SetBlockNotSent(blockpos2);
 				}
@@ -3167,7 +3168,7 @@ void Server::ProcessData(u8 *data, u32 datasize, u16 peer_id)
 		std::string datastring((char*)&data[2], datasize-2);
 		std::istringstream is(datastring, std::ios_base::binary);
 
-		v3s16 p = readV3S16(is);
+		v3POS p = readV3POS(is);
 		std::string formname = deSerializeString(is);
 		int num = readU16(is);
 		std::map<std::string, std::string> fields;
@@ -3302,7 +3303,7 @@ void Server::setInventoryModified(const InventoryLocation &loc)
 	break;
 	case InventoryLocation::NODEMETA:
 	{
-		v3s16 blockpos = getNodeBlockPos(loc.p);
+		v3POS blockpos = getNodeBlockPos(loc.p);
 
 		MapBlock *block = m_env->getMap().getBlockNoCreateNoEx(blockpos);
 		if(block)
@@ -4041,7 +4042,7 @@ void Server::stopSound(s32 handle)
 	m_playing_sounds.erase(i);
 }
 
-void Server::sendRemoveNode(v3s16 p, u16 ignore_id,
+void Server::sendRemoveNode(v3POS p, u16 ignore_id,
 	std::list<u16> *far_players, float far_d_nodes)
 {
 	float maxd = far_d_nodes*BS;
@@ -4090,7 +4091,7 @@ void Server::sendRemoveNode(v3s16 p, u16 ignore_id,
 	}
 }
 
-void Server::sendAddNode(v3s16 p, MapNode n, u16 ignore_id,
+void Server::sendAddNode(v3POS p, MapNode n, u16 ignore_id,
 		std::list<u16> *far_players, float far_d_nodes,
 		bool remove_metadata)
 {
@@ -4151,7 +4152,7 @@ void Server::sendAddNode(v3s16 p, MapNode n, u16 ignore_id,
 	}
 }
 
-void Server::setBlockNotSent(v3s16 p)
+void Server::setBlockNotSent(v3POS p)
 {
 	for(std::map<u16, RemoteClient*>::iterator
 		i = m_clients.begin();
@@ -4166,7 +4167,7 @@ void Server::SendBlockNoLock(u16 peer_id, MapBlock *block, u8 ver, u16 net_proto
 {
 	DSTACK(__FUNCTION_NAME);
 
-	v3s16 p = block->getPos();
+	v3POS p = block->getPos();
 
 #if 0
 	// Analyze it a bit
@@ -4175,7 +4176,7 @@ void Server::SendBlockNoLock(u16 peer_id, MapBlock *block, u8 ver, u16 net_proto
 	for(s16 x0=0; x0<MAP_BLOCKSIZE; x0++)
 	for(s16 y0=0; y0<MAP_BLOCKSIZE; y0++)
 	{
-		if(block->getNodeNoEx(v3s16(x0,y0,z0)).d != CONTENT_AIR)
+		if(block->getNodeNoEx(v3POS(x0,y0,z0)).d != CONTENT_AIR)
 		{
 			completely_air = false;
 			x0 = y0 = z0 = MAP_BLOCKSIZE; // Break out
@@ -5324,10 +5325,10 @@ v3f findSpawnPos(ServerMap &map)
 {
 	//return v3f(50,50,50)*BS;
 
-	v3s16 nodepos;
+	v3POS nodepos;
 
 #if 0
-	nodepos = v2s16(0,0);
+	nodepos = v2POS(0,0);
 	groundheight = 20;
 #endif
 
@@ -5339,7 +5340,7 @@ v3f findSpawnPos(ServerMap &map)
 	{
 		s32 range = 1 + i;
 		// We're going to try to throw the player to this position
-		v2s16 nodepos2d = v2s16(
+		v2POS nodepos2d = v2POS(
 				-range + (myrand() % (range * 2)),
 				-range + (myrand() % (range * 2)));
 
@@ -5350,11 +5351,11 @@ v3f findSpawnPos(ServerMap &map)
 		if (groundheight > water_level + 6) // Don't go to high places
 			continue;
 
-		nodepos = v3s16(nodepos2d.X, groundheight, nodepos2d.Y);
+		nodepos = v3POS(nodepos2d.X, groundheight, nodepos2d.Y);
 		bool is_good = false;
 		s32 air_count = 0;
 		for (s32 i = 0; i < 10; i++) {
-			v3s16 blockpos = getNodeBlockPos(nodepos);
+			v3POS blockpos = getNodeBlockPos(nodepos);
 			map.emergeBlock(blockpos, true);
 			content_t c = map.getNodeNoEx(nodepos).getContent();
 			if (c == CONTENT_AIR || c == CONTENT_IGNORE) {

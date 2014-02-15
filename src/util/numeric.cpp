@@ -26,11 +26,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <iostream>
 
 // Calculate the borders of a "d-radius" cube
-void getFacePositions(std::list<v3s16> &list, u16 d)
+void getFacePositions(std::list<v3POS> &list, u16 d)
 {
 	if(d == 0)
 	{
-		list.push_back(v3s16(0,0,0));
+		list.push_back(v3POS(0,0,0));
 		return;
 	}
 	if(d == 1)
@@ -38,34 +38,34 @@ void getFacePositions(std::list<v3s16> &list, u16 d)
 		/*
 			This is an optimized sequence of coordinates.
 		*/
-		list.push_back(v3s16( 0, 1, 0)); // top
-		list.push_back(v3s16( 0, 0, 1)); // back
-		list.push_back(v3s16(-1, 0, 0)); // left
-		list.push_back(v3s16( 1, 0, 0)); // right
-		list.push_back(v3s16( 0, 0,-1)); // front
-		list.push_back(v3s16( 0,-1, 0)); // bottom
+		list.push_back(v3POS( 0, 1, 0)); // top
+		list.push_back(v3POS( 0, 0, 1)); // back
+		list.push_back(v3POS(-1, 0, 0)); // left
+		list.push_back(v3POS( 1, 0, 0)); // right
+		list.push_back(v3POS( 0, 0,-1)); // front
+		list.push_back(v3POS( 0,-1, 0)); // bottom
 		// 6
-		list.push_back(v3s16(-1, 0, 1)); // back left
-		list.push_back(v3s16( 1, 0, 1)); // back right
-		list.push_back(v3s16(-1, 0,-1)); // front left
-		list.push_back(v3s16( 1, 0,-1)); // front right
-		list.push_back(v3s16(-1,-1, 0)); // bottom left
-		list.push_back(v3s16( 1,-1, 0)); // bottom right
-		list.push_back(v3s16( 0,-1, 1)); // bottom back
-		list.push_back(v3s16( 0,-1,-1)); // bottom front
-		list.push_back(v3s16(-1, 1, 0)); // top left
-		list.push_back(v3s16( 1, 1, 0)); // top right
-		list.push_back(v3s16( 0, 1, 1)); // top back
-		list.push_back(v3s16( 0, 1,-1)); // top front
+		list.push_back(v3POS(-1, 0, 1)); // back left
+		list.push_back(v3POS( 1, 0, 1)); // back right
+		list.push_back(v3POS(-1, 0,-1)); // front left
+		list.push_back(v3POS( 1, 0,-1)); // front right
+		list.push_back(v3POS(-1,-1, 0)); // bottom left
+		list.push_back(v3POS( 1,-1, 0)); // bottom right
+		list.push_back(v3POS( 0,-1, 1)); // bottom back
+		list.push_back(v3POS( 0,-1,-1)); // bottom front
+		list.push_back(v3POS(-1, 1, 0)); // top left
+		list.push_back(v3POS( 1, 1, 0)); // top right
+		list.push_back(v3POS( 0, 1, 1)); // top back
+		list.push_back(v3POS( 0, 1,-1)); // top front
 		// 18
-		list.push_back(v3s16(-1, 1, 1)); // top back-left
-		list.push_back(v3s16( 1, 1, 1)); // top back-right
-		list.push_back(v3s16(-1, 1,-1)); // top front-left
-		list.push_back(v3s16( 1, 1,-1)); // top front-right
-		list.push_back(v3s16(-1,-1, 1)); // bottom back-left
-		list.push_back(v3s16( 1,-1, 1)); // bottom back-right
-		list.push_back(v3s16(-1,-1,-1)); // bottom front-left
-		list.push_back(v3s16( 1,-1,-1)); // bottom front-right
+		list.push_back(v3POS(-1, 1, 1)); // top back-left
+		list.push_back(v3POS( 1, 1, 1)); // top back-right
+		list.push_back(v3POS(-1, 1,-1)); // top front-left
+		list.push_back(v3POS( 1, 1,-1)); // top front-right
+		list.push_back(v3POS(-1,-1, 1)); // bottom back-left
+		list.push_back(v3POS( 1,-1, 1)); // bottom back-right
+		list.push_back(v3POS(-1,-1,-1)); // bottom front-left
+		list.push_back(v3POS( 1,-1,-1)); // bottom front-right
 		// 26
 		return;
 	}
@@ -76,23 +76,23 @@ void getFacePositions(std::list<v3s16> &list, u16 d)
 		// Left and right side, including borders
 		for(s16 z=-d; z<=d; z++)
 		{
-			list.push_back(v3s16(d,y,z));
-			list.push_back(v3s16(-d,y,z));
+			list.push_back(v3POS(d,y,z));
+			list.push_back(v3POS(-d,y,z));
 			if(y != 0)
 			{
-				list.push_back(v3s16(d,-y,z));
-				list.push_back(v3s16(-d,-y,z));
+				list.push_back(v3POS(d,-y,z));
+				list.push_back(v3POS(-d,-y,z));
 			}
 		}
 		// Back and front side, excluding borders
 		for(s16 x=-d+1; x<=d-1; x++)
 		{
-			list.push_back(v3s16(x,y,d));
-			list.push_back(v3s16(x,y,-d));
+			list.push_back(v3POS(x,y,d));
+			list.push_back(v3POS(x,y,-d));
 			if(y != 0)
 			{
-				list.push_back(v3s16(x,-y,d));
-				list.push_back(v3s16(x,-y,-d));
+				list.push_back(v3POS(x,-y,d));
+				list.push_back(v3POS(x,-y,-d));
 			}
 		}
 	}
@@ -102,8 +102,8 @@ void getFacePositions(std::list<v3s16> &list, u16 d)
 	for(s16 x=-d; x<=d; x++)
 	for(s16 z=-d; z<=d; z++)
 	{
-		list.push_back(v3s16(x,-d,z));
-		list.push_back(v3s16(x,d,z));
+		list.push_back(v3POS(x,-d,z));
+		list.push_back(v3POS(x,d,z));
 	}
 }
 
@@ -189,10 +189,10 @@ u64 murmur_hash_64_ua(const void *key, int len, unsigned int seed)
 	camera_dir: an unit vector pointing to camera direction
 	range: viewing range
 */
-bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir,
+bool isBlockInSight(v3POS blockpos_b, v3f camera_pos, v3f camera_dir,
 		f32 camera_fov, f32 range, f32 *distance_ptr)
 {
-	v3s16 blockpos_nodes = blockpos_b * MAP_BLOCKSIZE;
+	v3POS blockpos_nodes = blockpos_b * MAP_BLOCKSIZE;
 	
 	// Block center position
 	v3f blockpos(

@@ -24,6 +24,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 using namespace irr;
 
+typedef s32 POS;
+#define POS_SIZE 4
+
 // Irrlicht 1.8+ defines 64bit unsigned symbol in irrTypes.h
 #if (IRRLICHT_VERSION_MAJOR == 1 && IRRLICHT_VERSION_MINOR < 8)
 #ifdef _MSC_VER

@@ -121,7 +121,7 @@ class ServerThread;
 */
 struct PrioritySortedBlockTransfer
 {
-	PrioritySortedBlockTransfer(float a_priority, v3s16 a_pos, u16 a_peer_id)
+	PrioritySortedBlockTransfer(float a_priority, v3POS a_pos, u16 a_peer_id)
 	{
 		priority = a_priority;
 		pos = a_pos;
@@ -132,7 +132,7 @@ struct PrioritySortedBlockTransfer
 		return priority < other.priority;
 	}
 	float priority;
-	v3s16 pos;
+	v3POS pos;
 	u16 peer_id;
 };
 
@@ -228,12 +228,12 @@ public:
 	void GetNextBlocks(Server *server, float dtime,
 			std::vector<PrioritySortedBlockTransfer> &dest);
 
-	void GotBlock(v3s16 p);
+	void GotBlock(v3POS p);
 
-	void SentBlock(v3s16 p);
+	void SentBlock(v3POS p);
 
-	void SetBlockNotSent(v3s16 p);
-	void SetBlocksNotSent(std::map<v3s16, MapBlock*> &blocks);
+	void SetBlockNotSent(v3POS p);
+	void SetBlocksNotSent(std::map<v3POS, MapBlock*> &blocks);
 
 	s32 SendingCount()
 	{
@@ -263,7 +263,7 @@ public:
 	float m_dig_time_remaining;
 	// -1 = not digging
 	s16 m_dig_tool_item;
-	v3s16 m_dig_position;*/
+	v3POS m_dig_position;*/
 
 	/*
 		List of active objects that the client knows of.
@@ -281,9 +281,9 @@ private:
 		Key is position, value is dummy.
 		No MapBlock* is stored here because the blocks can get deleted.
 	*/
-	std::set<v3s16> m_blocks_sent;
+	std::set<v3POS> m_blocks_sent;
 	s16 m_nearest_unsent_d;
-	v3s16 m_last_center;
+	v3POS m_last_center;
 	float m_nearest_unsent_reset_timer;
 
 	/*
@@ -294,7 +294,7 @@ private:
 		Block is removed when GOTBLOCKS is received.
 		Value is time from sending. (not used at the moment)
 	*/
-	std::map<v3s16, float> m_blocks_sending;
+	std::map<v3POS, float> m_blocks_sending;
 
 	/*
 		Count of excess GotBlocks().
@@ -527,12 +527,12 @@ private:
 		far_d_nodes are ignored and their peer_ids are added to far_players
 	*/
 	// Envlock and conlock should be locked when calling these
-	void sendRemoveNode(v3s16 p, u16 ignore_id=0,
+	void sendRemoveNode(v3POS p, u16 ignore_id=0,
 			std::list<u16> *far_players=NULL, float far_d_nodes=100);
-	void sendAddNode(v3s16 p, MapNode n, u16 ignore_id=0,
+	void sendAddNode(v3POS p, MapNode n, u16 ignore_id=0,
 			std::list<u16> *far_players=NULL, float far_d_nodes=100,
 			bool remove_metadata=true);
-	void setBlockNotSent(v3s16 p);
+	void setBlockNotSent(v3POS p);
 
 	// Environment and Connection must be locked when called
 	void SendBlockNoLock(u16 peer_id, MapBlock *block, u8 ver, u16 net_proto_version);

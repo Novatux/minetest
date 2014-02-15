@@ -129,16 +129,16 @@ u8 MapNode::getWallMounted(INodeDefManager *nodemgr) const
 	return 0;
 }
 
-v3s16 MapNode::getWallMountedDir(INodeDefManager *nodemgr) const
+v3POS MapNode::getWallMountedDir(INodeDefManager *nodemgr) const
 {
 	switch(getWallMounted(nodemgr))
 	{
-	case 0: default: return v3s16(0,1,0);
-	case 1: return v3s16(0,-1,0);
-	case 2: return v3s16(1,0,0);
-	case 3: return v3s16(-1,0,0);
-	case 4: return v3s16(0,0,1);
-	case 5: return v3s16(0,0,-1);
+	case 0: default: return v3POS(0,1,0);
+	case 1: return v3POS(0,-1,0);
+	case 2: return v3POS(1,0,0);
+	case 3: return v3POS(-1,0,0);
+	case 4: return v3POS(0,0,1);
+	case 5: return v3POS(0,0,-1);
 	}
 }
 
@@ -303,15 +303,15 @@ static std::vector<aabb3f> transformNodeBox(const MapNode &n,
 	}
 	else if(nodebox.type == NODEBOX_WALLMOUNTED)
 	{
-		v3s16 dir = n.getWallMountedDir(nodemgr);
+		v3POS dir = n.getWallMountedDir(nodemgr);
 
 		// top
-		if(dir == v3s16(0,1,0))
+		if(dir == v3POS(0,1,0))
 		{
 			boxes.push_back(nodebox.wall_top);
 		}
 		// bottom
-		else if(dir == v3s16(0,-1,0))
+		else if(dir == v3POS(0,-1,0))
 		{
 			boxes.push_back(nodebox.wall_bottom);
 		}
@@ -326,13 +326,13 @@ static std::vector<aabb3f> transformNodeBox(const MapNode &n,
 
 			for(s32 i=0; i<2; i++)
 			{
-				if(dir == v3s16(-1,0,0))
+				if(dir == v3POS(-1,0,0))
 					vertices[i].rotateXZBy(0);
-				if(dir == v3s16(1,0,0))
+				if(dir == v3POS(1,0,0))
 					vertices[i].rotateXZBy(180);
-				if(dir == v3s16(0,0,-1))
+				if(dir == v3POS(0,0,-1))
 					vertices[i].rotateXZBy(90);
-				if(dir == v3s16(0,0,1))
+				if(dir == v3POS(0,0,1))
 					vertices[i].rotateXZBy(-90);
 			}
 

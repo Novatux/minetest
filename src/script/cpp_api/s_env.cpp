@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "mapgen.h"
 #include "lua_api/l_env.h"
 
-void ScriptApiEnv::environment_OnGenerated(v3s16 minp, v3s16 maxp,
+void ScriptApiEnv::environment_OnGenerated(v3POS minp, v3POS maxp,
 		u32 blockseed)
 {
 	SCRIPTAPI_PRECHECKHEADER
@@ -34,8 +34,8 @@ void ScriptApiEnv::environment_OnGenerated(v3s16 minp, v3s16 maxp,
 	lua_getglobal(L, "minetest");
 	lua_getfield(L, -1, "registered_on_generateds");
 	// Call callbacks
-	push_v3s16(L, minp);
-	push_v3s16(L, maxp);
+	push_v3POS(L, minp);
+	push_v3POS(L, maxp);
 	lua_pushnumber(L, blockseed);
 	script_run_callbacks(L, 3, RUN_CALLBACKS_MODE_FIRST);
 }

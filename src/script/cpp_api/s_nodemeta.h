@@ -35,29 +35,29 @@ public:
 	virtual ~ScriptApiNodemeta();
 
 	// Return number of accepted items to be moved
-	int nodemeta_inventory_AllowMove(v3s16 p,
+	int nodemeta_inventory_AllowMove(v3POS p,
 			const std::string &from_list, int from_index,
 			const std::string &to_list, int to_index,
 			int count, ServerActiveObject *player);
 	// Return number of accepted items to be put
-	int nodemeta_inventory_AllowPut(v3s16 p,
+	int nodemeta_inventory_AllowPut(v3POS p,
 			const std::string &listname, int index, ItemStack &stack,
 			ServerActiveObject *player);
 	// Return number of accepted items to be taken
-	int nodemeta_inventory_AllowTake(v3s16 p,
+	int nodemeta_inventory_AllowTake(v3POS p,
 			const std::string &listname, int index, ItemStack &stack,
 			ServerActiveObject *player);
 	// Report moved items
-	void nodemeta_inventory_OnMove(v3s16 p,
+	void nodemeta_inventory_OnMove(v3POS p,
 			const std::string &from_list, int from_index,
 			const std::string &to_list, int to_index,
 			int count, ServerActiveObject *player);
 	// Report put items
-	void nodemeta_inventory_OnPut(v3s16 p,
+	void nodemeta_inventory_OnPut(v3POS p,
 			const std::string &listname, int index, ItemStack &stack,
 			ServerActiveObject *player);
 	// Report taken items
-	void nodemeta_inventory_OnTake(v3s16 p,
+	void nodemeta_inventory_OnTake(v3POS p,
 			const std::string &listname, int index, ItemStack &stack,
 			ServerActiveObject *player);
 private:

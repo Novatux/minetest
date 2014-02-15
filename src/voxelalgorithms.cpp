@@ -30,7 +30,7 @@ void setLight(VoxelManipulator &v, VoxelArea a, u8 light,
 	for(s32 z=a.MinEdge.Z; z<=a.MaxEdge.Z; z++)
 	for(s32 y=a.MinEdge.Y; y<=a.MaxEdge.Y; y++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 		MapNode &n = v.getNodeRefUnsafe(p);
 		n.setLight(LIGHTBANK_DAY, light, ndef);
 		n.setLight(LIGHTBANK_NIGHT, light, ndef);
@@ -39,12 +39,12 @@ void setLight(VoxelManipulator &v, VoxelArea a, u8 light,
 
 void clearLightAndCollectSources(VoxelManipulator &v, VoxelArea a,
 		enum LightBank bank, INodeDefManager *ndef,
-		std::set<v3s16> & light_sources,
-		std::map<v3s16, u8> & unlight_from)
+		std::set<v3POS> & light_sources,
+		std::map<v3POS, u8> & unlight_from)
 {
 	// The full area we shall touch
 	VoxelArea required_a = a;
-	required_a.pad(v3s16(0,0,0));
+	required_a.pad(v3POS(0,0,0));
 	// Make sure we have access to it
 	v.emerge(a);
 
@@ -52,7 +52,7 @@ void clearLightAndCollectSources(VoxelManipulator &v, VoxelArea a,
 	for(s32 z=a.MinEdge.Z; z<=a.MaxEdge.Z; z++)
 	for(s32 y=a.MinEdge.Y; y<=a.MaxEdge.Y; y++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 		MapNode &n = v.getNodeRefUnsafe(p);
 		u8 oldlight = n.getLight(bank, ndef);
 		n.setLight(bank, 0, ndef);
@@ -75,7 +75,7 @@ void clearLightAndCollectSources(VoxelManipulator &v, VoxelArea a,
 
 SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 		bool inexistent_top_provides_sunlight,
-		std::set<v3s16> & light_sources,
+		std::set<v3POS> & light_sources,
 		INodeDefManager *ndef)
 {
 	// Return values
@@ -83,7 +83,7 @@ SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 
 	// The full area we shall touch extends one extra at top and bottom
 	VoxelArea required_a = a;
-	required_a.pad(v3s16(0,1,0));
+	required_a.pad(v3POS(0,1,0));
 	// Make sure we have access to it
 	v.emerge(a);
 
@@ -93,7 +93,7 @@ SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 	for(s32 x=a.MinEdge.X; x<=a.MaxEdge.X; x++)
 	for(s32 z=a.MinEdge.Z; z<=a.MaxEdge.Z; z++)
 	{
-		v3s16 p_overtop(x, max_y+1, z);
+		v3POS p_overtop(x, max_y+1, z);
 		bool overtop_has_sunlight = false;
 		// If overtop node does not exist, trust heuristics
 		if(!v.exists(p_overtop))
@@ -109,7 +109,7 @@ SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 		u8 incoming_light = overtop_has_sunlight ? LIGHT_SUN : 0;
 		for(s32 y=max_y; y>=min_y; y--)
 		{
-			v3s16 p(x,y,z);
+			v3POS p(x,y,z);
 			MapNode &n = v.getNodeRefUnsafe(p);
 			if(incoming_light == 0){
 				// Do nothing
@@ -135,7 +135,7 @@ SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 		if(bottom_sunlight_valid)
 		{
 			bool sunlight_should_continue_down = (incoming_light == LIGHT_SUN);
-			v3s16 p_overbottom(x, min_y-1, z);
+			v3POS p_overbottom(x, min_y-1, z);
 			if(!v.exists(p_overbottom) ||
 					v.getNodeRefUnsafe(p_overbottom
 							).getContent() == CONTENT_IGNORE){

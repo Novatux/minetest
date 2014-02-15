@@ -67,8 +67,8 @@ void VoxelManipulator::clear()
 void VoxelManipulator::print(std::ostream &o, INodeDefManager *ndef,
 		VoxelPrintMode mode)
 {
-	v3s16 em = m_area.getExtent();
-	v3s16 of = m_area.MinEdge;
+	v3POS em = m_area.getExtent();
+	v3POS of = m_area.MinEdge;
 	o<<"size: "<<em.X<<"x"<<em.Y<<"x"<<em.Z
 	 <<" offset: ("<<of.X<<","<<of.Y<<","<<of.Z<<")"<<std::endl;
 	
@@ -147,7 +147,7 @@ void VoxelManipulator::print(std::ostream &o, INodeDefManager *ndef,
 void VoxelManipulator::addArea(VoxelArea area)
 {
 	// Cancel if requested area has zero volume
-	if(area.getExtent() == v3s16(0,0,0))
+	if(area.getExtent() == v3POS(0,0,0))
 		return;
 	
 	// Cancel if m_area already contains the requested area
@@ -159,7 +159,7 @@ void VoxelManipulator::addArea(VoxelArea area)
 	// Calculate new area
 	VoxelArea new_area;
 	// New area is the requested area if m_area has zero volume
-	if(m_area.getExtent() == v3s16(0,0,0))
+	if(m_area.getExtent() == v3POS(0,0,0))
 	{
 		new_area = area;
 	}
@@ -225,7 +225,7 @@ void VoxelManipulator::addArea(VoxelArea area)
 }
 
 void VoxelManipulator::copyFrom(MapNode *src, VoxelArea src_area,
-		v3s16 from_pos, v3s16 to_pos, v3s16 size)
+		v3POS from_pos, v3POS to_pos, v3POS size)
 {
 	for(s16 z=0; z<size.Z; z++)
 	for(s16 y=0; y<size.Y; y++)
@@ -238,7 +238,7 @@ void VoxelManipulator::copyFrom(MapNode *src, VoxelArea src_area,
 }
 
 void VoxelManipulator::copyTo(MapNode *dst, VoxelArea dst_area,
-		v3s16 dst_pos, v3s16 from_pos, v3s16 size)
+		v3POS dst_pos, v3POS from_pos, v3POS size)
 {
 	for(s16 z=0; z<size.Z; z++)
 	for(s16 y=0; y<size.Y; y++)
@@ -265,7 +265,7 @@ void VoxelManipulator::clearFlag(u8 flags)
 	// 0-1ms on moderate area
 	TimeTaker timer("clearFlag", &clearflag_time);
 
-	//v3s16 s = m_area.getExtent();
+	//v3POS s = m_area.getExtent();
 
 	/*dstream<<"clearFlag clearing area of size "
 			<<""<<s.X<<"x"<<s.Y<<"x"<<s.Z<<""
@@ -302,25 +302,25 @@ void VoxelManipulator::clearFlag(u8 flags)
 			<<volume<<" nodes"<<std::endl;*/
 }
 
-void VoxelManipulator::unspreadLight(enum LightBank bank, v3s16 p, u8 oldlight,
-		std::set<v3s16> & light_sources, INodeDefManager *nodemgr)
+void VoxelManipulator::unspreadLight(enum LightBank bank, v3POS p, u8 oldlight,
+		std::set<v3POS> & light_sources, INodeDefManager *nodemgr)
 {
-	v3s16 dirs[6] = {
-		v3s16(0,0,1), // back
-		v3s16(0,1,0), // top
-		v3s16(1,0,0), // right
-		v3s16(0,0,-1), // front
-		v3s16(0,-1,0), // bottom
-		v3s16(-1,0,0), // left
+	v3POS dirs[6] = {
+		v3POS(0,0,1), // back
+		v3POS(0,1,0), // top
+		v3POS(1,0,0), // right
+		v3POS(0,0,-1), // front
+		v3POS(0,-1,0), // bottom
+		v3POS(-1,0,0), // left
 	};
 	
-	emerge(VoxelArea(p - v3s16(1,1,1), p + v3s16(1,1,1)));
+	emerge(VoxelArea(p - v3POS(1,1,1), p + v3POS(1,1,1)));
 
 	// Loop through 6 neighbors
 	for(u16 i=0; i<6; i++)
 	{
 		// Get the position of the neighbor node
-		v3s16 n2pos = p + dirs[i];
+		v3POS n2pos = p + dirs[i];
 		
 		u32 n2i = m_area.index(n2pos);
 
@@ -385,13 +385,13 @@ void VoxelManipulator::unspreadLight(enum LightBank bank, v3s16 p, u8 oldlight,
 	values of from_nodes are lighting values.
 */
 void VoxelManipulator::unspreadLight(enum LightBank bank,
-		std::map<v3s16, u8> & from_nodes,
-		std::set<v3s16> & light_sources, INodeDefManager *nodemgr)
+		std::map<v3POS, u8> & from_nodes,
+		std::set<v3POS> & light_sources, INodeDefManager *nodemgr)
 {
 	if(from_nodes.size() == 0)
 		return;
 	
-	for(std::map<v3s16, u8>::iterator j = from_nodes.begin();
+	for(std::map<v3POS, u8>::iterator j = from_nodes.begin();
 		j != from_nodes.end(); ++j)
 	{
 		unspreadLight(bank, j->first, j->second, light_sources, nodemgr);
@@ -418,30 +418,30 @@ void VoxelManipulator::unspreadLight(enum LightBank bank,
 	values of from_nodes are lighting values.
 */
 void VoxelManipulator::unspreadLight(enum LightBank bank,
-		core::map<v3s16, u8> & from_nodes,
-		core::map<v3s16, bool> & light_sources)
+		core::map<v3POS, u8> & from_nodes,
+		core::map<v3POS, bool> & light_sources)
 {
-	v3s16 dirs[6] = {
-		v3s16(0,0,1), // back
-		v3s16(0,1,0), // top
-		v3s16(1,0,0), // right
-		v3s16(0,0,-1), // front
-		v3s16(0,-1,0), // bottom
-		v3s16(-1,0,0), // left
+	v3POS dirs[6] = {
+		v3POS(0,0,1), // back
+		v3POS(0,1,0), // top
+		v3POS(1,0,0), // right
+		v3POS(0,0,-1), // front
+		v3POS(0,-1,0), // bottom
+		v3POS(-1,0,0), // left
 	};
 	
 	if(from_nodes.size() == 0)
 		return;
 	
-	core::map<v3s16, u8> unlighted_nodes;
-	core::map<v3s16, u8>::Iterator j;
+	core::map<v3POS, u8> unlighted_nodes;
+	core::map<v3POS, u8>::Iterator j;
 	j = from_nodes.getIterator();
 
 	for(; j.atEnd() == false; j++)
 	{
-		v3s16 pos = j.getNode()->getKey();
+		v3POS pos = j.getNode()->getKey();
 		
-		emerge(VoxelArea(pos - v3s16(1,1,1), pos + v3s16(1,1,1)));
+		emerge(VoxelArea(pos - v3POS(1,1,1), pos + v3POS(1,1,1)));
 
 		//MapNode &n = m_data[m_area.index(pos)];
 		
@@ -451,7 +451,7 @@ void VoxelManipulator::unspreadLight(enum LightBank bank,
 		for(u16 i=0; i<6; i++)
 		{
 			// Get the position of the neighbor node
-			v3s16 n2pos = pos + dirs[i];
+			v3POS n2pos = pos + dirs[i];
 			
 			u32 n2i = m_area.index(n2pos);
 
@@ -507,19 +507,19 @@ void VoxelManipulator::unspreadLight(enum LightBank bank,
 }
 #endif
 
-void VoxelManipulator::spreadLight(enum LightBank bank, v3s16 p,
+void VoxelManipulator::spreadLight(enum LightBank bank, v3POS p,
 		INodeDefManager *nodemgr)
 {
-	const v3s16 dirs[6] = {
-		v3s16(0,0,1), // back
-		v3s16(0,1,0), // top
-		v3s16(1,0,0), // right
-		v3s16(0,0,-1), // front
-		v3s16(0,-1,0), // bottom
-		v3s16(-1,0,0), // left
+	const v3POS dirs[6] = {
+		v3POS(0,0,1), // back
+		v3POS(0,1,0), // top
+		v3POS(1,0,0), // right
+		v3POS(0,0,-1), // front
+		v3POS(0,-1,0), // bottom
+		v3POS(-1,0,0), // left
 	};
 
-	emerge(VoxelArea(p - v3s16(1,1,1), p + v3s16(1,1,1)));
+	emerge(VoxelArea(p - v3POS(1,1,1), p + v3POS(1,1,1)));
 
 	u32 i = m_area.index(p);
 	
@@ -535,7 +535,7 @@ void VoxelManipulator::spreadLight(enum LightBank bank, v3s16 p,
 	for(u16 i=0; i<6; i++)
 	{
 		// Get the position of the neighbor node
-		v3s16 n2pos = p + dirs[i];
+		v3POS n2pos = p + dirs[i];
 		
 		u32 n2i = m_area.index(n2pos);
 
@@ -578,18 +578,18 @@ void VoxelManipulator::spreadLight(enum LightBank bank, v3s16 p,
 	      stack on large areas. Thus it is not used.
 */
 void VoxelManipulator::spreadLight(enum LightBank bank,
-		core::map<v3s16, bool> & from_nodes)
+		core::map<v3POS, bool> & from_nodes)
 {
 	if(from_nodes.size() == 0)
 		return;
 	
-	core::map<v3s16, bool> lighted_nodes;
-	core::map<v3s16, bool>::Iterator j;
+	core::map<v3POS, bool> lighted_nodes;
+	core::map<v3POS, bool>::Iterator j;
 	j = from_nodes.getIterator();
 
 	for(; j.atEnd() == false; j++)
 	{
-		v3s16 pos = j.getNode()->getKey();
+		v3POS pos = j.getNode()->getKey();
 
 		spreadLight(bank, pos);
 	}
@@ -602,28 +602,28 @@ void VoxelManipulator::spreadLight(enum LightBank bank,
 	goes on recursively.
 */
 void VoxelManipulator::spreadLight(enum LightBank bank,
-		std::set<v3s16> & from_nodes, INodeDefManager *nodemgr)
+		std::set<v3POS> & from_nodes, INodeDefManager *nodemgr)
 {
-	const v3s16 dirs[6] = {
-		v3s16(0,0,1), // back
-		v3s16(0,1,0), // top
-		v3s16(1,0,0), // right
-		v3s16(0,0,-1), // front
-		v3s16(0,-1,0), // bottom
-		v3s16(-1,0,0), // left
+	const v3POS dirs[6] = {
+		v3POS(0,0,1), // back
+		v3POS(0,1,0), // top
+		v3POS(1,0,0), // right
+		v3POS(0,0,-1), // front
+		v3POS(0,-1,0), // bottom
+		v3POS(-1,0,0), // left
 	};
 
 	if(from_nodes.size() == 0)
 		return;
 	
-	std::set<v3s16> lighted_nodes;
+	std::set<v3POS> lighted_nodes;
 
-	for(std::set<v3s16>::iterator j = from_nodes.begin();
+	for(std::set<v3POS>::iterator j = from_nodes.begin();
 		j != from_nodes.end(); ++j)
 	{
-		v3s16 pos = *j;
+		v3POS pos = *j;
 
-		emerge(VoxelArea(pos - v3s16(1,1,1), pos + v3s16(1,1,1)));
+		emerge(VoxelArea(pos - v3POS(1,1,1), pos + v3POS(1,1,1)));
 
 		u32 i = m_area.index(pos);
 		
@@ -639,7 +639,7 @@ void VoxelManipulator::spreadLight(enum LightBank bank,
 		for(u16 i=0; i<6; i++)
 		{
 			// Get the position of the neighbor node
-			v3s16 n2pos = pos + dirs[i];
+			v3POS n2pos = pos + dirs[i];
 			
 			try
 			{

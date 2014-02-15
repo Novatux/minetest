@@ -167,7 +167,7 @@ public:
 			IrrlichtDevice *irr);
 	void removeFromScene();
 	void updateLight(u8 light_at_pos);
-	v3s16 getLightPosition();
+	v3POS getLightPosition();
 	void updateNodePos();
 
 	void step(float dtime, ClientEnvironment *env);
@@ -248,7 +248,7 @@ void TestCAO::updateLight(u8 light_at_pos)
 {
 }
 
-v3s16 TestCAO::getLightPosition()
+v3POS TestCAO::getLightPosition()
 {
 	return floatToInt(m_position, BS);
 }
@@ -311,7 +311,7 @@ public:
 			IrrlichtDevice *irr);
 	void removeFromScene();
 	void updateLight(u8 light_at_pos);
-	v3s16 getLightPosition();
+	v3POS getLightPosition();
 	void updateNodePos();
 	void updateInfoText();
 	void updateTexture();
@@ -430,7 +430,7 @@ void ItemCAO::updateLight(u8 light_at_pos)
 	setMeshColor(m_node->getMesh(), color);
 }
 
-v3s16 ItemCAO::getLightPosition()
+v3POS ItemCAO::getLightPosition()
 {
 	return floatToInt(m_position + v3f(0,0.5*BS,0), BS);
 }
@@ -598,7 +598,7 @@ private:
 	float m_step_distance_counter;
 	u8 m_last_light;
 	bool m_is_visible;
-	v3s16 m_camera_offset;
+	v3POS m_camera_offset;
 
 public:
 	GenericCAO(IGameDef *gamedef, ClientEnvironment *env):
@@ -641,7 +641,7 @@ public:
 		m_step_distance_counter(0),
 		m_last_light(255),
 		m_is_visible(false),
-		m_camera_offset(v3s16(0,0,0))
+		m_camera_offset(v3POS(0,0,0))
 	{
 		if(gamedef == NULL)
 			ClientActiveObject::registerType(getType(), create);
@@ -1050,7 +1050,7 @@ public:
 		}
 	}
 
-	v3s16 getLightPosition()
+	v3POS getLightPosition()
 	{
 		return floatToInt(m_position, BS);
 	}
@@ -1077,7 +1077,7 @@ public:
 		}
 	}
 	
-	void updateCameraOffset(v3s16 camera_offset)
+	void updateCameraOffset(v3POS camera_offset)
 	{
 		m_camera_offset = camera_offset;
 	}
@@ -1188,7 +1188,7 @@ public:
 				m_step_distance_counter = 0;
 				if(!m_is_local_player && m_prop.makes_footstep_sound){
 					INodeDefManager *ndef = m_gamedef->ndef();
-					v3s16 p = floatToInt(getPosition() + v3f(0,
+					v3POS p = floatToInt(getPosition() + v3f(0,
 							(m_prop.collisionbox.MinEdge.Y-0.5)*BS, 0), BS);
 					MapNode n = m_env->getMap().getNodeNoEx(p);
 					SimpleSoundSpec spec = ndef->get(n).sound_footstep;

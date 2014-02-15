@@ -92,7 +92,7 @@ MeshUpdateQueue::~MeshUpdateQueue()
 /*
 	peer_id=0 adds with nobody to send to
 */
-void MeshUpdateQueue::addBlock(v3s16 p, MeshMakeData *data, bool ack_block_to_server, bool urgent)
+void MeshUpdateQueue::addBlock(v3POS p, MeshMakeData *data, bool ack_block_to_server, bool urgent)
 {
 	DSTACK(__FUNCTION_NAME);
 
@@ -429,7 +429,7 @@ void Client::step(float dtime)
 
 			//JMutexAutoLock lock(m_env_mutex); //bulk comment-out
 
-			core::list<v3s16> deleted_blocks;
+			core::list<v3POS> deleted_blocks;
 
 			float delete_unused_sectors_timeout =
 				g_settings->getFloat("client_delete_unused_sectors_timeout");
@@ -458,8 +458,8 @@ void Client::step(float dtime)
 				// Env is locked so con can be locked.
 				//JMutexAutoLock lock(m_con_mutex); //bulk comment-out
 				
-				core::list<v3s16>::Iterator i = deleted_blocks.begin();
-				core::list<v3s16> sendlist;
+				core::list<v3POS>::Iterator i = deleted_blocks.begin();
+				core::list<v3POS> sendlist;
 				for(;;)
 				{
 					if(sendlist.size() == 255 || i == deleted_blocks.end())
@@ -469,20 +469,20 @@ void Client::step(float dtime)
 						/*
 							[0] u16 command
 							[2] u8 count
-							[3] v3s16 pos_0
-							[3+6] v3s16 pos_1
+							[3] v3POS pos_0
+							[3+3*POS_SIZE] v3POS pos_1
 							...
 						*/
-						u32 replysize = 2+1+6*sendlist.size();
+						u32 replysize = 2+1+3*POS_SIZE*sendlist.size();
 						SharedBuffer<u8> reply(replysize);
 						writeU16(&reply[0], TOSERVER_DELETEDBLOCKS);
 						reply[2] = sendlist.size();
 						u32 k = 0;
-						for(core::list<v3s16>::Iterator
+						for(core::list<v3POS>::Iterator
 								j = sendlist.begin();
 								j != sendlist.end(); j++)
 						{
-							writeV3S16(&reply[2+1+6*k], *j);
+							writeV3POS(&reply[2+1+3*POS_SIZE*k], *j);
 							k++;
 						}
 						m_con.Send(PEER_ID_SERVER, 1, reply, true);
@@ -556,7 +556,7 @@ void Client::step(float dtime)
 	if(m_map_timer_and_unload_interval.step(dtime, map_timer_and_unload_dtime))
 	{
 		ScopeProfiler sp(g_profiler, "Client: map timer and unload");
-		std::list<v3s16> deleted_blocks;
+		std::list<v3POS> deleted_blocks;
 		m_env.getMap().timerUpdate(map_timer_and_unload_dtime,
 				g_settings->getFloat("client_unload_unused_data_timeout"),
 				&deleted_blocks);
@@ -570,8 +570,8 @@ void Client::step(float dtime)
 			NOTE: This loop is intentionally iterated the way it is.
 		*/
 
-		std::list<v3s16>::iterator i = deleted_blocks.begin();
-		std::list<v3s16> sendlist;
+		std::list<v3POS>::iterator i = deleted_blocks.begin();
+		std::list<v3POS> sendlist;
 		for(;;)
 		{
 			if(sendlist.size() == 255 || i == deleted_blocks.end())
@@ -581,20 +581,20 @@ void Client::step(float dtime)
 				/*
 					[0] u16 command
 					[2] u8 count
-					[3] v3s16 pos_0
-					[3+6] v3s16 pos_1
+					[3] v3POS pos_0
+					[3+3*POS_SIZE] v3POS pos_1
 					...
 				*/
-				u32 replysize = 2+1+6*sendlist.size();
+				u32 replysize = 2+1+3*POS_SIZE*sendlist.size();
 				SharedBuffer<u8> reply(replysize);
 				writeU16(&reply[0], TOSERVER_DELETEDBLOCKS);
 				reply[2] = sendlist.size();
 				u32 k = 0;
-				for(std::list<v3s16>::iterator
+				for(std::list<v3POS>::iterator
 						j = sendlist.begin();
 						j != sendlist.end(); ++j)
 				{
-					writeV3S16(&reply[2+1+6*k], *j);
+					writeV3POS(&reply[2+1+3*POS_SIZE*k], *j);
 					k++;
 				}
 				m_con.Send(PEER_ID_SERVER, 2, reply, true);
@@ -735,15 +735,15 @@ void Client::step(float dtime)
 				/*
 					[0] u16 command
 					[2] u8 count
-					[3] v3s16 pos_0
-					[3+6] v3s16 pos_1
+					[3] v3POS pos_0
+					[3+3*POS_SIZE] v3POS pos_1
 					...
 				*/
-				u32 replysize = 2+1+6;
+				u32 replysize = 2+1+3*POS_SIZE;
 				SharedBuffer<u8> reply(replysize);
 				writeU16(&reply[0], TOSERVER_GOTBLOCKS);
 				reply[2] = 1;
-				writeV3S16(&reply[3], r.p);
+				writeV3POS(&reply[3], r.p);
 				// Send as reliable
 				m_con.Send(PEER_ID_SERVER, 2, reply, true);
 			}
@@ -1073,9 +1073,9 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		m_server_ser_ver = deployed;
 
 		// Get player position
-		v3s16 playerpos_s16(0, BS*2+BS*20, 0);
-		if(datasize >= 2+1+6)
-			playerpos_s16 = readV3S16(&data[2+1]);
+		v3POS playerpos_s16(0, BS*2+BS*20, 0);
+		if(datasize >= 2+1+3*POS_SIZE)
+			playerpos_s16 = readV3POS(&data[2+1]);
 		v3f playerpos_f = intToFloat(playerpos_s16, BS) - v3f(0, BS/2, 0);
 
 		{ //envlock
@@ -1087,17 +1087,17 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 			player->setPosition(playerpos_f);
 		}
 		
-		if(datasize >= 2+1+6+8)
+		if(datasize >= 2+1+3*POS_SIZE+8)
 		{
 			// Get map seed
 			m_map_seed = readU64(&data[2+1+6]);
 			infostream<<"Client: received map seed: "<<m_map_seed<<std::endl;
 		}
 
-		if(datasize >= 2+1+6+8+4)
+		if(datasize >= 2+1+3*POS_SIZE+8+4)
 		{
 			// Get map seed
-			m_recommended_send_interval = readF1000(&data[2+1+6+8]);
+			m_recommended_send_interval = readF1000(&data[2+1+3*POS_SIZE+8]);
 			infostream<<"Client: received recommended send interval "
 					<<m_recommended_send_interval<<std::endl;
 		}
@@ -1144,7 +1144,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 	{
 		if(datasize < 8)
 			return;
-		v3s16 p;
+		v3POS p;
 		p.X = readS16(&data[2]);
 		p.Y = readS16(&data[4]);
 		p.Z = readS16(&data[6]);
@@ -1158,7 +1158,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		if(datasize < 8 + MapNode::serializedLength(ser_version))
 			return;
 
-		v3s16 p;
+		v3POS p;
 		p.X = readS16(&data[2]);
 		p.Y = readS16(&data[4]);
 		p.Z = readS16(&data[6]);
@@ -1182,7 +1182,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		if(datasize < 8)
 			return;
 			
-		v3s16 p;
+		v3POS p;
 		p.X = readS16(&data[2]);
 		p.Y = readS16(&data[4]);
 		p.Z = readS16(&data[6]);
@@ -1198,7 +1198,7 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		MapSector *sector;
 		MapBlock *block;
 		
-		v2s16 p2d(p.X, p.Z);
+		v2POS p2d(p.X, p.Z);
 		sector = m_env.getMap().emergeSector(p2d);
 		
 		assert(sector->getPos() == p2d);
@@ -1235,15 +1235,15 @@ void Client::ProcessData(u8 *data, u32 datasize, u16 sender_peer_id)
 		/*
 			[0] u16 command
 			[2] u8 count
-			[3] v3s16 pos_0
-			[3+6] v3s16 pos_1
+			[3] v3POS pos_0
+			[3+3*POS_SIZE] v3POS pos_1
 			...
 		*/
-		u32 replysize = 2+1+6;
+		u32 replysize = 2+1+3*POS_SIZE;
 		SharedBuffer<u8> reply(replysize);
 		writeU16(&reply[0], TOSERVER_GOTBLOCKS);
 		reply[2] = 1;
-		writeV3S16(&reply[3], p);
+		writeV3POS(&reply[3], p);
 		// Send as reliable
 		m_con.Send(PEER_ID_SERVER, 1, reply, true);
 #endif
@@ -2084,13 +2084,13 @@ void Client::interact(u8 action, const PointedThing& pointed)
 	Send(0, data, true);
 }
 
-void Client::sendNodemetaFields(v3s16 p, const std::string &formname,
+void Client::sendNodemetaFields(v3POS p, const std::string &formname,
 		const std::map<std::string, std::string> &fields)
 {
 	std::ostringstream os(std::ios_base::binary);
 
 	writeU16(os, TOSERVER_NODEMETA_FIELDS);
-	writeV3S16(os, p);
+	writeV3POS(os, p);
 	os<<serializeString(formname);
 	writeU16(os, fields.size());
 	for(std::map<std::string, std::string>::const_iterator
@@ -2340,9 +2340,9 @@ void Client::sendPlayerItem(u16 item)
 	Send(0, data, true);
 }
 
-void Client::removeNode(v3s16 p)
+void Client::removeNode(v3POS p)
 {
-	std::map<v3s16, MapBlock*> modified_blocks;
+	std::map<v3POS, MapBlock*> modified_blocks;
 
 	try
 	{
@@ -2356,7 +2356,7 @@ void Client::removeNode(v3s16 p)
 	// add urgent task to update the modified node
 	addUpdateMeshTaskForNode(p, false, true);
 
-	for(std::map<v3s16, MapBlock * >::iterator
+	for(std::map<v3POS, MapBlock * >::iterator
 			i = modified_blocks.begin();
 			i != modified_blocks.end(); ++i)
 	{
@@ -2364,11 +2364,11 @@ void Client::removeNode(v3s16 p)
 	}
 }
 
-void Client::addNode(v3s16 p, MapNode n, bool remove_metadata)
+void Client::addNode(v3POS p, MapNode n, bool remove_metadata)
 {
 	TimeTaker timer1("Client::addNode()");
 
-	std::map<v3s16, MapBlock*> modified_blocks;
+	std::map<v3POS, MapBlock*> modified_blocks;
 
 	try
 	{
@@ -2378,7 +2378,7 @@ void Client::addNode(v3s16 p, MapNode n, bool remove_metadata)
 	catch(InvalidPositionException &e)
 	{}
 	
-	for(std::map<v3s16, MapBlock * >::iterator
+	for(std::map<v3POS, MapBlock * >::iterator
 			i = modified_blocks.begin();
 			i != modified_blocks.end(); ++i)
 	{
@@ -2547,10 +2547,10 @@ int Client::getCrackLevel()
 	return m_crack_level;
 }
 
-void Client::setCrack(int level, v3s16 pos)
+void Client::setCrack(int level, v3POS pos)
 {
 	int old_crack_level = m_crack_level;
-	v3s16 old_crack_pos = m_crack_pos;
+	v3POS old_crack_pos = m_crack_pos;
 
 	m_crack_level = level;
 	m_crack_pos = pos;
@@ -2614,7 +2614,7 @@ void Client::typeChatMessage(const std::wstring &message)
 	}
 }
 
-void Client::addUpdateMeshTask(v3s16 p, bool ack_to_server, bool urgent)
+void Client::addUpdateMeshTask(v3POS p, bool ack_to_server, bool urgent)
 {
 	/*infostream<<"Client::addUpdateMeshTask(): "
 			<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"
@@ -2652,17 +2652,17 @@ void Client::addUpdateMeshTask(v3s16 p, bool ack_to_server, bool urgent)
 			<<std::endl;*/
 }
 
-void Client::addUpdateMeshTaskWithEdge(v3s16 blockpos, bool ack_to_server, bool urgent)
+void Client::addUpdateMeshTaskWithEdge(v3POS blockpos, bool ack_to_server, bool urgent)
 {
 	/*{
-		v3s16 p = blockpos;
+		v3POS p = blockpos;
 		infostream<<"Client::addUpdateMeshTaskWithEdge(): "
 				<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"
 				<<std::endl;
 	}*/
 
 	try{
-		v3s16 p = blockpos + v3s16(0,0,0);
+		v3POS p = blockpos + v3POS(0,0,0);
 		//MapBlock *b = m_env.getMap().getBlockNoCreate(p);
 		addUpdateMeshTask(p, ack_to_server, urgent);
 	}
@@ -2671,48 +2671,48 @@ void Client::addUpdateMeshTaskWithEdge(v3s16 blockpos, bool ack_to_server, bool 
 	for (int i=0;i<6;i++)
 	{
 		try{
-			v3s16 p = blockpos + g_6dirs[i];
+			v3POS p = blockpos + g_6dirs[i];
 			addUpdateMeshTask(p, false, urgent);
 		}
 		catch(InvalidPositionException &e){}
 	}
 }
 
-void Client::addUpdateMeshTaskForNode(v3s16 nodepos, bool ack_to_server, bool urgent)
+void Client::addUpdateMeshTaskForNode(v3POS nodepos, bool ack_to_server, bool urgent)
 {
 	{
-		v3s16 p = nodepos;
+		v3POS p = nodepos;
 		infostream<<"Client::addUpdateMeshTaskForNode(): "
 				<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"
 				<<std::endl;
 	}
 
-	v3s16 blockpos = getNodeBlockPos(nodepos);
-	v3s16 blockpos_relative = blockpos * MAP_BLOCKSIZE;
+	v3POS blockpos = getNodeBlockPos(nodepos);
+	v3POS blockpos_relative = blockpos * MAP_BLOCKSIZE;
 
 	try{
-		v3s16 p = blockpos + v3s16(0,0,0);
+		v3POS p = blockpos + v3POS(0,0,0);
 		addUpdateMeshTask(p, ack_to_server, urgent);
 	}
 	catch(InvalidPositionException &e){}
 	// Leading edge
 	if(nodepos.X == blockpos_relative.X){
 		try{
-			v3s16 p = blockpos + v3s16(-1,0,0);
+			v3POS p = blockpos + v3POS(-1,0,0);
 			addUpdateMeshTask(p, false, urgent);
 		}
 		catch(InvalidPositionException &e){}
 	}
 	if(nodepos.Y == blockpos_relative.Y){
 		try{
-			v3s16 p = blockpos + v3s16(0,-1,0);
+			v3POS p = blockpos + v3POS(0,-1,0);
 			addUpdateMeshTask(p, false, urgent);
 		}
 		catch(InvalidPositionException &e){}
 	}
 	if(nodepos.Z == blockpos_relative.Z){
 		try{
-			v3s16 p = blockpos + v3s16(0,0,-1);
+			v3POS p = blockpos + v3POS(0,0,-1);
 			addUpdateMeshTask(p, false, urgent);
 		}
 		catch(InvalidPositionException &e){}

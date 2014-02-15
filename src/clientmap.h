@@ -86,7 +86,7 @@ public:
 		ISceneNode::drop();
 	}
 
-	void updateCamera(v3f pos, v3f dir, f32 fov, v3s16 offset)
+	void updateCamera(v3f pos, v3f dir, f32 fov, v3POS offset)
 	{
 		JMutexAutoLock lock(m_camera_mutex);
 		m_camera_position = pos;
@@ -98,9 +98,9 @@ public:
 	/*
 		Forcefully get a sector from somewhere
 	*/
-	MapSector * emergeSector(v2s16 p);
+	MapSector * emergeSector(v2POS p);
 
-	//void deSerializeSector(v2s16 p2d, std::istream &is);
+	//void deSerializeSector(v2POS p2d, std::istream &is);
 
 	/*
 		ISceneNode methods
@@ -132,7 +132,7 @@ public:
 	virtual void PrintInfo(std::ostream &out);
 	
 	// Check if sector was drawn on last render()
-	bool sectorWasDrawn(v2s16 p)
+	bool sectorWasDrawn(v2POS p)
 	{
 		return (m_last_drawn_sectors.find(p) != m_last_drawn_sectors.end());
 	}
@@ -147,12 +147,12 @@ private:
 	v3f m_camera_position;
 	v3f m_camera_direction;
 	f32 m_camera_fov;
-	v3s16 m_camera_offset;
+	v3POS m_camera_offset;
 	JMutex m_camera_mutex;
 
-	std::map<v3s16, MapBlock*> m_drawlist;
+	std::map<v3POS, MapBlock*> m_drawlist;
 	
-	std::set<v2s16> m_last_drawn_sectors;
+	std::set<v2POS> m_last_drawn_sectors;
 };
 
 #endif

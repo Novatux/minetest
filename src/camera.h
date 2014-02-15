@@ -81,7 +81,7 @@ public:
 	}
 	
 	// Get the camera offset
-	inline v3s16 getOffset() const
+	inline v3POS getOffset() const
 	{
 		return m_camera_offset;
 	}
@@ -151,7 +151,7 @@ private:
 	// Absolute camera direction
 	v3f m_camera_direction;
 	// Camera offset
-	v3s16 m_camera_offset;
+	v3POS m_camera_offset;
 
 	// Field of view and aspect ratio stuff
 	f32 m_aspect;

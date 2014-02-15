@@ -136,8 +136,8 @@ public:
 	// Random chance of (1 / return value), 0 is disallowed
 	virtual u32 getTriggerChance() = 0;
 	// This is called usually at interval for 1/chance of the nodes
-	virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n){};
-	virtual void trigger(ServerEnvironment *env, v3s16 p, MapNode n,
+	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n){};
+	virtual void trigger(ServerEnvironment *env, v3POS p, MapNode n,
 			u32 active_object_count, u32 active_object_count_wider){};
 };
 
@@ -156,12 +156,12 @@ struct ABMWithState
 class ActiveBlockList
 {
 public:
-	void update(std::list<v3s16> &active_positions,
+	void update(std::list<v3POS> &active_positions,
 			s16 radius,
-			std::set<v3s16> &blocks_removed,
-			std::set<v3s16> &blocks_added);
+			std::set<v3POS> &blocks_removed,
+			std::set<v3POS> &blocks_added);
 
-	bool contains(v3s16 p){
+	bool contains(v3POS p){
 		return (m_list.find(p) != m_list.end());
 	}
 
@@ -169,8 +169,8 @@ public:
 		m_list.clear();
 	}
 
-	std::set<v3s16> m_list;
-	std::set<v3s16> m_forceloaded_list;
+	std::set<v3POS> m_list;
+	std::set<v3POS> m_forceloaded_list;
 
 private:
 };
@@ -245,7 +245,7 @@ public:
 		Find out what new objects have been added to
 		inside a radius around a position
 	*/
-	void getAddedActiveObjects(v3s16 pos, s16 radius,
+	void getAddedActiveObjects(v3POS pos, s16 radius,
 			std::set<u16> &current_objects,
 			std::set<u16> &added_objects);
 
@@ -253,7 +253,7 @@ public:
 		Find out what new objects have been removed from
 		inside a radius around a position
 	*/
-	void getRemovedActiveObjects(v3s16 pos, s16 radius,
+	void getRemovedActiveObjects(v3POS pos, s16 radius,
 			std::set<u16> &current_objects,
 			std::set<u16> &removed_objects);
 	
@@ -282,9 +282,9 @@ public:
 	*/
 
 	// Script-aware node setters
-	bool setNode(v3s16 p, const MapNode &n);
-	bool removeNode(v3s16 p);
-	bool swapNode(v3s16 p, const MapNode &n);
+	bool setNode(v3POS p, const MapNode &n);
+	bool removeNode(v3POS p);
+	bool swapNode(v3POS p, const MapNode &n);
 	
 	// Find all active objects inside a radius around a point
 	std::set<u16> getObjectsInsideRadius(v3f pos, float radius);
@@ -296,7 +296,7 @@ public:
 	void step(f32 dtime);
 	
 	//check if there's a line of sight between two positions
-	bool line_of_sight(v3f pos1, v3f pos2, float stepsize=1.0, v3s16 *p=NULL);
+	bool line_of_sight(v3f pos1, v3f pos2, float stepsize=1.0, v3POS *p=NULL);
 
 	u32 getGameTime() { return m_game_time; }
 
@@ -306,7 +306,7 @@ public:
 	// is weather active in this environment?
 	bool m_use_weather;
 	
-	std::set<v3s16>* getForceloadedBlocks() { return &m_active_blocks.m_forceloaded_list; };
+	std::set<v3POS>* getForceloadedBlocks() { return &m_active_blocks.m_forceloaded_list; };
 	
 private:
 
@@ -495,7 +495,7 @@ public:
 	{ m_player_names.push_back(name); }
 	void removePlayerName(std::string name)
 	{ m_player_names.remove(name); }
-	void updateObjectsCameraOffset(v3s16 camera_offset);
+	void updateObjectsCameraOffset(v3POS camera_offset);
 	
 private:
 	ClientMap *m_map;

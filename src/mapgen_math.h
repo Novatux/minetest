@@ -43,7 +43,7 @@ class MapgenMath : public MapgenV7 {
 		~MapgenMath();
 
 		int generateTerrain();
-		int getGroundLevelAtPoint(v2s16 p);
+		int getGroundLevelAtPoint(v2POS p);
 
 		bool invert;
 		double size;

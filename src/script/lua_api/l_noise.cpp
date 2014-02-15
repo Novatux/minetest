@@ -230,7 +230,7 @@ int LuaPerlinNoiseMap::l_get3dMap_flat(lua_State *L)
 	return 1;
 }
 
-LuaPerlinNoiseMap::LuaPerlinNoiseMap(NoiseParams *np, int seed, v3s16 size) {
+LuaPerlinNoiseMap::LuaPerlinNoiseMap(NoiseParams *np, int seed, v3POS size) {
 	noise = new Noise(np, seed, size.X, size.Y, size.Z);
 }
 
@@ -247,7 +247,7 @@ int LuaPerlinNoiseMap::create_object(lua_State *L)
 	NoiseParams *np = read_noiseparams(L, 1);
 	if (!np)
 		return 0;
-	v3s16 size = read_v3s16(L, 2);
+	v3POS size = read_v3POS(L, 2);
 
 	LuaPerlinNoiseMap *o = new LuaPerlinNoiseMap(np, 0, size);
 	*(void **)(lua_newuserdata(L, sizeof(void *))) = o;

@@ -25,6 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <vector3d.h>
 
 typedef core::vector3df v3f;
+typedef core::vector3d<POS> v3POS;
 typedef core::vector3d<s16> v3s16;
 typedef core::vector3d<s32> v3s32;
 

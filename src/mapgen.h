@@ -132,25 +132,25 @@ public:
 
 	s16 *heightmap;
 	u8 *biomemap;
-	v3s16 csize;
+	v3POS csize;
 
 	u32 gennotify;
-	std::vector<v3s16> *gen_notifications[NUM_GEN_NOTIFY];
+	std::vector<v3POS> *gen_notifications[NUM_GEN_NOTIFY];
 
 	Mapgen();
 	virtual ~Mapgen();
 
-	s16 findGroundLevelFull(v2s16 p2d);
-	s16 findGroundLevel(v2s16 p2d, s16 ymin, s16 ymax);
-	void updateHeightmap(v3s16 nmin, v3s16 nmax);
-	void updateLiquid(UniqueQueue<v3s16> *trans_liquid, v3s16 nmin, v3s16 nmax);
-	void setLighting(v3s16 nmin, v3s16 nmax, u8 light);
-	void lightSpread(VoxelArea &a, v3s16 p, u8 light);
-	void calcLighting(v3s16 nmin, v3s16 nmax);
-	void calcLightingOld(v3s16 nmin, v3s16 nmax);
+	POS findGroundLevelFull(v2POS p2d);
+	POS findGroundLevel(v2POS p2d, POS ymin, POS ymax);
+	void updateHeightmap(v3POS nmin, v3POS nmax);
+	void updateLiquid(UniqueQueue<v3POS> *trans_liquid, v3POS nmin, v3POS nmax);
+	void setLighting(v3POS nmin, v3POS nmax, u8 light);
+	void lightSpread(VoxelArea &a, v3POS p, u8 light);
+	void calcLighting(v3POS nmin, v3POS nmax);
+	void calcLightingOld(v3POS nmin, v3POS nmax);
 
 	virtual void makeChunk(BlockMakeData *data) {}
-	virtual int getGroundLevelAtPoint(v2s16 p) { return 0; }
+	virtual int getGroundLevelAtPoint(v2POS p) { return 0; }
 };
 
 struct MapgenFactory {
@@ -186,21 +186,21 @@ public:
 	virtual ~Ore();
 
 	void resolveNodeNames(INodeDefManager *ndef);
-	void placeOre(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax);
+	void placeOre(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax);
 	virtual void generate(ManualMapVoxelManipulator *vm, int seed,
-						u32 blockseed, v3s16 nmin, v3s16 nmax) = 0;
+						u32 blockseed, v3POS nmin, v3POS nmax) = 0;
 };
 
 class OreScatter : public Ore {
 	~OreScatter() {}
 	virtual void generate(ManualMapVoxelManipulator *vm, int seed,
-						u32 blockseed, v3s16 nmin, v3s16 nmax);
+						u32 blockseed, v3POS nmin, v3POS nmax);
 };
 
 class OreSheet : public Ore {
 	~OreSheet() {}
 	virtual void generate(ManualMapVoxelManipulator *vm, int seed,
-						u32 blockseed, v3s16 nmin, v3s16 nmax);
+						u32 blockseed, v3POS nmin, v3POS nmax);
 };
 
 Ore *createOre(OreType type);
@@ -216,12 +216,12 @@ enum DecorationType {
 struct CutoffData {
 	VoxelArea a;
 	Decoration *deco;
-	//v3s16 p;
-	//v3s16 size;
+	//v3POS p;
+	//v3POS size;
 	//s16 height;
 
 	CutoffData(s16 x, s16 y, s16 z, s16 h) {
-		p = v3s16(x, y, z);
+		p = v3POS(x, y, z);
 		height = h;
 	}
 };
@@ -246,10 +246,10 @@ public:
 	virtual ~Decoration();
 
 	virtual void resolveNodeNames(INodeDefManager *ndef);
-	void placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax);
-	void placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax);
+	void placeDeco(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax);
+	void placeCutoffs(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax);
 
-	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p) = 0;
+	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3POS p) = 0;
 	virtual int getHeight() = 0;
 	virtual std::string getName() = 0;
 };
@@ -270,7 +270,7 @@ public:
 	~DecoSimple() {}
 
 	void resolveNodeNames(INodeDefManager *ndef);
-	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p);
+	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3POS p);
 	virtual int getHeight();
 	virtual std::string getName();
 };
@@ -292,7 +292,7 @@ public:
 
 	u32 flags;
 	Rotation rotation;
-	v3s16 size;
+	v3POS size;
 	MapNode *schematic;
 	u8 *slice_probs;
 
@@ -300,20 +300,20 @@ public:
 	~DecoSchematic();
 
 	void resolveNodeNames(INodeDefManager *ndef);
-	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p);
+	virtual void generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3POS p);
 	virtual int getHeight();
 	virtual std::string getName();
 
-	void blitToVManip(v3s16 p, ManualMapVoxelManipulator *vm,
+	void blitToVManip(v3POS p, ManualMapVoxelManipulator *vm,
 					Rotation rot, bool force_placement);
 
 	bool loadSchematicFile();
 	void saveSchematicFile(INodeDefManager *ndef);
 
-	bool getSchematicFromMap(Map *map, v3s16 p1, v3s16 p2);
-	void placeStructure(Map *map, v3s16 p);
-	void applyProbabilities(v3s16 p0,
-		std::vector<std::pair<v3s16, u8> > *plist,
+	bool getSchematicFromMap(Map *map, v3POS p1, v3POS p2);
+	void placeStructure(Map *map, v3POS p);
+	void applyProbabilities(v3POS p0,
+		std::vector<std::pair<v3POS, u8> > *plist,
 		std::vector<std::pair<s16, u8> > *splist);
 };
 
@@ -323,7 +323,7 @@ void build_nnlist_and_update_ids(MapNode *nodes, u32 nodecount,
 /*
 class DecoLSystem : public Decoration {
 public:
-	virtual void generate(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax);
+	virtual void generate(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax);
 };
 */
 

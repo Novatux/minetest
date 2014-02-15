@@ -42,12 +42,12 @@ public:
 	bool flooded;
 
 	s16 max_stone_y;
-	v3s16 node_min;
-	v3s16 node_max;
+	v3POS node_min;
+	v3POS node_max;
 	
 	v3f orp;  // starting point, relative to caved space
-	v3s16 of; // absolute coordinates of caved space
-	v3s16 ar; // allowed route area
+	v3POS of; // absolute coordinates of caved space
+	v3POS ar; // allowed route area
 	s16 rs;   // tunnel radius size
 	v3f main_direction;
 	
@@ -64,7 +64,7 @@ public:
 
 	CaveV6() {}
 	CaveV6(MapgenV6 *mg, PseudoRandom *ps, PseudoRandom *ps2, bool large_cave);
-	void makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height);
+	void makeCave(v3POS nmin, v3POS nmax, int max_stone_height);
 	void makeTunnel(bool dirswitch);
 	void carveRoute(v3f vec, float f, bool randomize_xz);
 };
@@ -88,12 +88,12 @@ public:
 	bool flooded;
 
 	s16 max_stone_y;
-	v3s16 node_min;
-	v3s16 node_max;
+	v3POS node_min;
+	v3POS node_max;
 	
 	v3f orp;  // starting point, relative to caved space
-	v3s16 of; // absolute coordinates of caved space
-	v3s16 ar; // allowed route area
+	v3POS of; // absolute coordinates of caved space
+	v3POS ar; // allowed route area
 	s16 rs;   // tunnel radius size
 	v3f main_direction;
 	
@@ -110,7 +110,7 @@ public:
 
 	CaveV7() {}
 	CaveV7(MapgenV7 *mg, PseudoRandom *ps, bool large_cave);
-	void makeCave(v3s16 nmin, v3s16 nmax, int max_stone_height);
+	void makeCave(v3POS nmin, v3POS nmax, int max_stone_height);
 	void makeTunnel(bool dirswitch);
 	void carveRoute(v3f vec, float f, bool randomize_xz, bool is_ravine);
 };

@@ -379,7 +379,7 @@ int InvRef::l_get_location(lua_State *L)
 		lua_newtable(L);
 		lua_pushstring(L, "node");
 		lua_setfield(L, -2, "type");
-		push_v3s16(L, loc.p);
+		push_v3POS(L, loc.p);
 		lua_setfield(L, -2, "pos");
 		return 1;
 	case InventoryLocation::DETACHED:
@@ -426,7 +426,7 @@ void InvRef::createPlayer(lua_State *L, Player *player)
 	loc.setPlayer(player->getName());
 	create(L, loc);
 }
-void InvRef::createNodeMeta(lua_State *L, v3s16 p)
+void InvRef::createNodeMeta(lua_State *L, v3POS p)
 {
 	InventoryLocation loc;
 	loc.setNodeMeta(p);
@@ -491,7 +491,7 @@ int ModApiInventory::l_get_inventory(lua_State *L)
 
 	if(type == "node"){
 		lua_getfield(L, 1, "pos");
-		v3s16 pos = check_v3s16(L, -1);
+		v3POS pos = check_v3POS(L, -1);
 		loc.setNodeMeta(pos);
 
 		if(getServer(L)->getInventory(loc) != NULL)

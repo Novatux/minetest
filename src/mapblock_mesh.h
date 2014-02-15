@@ -37,8 +37,8 @@ class MapBlock;
 struct MeshMakeData
 {
 	VoxelManipulator m_vmanip;
-	v3s16 m_blockpos;
-	v3s16 m_crack_pos_relative;
+	v3POS m_blockpos;
+	v3POS m_crack_pos_relative;
 	bool m_smooth_lighting;
 	IGameDef *m_gamedef;
 
@@ -58,7 +58,7 @@ struct MeshMakeData
 	/*
 		Set the (node) position of a crack
 	*/
-	void setCrack(int crack_level, v3s16 crack_pos);
+	void setCrack(int crack_level, v3POS crack_pos);
 
 	/*
 		Enable or disable smooth lighting
@@ -81,7 +81,7 @@ class MapBlockMesh
 {
 public:
 	// Builds the mesh given
-	MapBlockMesh(MeshMakeData *data, v3s16 camera_offset);
+	MapBlockMesh(MeshMakeData *data, v3POS camera_offset);
 	~MapBlockMesh();
 
 	// Main animation function, parameters:
@@ -108,7 +108,7 @@ public:
 			m_animation_force_timer--;
 	}
 	
-	void updateCameraOffset(v3s16 camera_offset);
+	void updateCameraOffset(v3POS camera_offset);
 
 private:
 	scene::SMesh *m_mesh;
@@ -137,7 +137,7 @@ private:
 	std::map<u32, std::map<u32, std::pair<u8, u8> > > m_daynight_diffs;
 	
 	// Camera offset info -> do we have to translate the mesh?
-	v3s16 m_camera_offset;
+	v3POS m_camera_offset;
 };
 
 
@@ -173,13 +173,13 @@ inline video::SColor MapBlock_LightColor(u8 alpha, u16 light, u8 light_source=0)
 
 // Compute light at node
 u16 getInteriorLight(MapNode n, s32 increment, MeshMakeData *data);
-u16 getFaceLight(MapNode n, MapNode n2, v3s16 face_dir, MeshMakeData *data);
-u16 getSmoothLight(v3s16 p, v3s16 corner, MeshMakeData *data);
+u16 getFaceLight(MapNode n, MapNode n2, v3POS face_dir, MeshMakeData *data);
+u16 getSmoothLight(v3POS p, v3POS corner, MeshMakeData *data);
 
 // Retrieves the TileSpec of a face of a node
 // Adds MATERIAL_FLAG_CRACK if the node is cracked
-TileSpec getNodeTileN(MapNode mn, v3s16 p, u8 tileindex, MeshMakeData *data);
-TileSpec getNodeTile(MapNode mn, v3s16 p, v3s16 dir, MeshMakeData *data);
+TileSpec getNodeTileN(MapNode mn, v3POS p, u8 tileindex, MeshMakeData *data);
+TileSpec getNodeTile(MapNode mn, v3POS p, v3POS dir, MeshMakeData *data);
 
 #endif
 

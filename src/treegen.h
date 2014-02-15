@@ -53,17 +53,17 @@ namespace treegen {
 	};
 
 	// Add default tree
-	void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
+	void make_tree(ManualMapVoxelManipulator &vmanip, v3POS p0,
 		bool is_apple_tree, INodeDefManager *ndef, int seed);
 	// Add jungle tree
-	void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
+	void make_jungletree(VoxelManipulator &vmanip, v3POS p0,
 		INodeDefManager *ndef, int seed);
 
 	// Add L-Systems tree (used by engine)
-	void make_ltree(ManualMapVoxelManipulator &vmanip, v3s16 p0, INodeDefManager *ndef,
+	void make_ltree(ManualMapVoxelManipulator &vmanip, v3POS p0, INodeDefManager *ndef,
 		TreeDef tree_definition);
 	// Spawn L-systems tree from LUA
-	void spawn_ltree (ServerEnvironment *env, v3s16 p0, INodeDefManager *ndef,
+	void spawn_ltree (ServerEnvironment *env, v3POS p0, INodeDefManager *ndef,
 		TreeDef tree_definition);
 
 	// L-System tree gen helper functions

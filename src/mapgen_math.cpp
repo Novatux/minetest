@@ -242,7 +242,7 @@ int MapgenMath::generateTerrain() {
 	MapNode n_air(CONTENT_AIR, LIGHT_SUN), n_water_source(c_water_source, LIGHT_SUN);
 	MapNode n_stone(c_stone, LIGHT_SUN);
 	u32 index = 0;
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 
 #if 1
 
@@ -363,6 +363,6 @@ int MapgenMath::generateTerrain() {
 	return 0;
 }
 
-int MapgenMath::getGroundLevelAtPoint(v2s16 p) {
+int MapgenMath::getGroundLevelAtPoint(v2POS p) {
 	return 0;
 }

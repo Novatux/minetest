@@ -101,7 +101,7 @@ int NodeTimerRef::l_get_elapsed(lua_State *L)
 }
 
 
-NodeTimerRef::NodeTimerRef(v3s16 p, ServerEnvironment *env):
+NodeTimerRef::NodeTimerRef(v3POS p, ServerEnvironment *env):
 	m_p(p),
 	m_env(env)
 {
@@ -113,7 +113,7 @@ NodeTimerRef::~NodeTimerRef()
 
 // Creates an NodeTimerRef and leaves it on top of stack
 // Not callable from Lua; all references are created on the C side.
-void NodeTimerRef::create(lua_State *L, v3s16 p, ServerEnvironment *env)
+void NodeTimerRef::create(lua_State *L, v3POS p, ServerEnvironment *env)
 {
 	NodeTimerRef *o = new NodeTimerRef(p, env);
 	*(void **)(lua_newuserdata(L, sizeof(void *))) = o;

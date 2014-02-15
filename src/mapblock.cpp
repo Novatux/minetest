@@ -42,7 +42,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	MapBlock
 */
 
-MapBlock::MapBlock(Map *parent, v3s16 pos, IGameDef *gamedef, bool dummy):
+MapBlock::MapBlock(Map *parent, v3POS pos, IGameDef *gamedef, bool dummy):
 		heat(0),
 		humidity(0),
 		heat_last_update(0),
@@ -90,7 +90,7 @@ MapBlock::~MapBlock()
 		delete[] data;
 }
 
-bool MapBlock::isValidPositionParent(v3s16 p)
+bool MapBlock::isValidPositionParent(v3POS p)
 {
 	if(isValidPosition(p))
 	{
@@ -101,7 +101,7 @@ bool MapBlock::isValidPositionParent(v3s16 p)
 	}
 }
 
-MapNode MapBlock::getNodeParent(v3s16 p)
+MapNode MapBlock::getNodeParent(v3POS p)
 {
 	if(isValidPosition(p) == false)
 	{
@@ -115,7 +115,7 @@ MapNode MapBlock::getNodeParent(v3s16 p)
 	}
 }
 
-void MapBlock::setNodeParent(v3s16 p, MapNode & n)
+void MapBlock::setNodeParent(v3POS p, MapNode & n)
 {
 	if(isValidPosition(p) == false)
 	{
@@ -129,7 +129,7 @@ void MapBlock::setNodeParent(v3s16 p, MapNode & n)
 	}
 }
 
-MapNode MapBlock::getNodeParentNoEx(v3s16 p)
+MapNode MapBlock::getNodeParentNoEx(v3POS p)
 {
 	if(isValidPosition(p) == false)
 	{
@@ -170,7 +170,7 @@ MapNode MapBlock::getNodeParentNoEx(v3s16 p)
 	if black_air_left!=NULL, it is set to true if non-sunlighted
 	air is left in block.
 */
-bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
+bool MapBlock::propagateSunlight(std::set<v3POS> & light_sources,
 		bool remove_light, bool *black_air_left)
 {
 	INodeDefManager *nodemgr = m_gamedef->ndef();
@@ -178,7 +178,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 	// Whether the sunlight at the top of the bottom block is valid
 	bool block_below_is_valid = true;
 	
-	v3s16 pos_relative = getPosRelative();
+	v3POS pos_relative = getPosRelative();
 	
 	for(s16 x=0; x<MAP_BLOCKSIZE; x++)
 	{
@@ -189,7 +189,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 			bool no_top_block = false;
 			// Check if node above block has sunlight
 			try{
-				MapNode n = getNodeParent(v3s16(x, MAP_BLOCKSIZE, z));
+				MapNode n = getNodeParent(v3POS(x, MAP_BLOCKSIZE, z));
 				if(n.getContent() == CONTENT_IGNORE)
 				{
 					// Trust heuristics
@@ -212,7 +212,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 				}
 				else
 				{
-					MapNode n = getNode(v3s16(x, MAP_BLOCKSIZE-1, z));
+					MapNode n = getNode(v3POS(x, MAP_BLOCKSIZE-1, z));
 					if(m_gamedef->ndef()->get(n).sunlight_propagates == false)
 					{
 						no_sunlight = true;
@@ -228,7 +228,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 			bool no_top_block = false;
 			// Check if node above block has sunlight
 			try{
-				MapNode n = getNodeParent(v3s16(x, MAP_BLOCKSIZE, z));
+				MapNode n = getNodeParent(v3POS(x, MAP_BLOCKSIZE, z));
 				if(n.getLight(LIGHTBANK_DAY) == LIGHT_SUN)
 				{
 					no_sunlight = false;
@@ -255,7 +255,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 
 			for(; y >= 0; y--)
 			{
-				v3s16 pos(x, y, z);
+				v3POS pos(x, y, z);
 				MapNode &n = getNodeRef(pos);
 				
 				if(current_light == 0)
@@ -316,7 +316,7 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 			{
 			if(block_below_is_valid)
 			{
-				MapNode n = getNodeParent(v3s16(x, -1, z));
+				MapNode n = getNodeParent(v3POS(x, -1, z));
 				if(nodemgr->get(n).light_propagates)
 				{
 					if(n.getLight(LIGHTBANK_DAY, nodemgr) == LIGHT_SUN
@@ -343,21 +343,21 @@ bool MapBlock::propagateSunlight(std::set<v3s16> & light_sources,
 
 void MapBlock::copyTo(VoxelManipulator &dst)
 {
-	v3s16 data_size(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE);
-	VoxelArea data_area(v3s16(0,0,0), data_size - v3s16(1,1,1));
+	v3POS data_size(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE);
+	VoxelArea data_area(v3POS(0,0,0), data_size - v3POS(1,1,1));
 	
 	// Copy from data to VoxelManipulator
-	dst.copyFrom(data, data_area, v3s16(0,0,0),
+	dst.copyFrom(data, data_area, v3POS(0,0,0),
 			getPosRelative(), data_size);
 }
 
 void MapBlock::copyFrom(VoxelManipulator &dst)
 {
-	v3s16 data_size(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE);
-	VoxelArea data_area(v3s16(0,0,0), data_size - v3s16(1,1,1));
+	v3POS data_size(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE);
+	VoxelArea data_area(v3POS(0,0,0), data_size - v3POS(1,1,1));
 	
 	// Copy from VoxelManipulator to data
-	dst.copyTo(data, data_area, v3s16(0,0,0),
+	dst.copyTo(data, data_area, v3POS(0,0,0),
 			getPosRelative(), data_size);
 }
 
@@ -425,7 +425,7 @@ void MapBlock::expireDayNightDiff()
 	m_day_night_differs_expired = true;
 }
 
-s16 MapBlock::getGroundLevel(v2s16 p2d)
+s16 MapBlock::getGroundLevel(v2POS p2d)
 {
 	if(isDummy())
 		return -3;
@@ -1020,7 +1020,7 @@ std::string analyze_block(MapBlock *block)
 
 	std::ostringstream desc;
 	
-	v3s16 p = block->getPos();
+	v3POS p = block->getPos();
 	char spos[20];
 	snprintf(spos, 20, "(%2d,%2d,%2d), ", p.X, p.Y, p.Z);
 	desc<<spos;
@@ -1069,7 +1069,7 @@ std::string analyze_block(MapBlock *block)
 		for(s16 y0=0; y0<MAP_BLOCKSIZE; y0++)
 		for(s16 x0=0; x0<MAP_BLOCKSIZE; x0++)
 		{
-			v3s16 p(x0,y0,z0);
+			v3POS p(x0,y0,z0);
 			MapNode n = block->getNode(p);
 			content_t c = n.getContent();
 			if(c == CONTENT_IGNORE)

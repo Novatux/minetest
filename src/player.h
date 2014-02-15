@@ -117,7 +117,7 @@ public:
 		return m_position;
 	}
 
-	v3s16 getLightPosition() const;
+	v3POS getLightPosition() const;
 
 	v3f getEyeOffset()
 	{

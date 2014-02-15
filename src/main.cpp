@@ -684,18 +684,18 @@ void SpeedTests()
 	{
 		TimeTaker timer("Testing std::map speed");
 
-		std::map<v2s16, f32> map1;
+		std::map<v2POS, f32> map1;
 		tempf = -324;
 		const s16 ii=300;
 		for(s16 y=0; y<ii; y++){
 			for(s16 x=0; x<ii; x++){
-				map1[v2s16(x,y)] =  tempf;
+				map1[v2POS(x,y)] =  tempf;
 				tempf += 1;
 			}
 		}
 		for(s16 y=ii-1; y>=0; y--){
 			for(s16 x=0; x<ii; x++){
-				tempf = map1[v2s16(x,y)];
+				tempf = map1[v2POS(x,y)];
 			}
 		}
 	}
@@ -1243,15 +1243,15 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 
-			std::list<v3s16> blocks;
+			std::list<v3POS> blocks;
 			ServerMap &old_map = ((ServerMap&)server.getMap());
 			old_map.listAllLoadableBlocks(blocks);
 			int count = 0;
 			new_db->beginSave();
-			for (std::list<v3s16>::iterator i = blocks.begin(); i != blocks.end(); ++i) {
+			for (std::list<v3POS>::iterator i = blocks.begin(); i != blocks.end(); ++i) {
 				MapBlock *block = old_map.loadBlock(*i);
 				new_db->saveBlock(block);
-				MapSector *sector = old_map.getSectorNoGenerate(v2s16(i->X, i->Z));
+				MapSector *sector = old_map.getSectorNoGenerate(v2POS(i->X, i->Z));
 				sector->deleteBlock(block);
 				++count;
 				if (count % 500 == 0)

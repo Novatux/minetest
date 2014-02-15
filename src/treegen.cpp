@@ -30,7 +30,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 namespace treegen
 {
 
-void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
+void make_tree(ManualMapVoxelManipulator &vmanip, v3POS p0,
 		bool is_apple_tree, INodeDefManager *ndef, int seed)
 {
 	/*
@@ -44,7 +44,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 
 	PseudoRandom pr(seed);
 	s16 trunk_h = pr.range(4, 5);
-	v3s16 p1 = p0;
+	v3POS p1 = p0;
 	for(s16 ii=0; ii<trunk_h; ii++)
 	{
 		if(vmanip.m_area.contains(p1))
@@ -56,7 +56,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 	// p1 is now the last piece of the trunk
 	p1.Y -= 1;
 
-	VoxelArea leaves_a(v3s16(-2,-1,-2), v3s16(2,2,2));
+	VoxelArea leaves_a(v3POS(-2,-1,-2), v3POS(2,2,2));
 	//SharedPtr<u8> leaves_d(new u8[leaves_a.getVolume()]);
 	Buffer<u8> leaves_d(leaves_a.getVolume());
 	for(s32 i=0; i<leaves_a.getVolume(); i++)
@@ -69,7 +69,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 		for(s16 y=-d; y<=d; y++)
 		for(s16 x=-d; x<=d; x++)
 		{
-			leaves_d[leaves_a.index(v3s16(x,y,z))] = 1;
+			leaves_d[leaves_a.index(v3POS(x,y,z))] = 1;
 		}
 	}
 
@@ -78,7 +78,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 	{
 		s16 d = 1;
 
-		v3s16 p(
+		v3POS p(
 			pr.range(leaves_a.MinEdge.X, leaves_a.MaxEdge.X-d),
 			pr.range(leaves_a.MinEdge.Y, leaves_a.MaxEdge.Y-d),
 			pr.range(leaves_a.MinEdge.Z, leaves_a.MaxEdge.Z-d)
@@ -88,7 +88,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 		for(s16 y=0; y<=d; y++)
 		for(s16 x=0; x<=d; x++)
 		{
-			leaves_d[leaves_a.index(p+v3s16(x,y,z))] = 1;
+			leaves_d[leaves_a.index(p+v3POS(x,y,z))] = 1;
 		}
 	}
 
@@ -97,7 +97,7 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 	for(s16 y=leaves_a.MinEdge.Y; y<=leaves_a.MaxEdge.Y; y++)
 	for(s16 x=leaves_a.MinEdge.X; x<=leaves_a.MaxEdge.X; x++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 		p += p1;
 		if(vmanip.m_area.contains(p) == false)
 			continue;
@@ -118,24 +118,24 @@ void make_tree(ManualMapVoxelManipulator &vmanip, v3s16 p0,
 }
 
 // L-System tree LUA spawner
-void spawn_ltree(ServerEnvironment *env, v3s16 p0, INodeDefManager *ndef, TreeDef tree_definition)
+void spawn_ltree(ServerEnvironment *env, v3POS p0, INodeDefManager *ndef, TreeDef tree_definition)
 {
 	ServerMap *map = &env->getServerMap();
-	std::map<v3s16, MapBlock*> modified_blocks;
+	std::map<v3POS, MapBlock*> modified_blocks;
 	ManualMapVoxelManipulator vmanip(map);
-	v3s16 tree_blockp = getNodeBlockPos(p0);
-	vmanip.initialEmerge(tree_blockp - v3s16(1,1,1), tree_blockp + v3s16(1,3,1));
+	v3POS tree_blockp = getNodeBlockPos(p0);
+	vmanip.initialEmerge(tree_blockp - v3POS(1,1,1), tree_blockp + v3POS(1,3,1));
 	make_ltree (vmanip, p0, ndef, tree_definition);
 	vmanip.blitBackAll(&modified_blocks);
 
 	// update lighting
-	std::map<v3s16, MapBlock*> lighting_modified_blocks;
+	std::map<v3POS, MapBlock*> lighting_modified_blocks;
 	lighting_modified_blocks.insert(modified_blocks.begin(), modified_blocks.end());
 	map->updateLighting(lighting_modified_blocks, modified_blocks);
 	// Send a MEET_OTHER event
 	MapEditEvent event;
 	event.type = MEET_OTHER;
-	for(std::map<v3s16, MapBlock*>::iterator
+	for(std::map<v3POS, MapBlock*>::iterator
 		i = modified_blocks.begin();
 		i != modified_blocks.end(); ++i)
 	{
@@ -145,7 +145,7 @@ void spawn_ltree(ServerEnvironment *env, v3s16 p0, INodeDefManager *ndef, TreeDe
 }
 
 //L-System tree generator
-void make_ltree(ManualMapVoxelManipulator &vmanip, v3s16 p0, INodeDefManager *ndef,
+void make_ltree(ManualMapVoxelManipulator &vmanip, v3POS p0, INodeDefManager *ndef,
 		TreeDef tree_definition)
 {
 	MapNode dirtnode(ndef->getId("mapgen_dirt"));
@@ -398,7 +398,7 @@ void make_ltree(ManualMapVoxelManipulator &vmanip, v3s16 p0, INodeDefManager *nd
 void tree_node_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 		MapNode node)
 {
-	v3s16 p1 = v3s16(myround(p0.X),myround(p0.Y),myround(p0.Z));
+	v3POS p1 = v3POS(myround(p0.X),myround(p0.Y),myround(p0.Z));
 	if(vmanip.m_area.contains(p1) == false)
 		return;
 	u32 vi = vmanip.m_area.index(p1);
@@ -411,7 +411,7 @@ void tree_node_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 void tree_trunk_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 		TreeDef &tree_definition)
 {
-	v3s16 p1 = v3s16(myround(p0.X),myround(p0.Y),myround(p0.Z));
+	v3POS p1 = v3POS(myround(p0.X),myround(p0.Y),myround(p0.Z));
 	if(vmanip.m_area.contains(p1) == false)
 		return;
 	u32 vi = vmanip.m_area.index(p1);
@@ -427,7 +427,7 @@ void tree_leaves_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 	MapNode leavesnode=tree_definition.leavesnode;
 	if (ps.range(1,100) > 100-tree_definition.leaves2_chance)
 		leavesnode=tree_definition.leaves2node;
-	v3s16 p1 = v3s16(myround(p0.X),myround(p0.Y),myround(p0.Z));
+	v3POS p1 = v3POS(myround(p0.X),myround(p0.Y),myround(p0.Z));
 	if(vmanip.m_area.contains(p1) == false)
 		return;
 	u32 vi = vmanip.m_area.index(p1);
@@ -451,7 +451,7 @@ void tree_single_leaves_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 	MapNode leavesnode=tree_definition.leavesnode;
 	if (ps.range(1,100) > 100-tree_definition.leaves2_chance)
 		leavesnode=tree_definition.leaves2node;
-	v3s16 p1 = v3s16(myround(p0.X),myround(p0.Y),myround(p0.Z));
+	v3POS p1 = v3POS(myround(p0.X),myround(p0.Y),myround(p0.Z));
 	if(vmanip.m_area.contains(p1) == false)
 		return;
 	u32 vi = vmanip.m_area.index(p1);
@@ -464,7 +464,7 @@ void tree_single_leaves_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 void tree_fruit_placement(ManualMapVoxelManipulator &vmanip, v3f p0,
 		TreeDef &tree_definition)
 {
-	v3s16 p1 = v3s16(myround(p0.X),myround(p0.Y),myround(p0.Z));
+	v3POS p1 = v3POS(myround(p0.X),myround(p0.Y),myround(p0.Z));
 	if(vmanip.m_area.contains(p1) == false)
 		return;
 	u32 vi = vmanip.m_area.index(p1);
@@ -513,7 +513,7 @@ v3f transposeMatrix(irr::core::matrix4 M, v3f v)
 	return translated;
 }
 
-void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
+void make_jungletree(VoxelManipulator &vmanip, v3POS p0,
 		INodeDefManager *ndef, int seed)
 {
 	/*
@@ -537,8 +537,8 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 	{
 		if(pr.range(0, 2) == 0)
 			continue;
-		v3s16 p1 = p0 + v3s16(x,0,z);
-		v3s16 p2 = p0 + v3s16(x,-1,z);
+		v3POS p1 = p0 + v3POS(x,0,z);
+		v3POS p2 = p0 + v3POS(x,-1,z);
 		u32 vi1 = vmanip.m_area.index(p1);
 		u32 vi2 = vmanip.m_area.index(p2);
 		
@@ -552,7 +552,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 	vmanip.m_data[vmanip.m_area.index(p0)] = treenode;
 
 	s16 trunk_h = pr.range(8, 12);
-	v3s16 p1 = p0;
+	v3POS p1 = p0;
 	for (s16 ii=0; ii<trunk_h; ii++)
 	{
 		if (vmanip.m_area.contains(p1)) {
@@ -566,7 +566,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 	// p1 is now the last piece of the trunk
 	p1.Y -= 1;
 
-	VoxelArea leaves_a(v3s16(-3,-2,-3), v3s16(3,2,3));
+	VoxelArea leaves_a(v3POS(-3,-2,-3), v3POS(3,2,3));
 	//SharedPtr<u8> leaves_d(new u8[leaves_a.getVolume()]);
 	Buffer<u8> leaves_d(leaves_a.getVolume());
 	for(s32 i=0; i<leaves_a.getVolume(); i++)
@@ -579,7 +579,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 		for(s16 y=-d; y<=d; y++)
 		for(s16 x=-d; x<=d; x++)
 		{
-			leaves_d[leaves_a.index(v3s16(x,y,z))] = 1;
+			leaves_d[leaves_a.index(v3POS(x,y,z))] = 1;
 		}
 	}
 
@@ -588,7 +588,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 	{
 		s16 d = 1;
 
-		v3s16 p(
+		v3POS p(
 			pr.range(leaves_a.MinEdge.X, leaves_a.MaxEdge.X-d),
 			pr.range(leaves_a.MinEdge.Y, leaves_a.MaxEdge.Y-d),
 			pr.range(leaves_a.MinEdge.Z, leaves_a.MaxEdge.Z-d)
@@ -598,7 +598,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 		for(s16 y=0; y<=d; y++)
 		for(s16 x=0; x<=d; x++)
 		{
-			leaves_d[leaves_a.index(p+v3s16(x,y,z))] = 1;
+			leaves_d[leaves_a.index(p+v3POS(x,y,z))] = 1;
 		}
 	}
 
@@ -607,7 +607,7 @@ void make_jungletree(VoxelManipulator &vmanip, v3s16 p0,
 	for(s16 y=leaves_a.MinEdge.Y; y<=leaves_a.MaxEdge.Y; y++)
 	for(s16 x=leaves_a.MinEdge.X; x<=leaves_a.MaxEdge.X; x++)
 	{
-		v3s16 p(x,y,z);
+		v3POS p(x,y,z);
 		p += p1;
 		if(vmanip.m_area.contains(p) == false)
 			continue;

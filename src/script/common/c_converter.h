@@ -70,18 +70,18 @@ void               setboolfield(lua_State *L, int table,
 
 v3f           checkFloatPos             (lua_State *L, int index);
 v3f           check_v3f                 (lua_State *L, int index);
-v3s16         check_v3s16               (lua_State *L, int index);
+v3POS         check_v3POS               (lua_State *L, int index);
 
 v3f           read_v3f                  (lua_State *L, int index);
 v2f           read_v2f                  (lua_State *L, int index);
 v2s16         read_v2s16                (lua_State *L, int index);
 video::SColor readARGB8                 (lua_State *L, int index);
 aabb3f        read_aabb3f               (lua_State *L, int index, f32 scale);
-v3s16         read_v3s16                (lua_State *L, int index);
+v3POS         read_v3POS                (lua_State *L, int index);
 std::vector<aabb3f>
               read_aabb3f_vector        (lua_State *L, int index, f32 scale);
 
-void          push_v3s16                (lua_State *L, v3s16 p);
+void          push_v3POS                (lua_State *L, v3POS p);
 void          pushFloatPos              (lua_State *L, v3f p);
 void          push_v3f                  (lua_State *L, v3f p);
 void          push_v2f                  (lua_State *L, v2f p);

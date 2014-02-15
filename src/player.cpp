@@ -166,7 +166,7 @@ void Player::accelerateVertical(v3f target_speed, f32 max_increase)
 #endif
 }
 
-v3s16 Player::getLightPosition() const
+v3POS Player::getLightPosition() const
 {
 	return floatToInt(m_position + v3f(0,BS+BS/2,0), BS);
 }

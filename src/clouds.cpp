@@ -106,7 +106,7 @@ void Clouds::render()
 	// The center point of drawing in the noise
 	v2f center_of_drawing_in_noise_f = -cloud_origin_from_camera_f;
 	// The integer center point of drawing in the noise
-	v2s16 center_of_drawing_in_noise_i(
+	v2POS center_of_drawing_in_noise_i(
 		MYROUND(center_of_drawing_in_noise_f.X / cloud_size),
 		MYROUND(center_of_drawing_in_noise_f.Y / cloud_size)
 	);
@@ -166,7 +166,7 @@ void Clouds::render()
 	{
 		u32 i = (zi+cloud_radius_i)*cloud_radius_i*2 + xi+cloud_radius_i;
 
-		v2s16 p_in_noise_i(
+		v2POS p_in_noise_i(
 			xi+center_of_drawing_in_noise_i.X,
 			zi+center_of_drawing_in_noise_i.Y
 		);

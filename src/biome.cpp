@@ -209,7 +209,7 @@ u8 BiomeDefManager::getBiomeIdByName(const char *name) {
 ///////////////////////////// Weather
 
 
-s16 BiomeDefManager::calcBlockHeat(v3s16 p, u64 seed, float timeofday, float totaltime) {
+s16 BiomeDefManager::calcBlockHeat(v3POS p, u64 seed, float timeofday, float totaltime) {
 	//variant 1: full random
 	//f32 heat = NoisePerlin3D(np_heat, p.X, env->getGameTime()/100, p.Z, seed);
 
@@ -241,7 +241,7 @@ s16 BiomeDefManager::calcBlockHeat(v3s16 p, u64 seed, float timeofday, float tot
 }
 
 
-s16 BiomeDefManager::calcBlockHumidity(v3s16 p, u64 seed, float timeofday, float totaltime) {
+s16 BiomeDefManager::calcBlockHumidity(v3POS p, u64 seed, float timeofday, float totaltime) {
 
 	f32 humidity = NoisePerlin2D(np_humidity, p.X, p.Z, seed);
 

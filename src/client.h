@@ -49,7 +49,7 @@ struct PointedThing;
 
 struct QueuedMeshUpdate
 {
-	v3s16 p;
+	v3POS p;
 	MeshMakeData *data;
 	bool ack_block_to_server;
 
@@ -70,7 +70,7 @@ public:
 	/*
 		peer_id=0 adds with nobody to send to
 	*/
-	void addBlock(v3s16 p, MeshMakeData *data,
+	void addBlock(v3POS p, MeshMakeData *data,
 			bool ack_block_to_server, bool urgent);
 
 	// Returned pointer must be deleted
@@ -85,13 +85,13 @@ public:
 	
 private:
 	std::vector<QueuedMeshUpdate*> m_queue;
-	std::set<v3s16> m_urgents;
+	std::set<v3POS> m_urgents;
 	JMutex m_mutex;
 };
 
 struct MeshUpdateResult
 {
-	v3s16 p;
+	v3POS p;
 	MapBlockMesh *mesh;
 	bool ack_block_to_server;
 
@@ -120,7 +120,7 @@ public:
 
 	IGameDef *m_gamedef;
 	
-	v3s16 m_camera_offset;
+	v3POS m_camera_offset;
 };
 
 enum ClientEventType
@@ -330,7 +330,7 @@ public:
 
 	void interact(u8 action, const PointedThing& pointed);
 
-	void sendNodemetaFields(v3s16 p, const std::string &formname,
+	void sendNodemetaFields(v3POS p, const std::string &formname,
 			const std::map<std::string, std::string> &fields);
 	void sendInventoryFields(const std::string &formname,
 			const std::map<std::string, std::string> &fields);
@@ -346,8 +346,8 @@ public:
 	{ return m_env; }
 	
 	// Causes urgent mesh updates (unlike Map::add/removeNodeWithEvent)
-	void removeNode(v3s16 p);
-	void addNode(v3s16 p, MapNode n, bool remove_metadata = true);
+	void removeNode(v3POS p);
+	void addNode(v3POS p, MapNode n, bool remove_metadata = true);
 	
 	void setPlayerControl(PlayerControl &control);
 
@@ -381,7 +381,7 @@ public:
 	float getAnimationTime();
 
 	int getCrackLevel();
-	void setCrack(int level, v3s16 pos);
+	void setCrack(int level, v3POS pos);
 
 	u16 getHP();
 	u16 getBreath();
@@ -394,12 +394,12 @@ public:
 
 	u64 getMapSeed(){ return m_map_seed; }
 
-	void addUpdateMeshTask(v3s16 blockpos, bool ack_to_server=false, bool urgent=false);
+	void addUpdateMeshTask(v3POS blockpos, bool ack_to_server=false, bool urgent=false);
 	// Including blocks at appropriate edges
-	void addUpdateMeshTaskWithEdge(v3s16 blockpos, bool ack_to_server=false, bool urgent=false);
-	void addUpdateMeshTaskForNode(v3s16 nodepos, bool ack_to_server=false, bool urgent=false);
+	void addUpdateMeshTaskWithEdge(v3POS blockpos, bool ack_to_server=false, bool urgent=false);
+	void addUpdateMeshTaskForNode(v3POS nodepos, bool ack_to_server=false, bool urgent=false);
 	
-	void updateCameraOffset(v3s16 camera_offset){ m_mesh_update_thread.m_camera_offset = camera_offset; }
+	void updateCameraOffset(v3POS camera_offset){ m_mesh_update_thread.m_camera_offset = camera_offset; }
 
 	// Get event from queue. CE_NONE is returned if queue is empty.
 	ClientEvent getClientEvent();
@@ -481,12 +481,12 @@ private:
 	bool m_inventory_updated;
 	Inventory *m_inventory_from_server;
 	float m_inventory_from_server_age;
-	std::set<v3s16> m_active_blocks;
+	std::set<v3POS> m_active_blocks;
 	PacketCounter m_packetcounter;
 	// Block mesh animation parameters
 	float m_animation_time;
 	int m_crack_level;
-	v3s16 m_crack_pos;
+	v3POS m_crack_pos;
 	// 0 <= m_daynight_i < DAYNIGHT_CACHE_COUNT
 	//s32 m_daynight_i;
 	//u32 m_daynight_ratio;

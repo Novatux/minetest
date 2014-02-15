@@ -93,11 +93,11 @@ void NodeMetadataList::serialize(std::ostream &os) const
 	u16 count = m_data.size();
 	writeU16(os, count);
 
-	for(std::map<v3s16, NodeMetadata*>::const_iterator
+	for(std::map<v3POS, NodeMetadata*>::const_iterator
 			i = m_data.begin();
 			i != m_data.end(); i++)
 	{
-		v3s16 p = i->first;
+		v3POS p = i->first;
 		NodeMetadata *data = i->second;
 
 		u16 p16 = p.Z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + p.Y*MAP_BLOCKSIZE + p.X;
@@ -130,7 +130,7 @@ void NodeMetadataList::deSerialize(std::istream &is, IGameDef *gamedef)
 	{
 		u16 p16 = readU16(is);
 
-		v3s16 p(0,0,0);
+		v3POS p(0,0,0);
 		p.Z += p16 / MAP_BLOCKSIZE / MAP_BLOCKSIZE;
 		p16 -= p.Z * MAP_BLOCKSIZE * MAP_BLOCKSIZE;
 		p.Y += p16 / MAP_BLOCKSIZE;
@@ -157,15 +157,15 @@ NodeMetadataList::~NodeMetadataList()
 	clear();
 }
 
-NodeMetadata* NodeMetadataList::get(v3s16 p)
+NodeMetadata* NodeMetadataList::get(v3POS p)
 {
-	std::map<v3s16, NodeMetadata*>::const_iterator n = m_data.find(p);
+	std::map<v3POS, NodeMetadata*>::const_iterator n = m_data.find(p);
 	if(n == m_data.end())
 		return NULL;
 	return n->second;
 }
 
-void NodeMetadataList::remove(v3s16 p)
+void NodeMetadataList::remove(v3POS p)
 {
 	NodeMetadata *olddata = get(p);
 	if(olddata)
@@ -175,7 +175,7 @@ void NodeMetadataList::remove(v3s16 p)
 	}
 }
 
-void NodeMetadataList::set(v3s16 p, NodeMetadata *d)
+void NodeMetadataList::set(v3POS p, NodeMetadata *d)
 {
 	remove(p);
 	m_data.insert(std::make_pair(p, d));
@@ -183,7 +183,7 @@ void NodeMetadataList::set(v3s16 p, NodeMetadata *d)
 
 void NodeMetadataList::clear()
 {
-	for(std::map<v3s16, NodeMetadata*>::iterator
+	for(std::map<v3POS, NodeMetadata*>::iterator
 			i = m_data.begin();
 			i != m_data.end(); i++)
 	{

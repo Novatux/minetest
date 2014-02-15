@@ -107,10 +107,10 @@ int ModApiMapgen::l_get_mapgen_object(lua_State *L)
 			lua_setmetatable(L, -2);
 
 			// emerged min pos
-			push_v3s16(L, vm->m_area.MinEdge);
+			push_v3POS(L, vm->m_area.MinEdge);
 
 			// emerged max pos
-			push_v3s16(L, vm->m_area.MaxEdge);
+			push_v3POS(L, vm->m_area.MaxEdge);
 
 			return 3; }
 		case MGOBJ_HEIGHTMAP: {
@@ -160,13 +160,13 @@ int ModApiMapgen::l_get_mapgen_object(lua_State *L)
 				if (!(emerge->gennotify & flagdesc_gennotify[i].flag))
 					continue;
 
-				std::vector<v3s16> *posvec = mg->gen_notifications[i];
+				std::vector<v3POS> *posvec = mg->gen_notifications[i];
 				if (!posvec)
 					return 0;
 
 				lua_newtable(L);
 				for (unsigned int j = 0; j != posvec->size(); j++) {
-					push_v3s16(L, (*posvec)[j]);
+					push_v3POS(L, (*posvec)[j]);
 					lua_rawseti(L, -2, j + 1);
 				}
 				lua_setfield(L, -2, flagdesc_gennotify[i].name);
@@ -504,17 +504,17 @@ int ModApiMapgen::l_create_schematic(lua_State *L)
 	Map *map = &(getEnv(L)->getMap());
 	INodeDefManager *ndef = getServer(L)->getNodeDefManager();
 
-	v3s16 p1 = read_v3s16(L, 1);
-	v3s16 p2 = read_v3s16(L, 2);
+	v3POS p1 = read_v3POS(L, 1);
+	v3POS p2 = read_v3POS(L, 2);
 	sortBoxVerticies(p1, p2);
 
-	std::vector<std::pair<v3s16, u8> > prob_list;
+	std::vector<std::pair<v3POS, u8> > prob_list;
 	if (lua_istable(L, 3)) {
 		lua_pushnil(L);
 		while (lua_next(L, 3)) {
 			if (lua_istable(L, -1)) {
 				lua_getfield(L, -1, "pos");
-				v3s16 pos = read_v3s16(L, -1);
+				v3POS pos = read_v3POS(L, -1);
 				lua_pop(L, 1);
 
 				u8 prob = getintfield_default(L, -1, "prob", MTSCHEM_PROB_ALWAYS);
@@ -566,7 +566,7 @@ int ModApiMapgen::l_place_schematic(lua_State *L)
 	Map *map = &(getEnv(L)->getMap());
 	INodeDefManager *ndef = getServer(L)->getNodeDefManager();
 
-	v3s16 p = read_v3s16(L, 1);
+	v3POS p = read_v3POS(L, 1);
 	if (!read_schematic(L, 2, &dschem, getServer(L)))
 		return 0;
 

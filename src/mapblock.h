@@ -80,12 +80,12 @@ enum
 class NodeContainer
 {
 public:
-	virtual bool isValidPosition(v3s16 p) = 0;
-	virtual MapNode getNode(v3s16 p) = 0;
-	virtual void setNode(v3s16 p, MapNode & n) = 0;
+	virtual bool isValidPosition(v3POS p) = 0;
+	virtual MapNode getNode(v3POS p) = 0;
+	virtual void setNode(v3POS p, MapNode & n) = 0;
 	virtual u16 nodeContainerId() const = 0;
 
-	MapNode getNodeNoEx(v3s16 p)
+	MapNode getNodeNoEx(v3POS p)
 	{
 		try{
 			return getNode(p);
@@ -104,7 +104,7 @@ public:
 class MapBlock /*: public NodeContainer*/
 {
 public:
-	MapBlock(Map *parent, v3s16 pos, IGameDef *gamedef, bool dummy=false);
+	MapBlock(Map *parent, v3POS pos, IGameDef *gamedef, bool dummy=false);
 	~MapBlock();
 	
 	/*virtual u16 nodeContainerId() const
@@ -229,29 +229,29 @@ public:
 		Position stuff
 	*/
 
-	v3s16 getPos()
+	v3POS getPos()
 	{
 		return m_pos;
 	}
 		
-	v3s16 getPosRelative()
+	v3POS getPosRelative()
 	{
 		return m_pos * MAP_BLOCKSIZE;
 	}
 		
-	core::aabbox3d<s16> getBox()
+	core::aabbox3d<POS> getBox()
 	{
-		return core::aabbox3d<s16>(getPosRelative(),
+		return core::aabbox3d<POS>(getPosRelative(),
 				getPosRelative()
-				+ v3s16(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE)
-				- v3s16(1,1,1));
+				+ v3POS(MAP_BLOCKSIZE, MAP_BLOCKSIZE, MAP_BLOCKSIZE)
+				- v3POS(1,1,1));
 	}
 
 	/*
 		Regular MapNode get-setters
 	*/
 	
-	bool isValidPosition(v3s16 p)
+	bool isValidPosition(v3POS p)
 	{
 		if(data == NULL)
 			return false;
@@ -260,7 +260,7 @@ public:
 				&& p.Z >= 0 && p.Z < MAP_BLOCKSIZE);
 	}
 
-	MapNode getNode(s16 x, s16 y, s16 z)
+	MapNode getNode(POS x, POS y, POS z)
 	{
 		if(data == NULL)
 			throw InvalidPositionException();
@@ -270,12 +270,12 @@ public:
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
 	
-	MapNode getNode(v3s16 p)
+	MapNode getNode(v3POS p)
 	{
 		return getNode(p.X, p.Y, p.Z);
 	}
 	
-	MapNode getNodeNoEx(v3s16 p)
+	MapNode getNodeNoEx(v3POS p)
 	{
 		try{
 			return getNode(p.X, p.Y, p.Z);
@@ -284,7 +284,7 @@ public:
 		}
 	}
 	
-	void setNode(s16 x, s16 y, s16 z, MapNode & n)
+	void setNode(POS x, POS y, POS z, MapNode & n)
 	{
 		if(data == NULL)
 			throw InvalidPositionException();
@@ -295,7 +295,7 @@ public:
 		raiseModified(MOD_STATE_WRITE_NEEDED, "setNode");
 	}
 	
-	void setNode(v3s16 p, MapNode & n)
+	void setNode(v3POS p, MapNode & n)
 	{
 		setNode(p.X, p.Y, p.Z, n);
 	}
@@ -304,14 +304,14 @@ public:
 		Non-checking variants of the above
 	*/
 
-	MapNode getNodeNoCheck(s16 x, s16 y, s16 z)
+	MapNode getNodeNoCheck(POS x, POS y, POS z)
 	{
 		if(data == NULL)
 			throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
 	
-	MapNode getNodeNoCheck(v3s16 p)
+	MapNode getNodeNoCheck(v3POS p)
 	{
 		return getNodeNoCheck(p.X, p.Y, p.Z);
 	}
@@ -324,7 +324,7 @@ public:
 		raiseModified(MOD_STATE_WRITE_NEEDED, "setNodeNoCheck");
 	}
 	
-	void setNodeNoCheck(v3s16 p, MapNode & n)
+	void setNodeNoCheck(v3POS p, MapNode & n)
 	{
 		setNodeNoCheck(p.X, p.Y, p.Z, n);
 	}
@@ -333,10 +333,10 @@ public:
 		These functions consult the parent container if the position
 		is not valid on this MapBlock.
 	*/
-	bool isValidPositionParent(v3s16 p);
-	MapNode getNodeParent(v3s16 p);
-	void setNodeParent(v3s16 p, MapNode & n);
-	MapNode getNodeParentNoEx(v3s16 p);
+	bool isValidPositionParent(v3POS p);
+	MapNode getNodeParent(v3POS p);
+	void setNodeParent(v3POS p, MapNode & n);
+	MapNode getNodeParentNoEx(v3POS p);
 
 	void drawbox(s16 x0, s16 y0, s16 z0, s16 w, s16 h, s16 d, MapNode node)
 	{
@@ -347,7 +347,7 @@ public:
 	}
 
 	// See comments in mapblock.cpp
-	bool propagateSunlight(std::set<v3s16> & light_sources,
+	bool propagateSunlight(std::set<v3POS> & light_sources,
 			bool remove_light=false, bool *black_air_left=NULL);
 	
 	// Copies data to VoxelManipulator to getPosRelative()
@@ -386,7 +386,7 @@ public:
 			-3 = random fail
 			0...MAP_BLOCKSIZE-1 = ground level
 	*/
-	s16 getGroundLevel(v2s16 p2d);
+	s16 getGroundLevel(v2POS p2d);
 
 	/*
 		Timestamp (see m_timestamp)
@@ -446,15 +446,15 @@ public:
 		Node Timers
 	*/
 	// Get timer
-	NodeTimer getNodeTimer(v3s16 p){ 
+	NodeTimer getNodeTimer(v3POS p){ 
 		return m_node_timers.get(p);
 	}
 	// Deletes timer
-	void removeNodeTimer(v3s16 p){
+	void removeNodeTimer(v3POS p){
 		m_node_timers.remove(p);
 	}
 	// Deletes old timer and sets a new one
-	void setNodeTimer(v3s16 p, NodeTimer t){
+	void setNodeTimer(v3POS p, NodeTimer t){
 		m_node_timers.set(p,t);
 	}
 	// Deletes all timers
@@ -487,7 +487,7 @@ private:
 		Used only internally, because changes can't be tracked
 	*/
 
-	MapNode & getNodeRef(s16 x, s16 y, s16 z)
+	MapNode & getNodeRef(POS x, POS y, POS z)
 	{
 		if(data == NULL)
 			throw InvalidPositionException();
@@ -496,7 +496,7 @@ private:
 		if(z < 0 || z >= MAP_BLOCKSIZE) throw InvalidPositionException();
 		return data[z*MAP_BLOCKSIZE*MAP_BLOCKSIZE + y*MAP_BLOCKSIZE + x];
 	}
-	MapNode & getNodeRef(v3s16 &p)
+	MapNode & getNodeRef(v3POS &p)
 	{
 		return getNodeRef(p.X, p.Y, p.Z);
 	}
@@ -527,7 +527,7 @@ private:
 	// NOTE: Lots of things rely on this being the Map
 	Map *m_parent;
 	// Position in blocks on parent
-	v3s16 m_pos;
+	v3POS m_pos;
 
 	IGameDef *m_gamedef;
 	
@@ -592,7 +592,7 @@ private:
 	int m_refcount;
 };
 
-inline bool blockpos_over_limit(v3s16 p)
+inline bool blockpos_over_limit(v3POS p)
 {
 	return
 	  (p.X < -MAP_GENERATION_LIMIT / MAP_BLOCKSIZE
@@ -606,17 +606,17 @@ inline bool blockpos_over_limit(v3s16 p)
 /*
 	Returns the position of the block where the node is located
 */
-inline v3s16 getNodeBlockPos(v3s16 p)
+inline v3POS getNodeBlockPos(v3POS p)
 {
 	return getContainerPos(p, MAP_BLOCKSIZE);
 }
 
-inline v2s16 getNodeSectorPos(v2s16 p)
+inline v2POS getNodeSectorPos(v2POS p)
 {
 	return getContainerPos(p, MAP_BLOCKSIZE);
 }
 
-inline s16 getNodeBlockY(s16 y)
+inline POS getNodeBlockY(POS y)
 {
 	return getContainerPos(y, MAP_BLOCKSIZE);
 }

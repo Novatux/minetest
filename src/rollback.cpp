@@ -704,7 +704,7 @@ std::list<RollbackAction> rollbackActionsFromActionRows(std::list<ActionRow> row
 
 		case RollbackAction::TYPE_SET_NODE:
 
-			action.p            = v3s16(it->x, it->y, it->z);
+			action.p            = v3POS(it->x, it->y, it->z);
 			action.n_old.name   = getNodeName(it->oldNode);
 			action.n_old.param1 = it->oldParam1;
 			action.n_old.param2 = it->oldParam2;
@@ -740,7 +740,7 @@ std::list<ActionRow> SQL_getRowsSince(time_t firstTime, std::string actor = "")
 	return actionRowsFromSelect(dbs_stmt);
 }
 
-std::list<ActionRow> SQL_getRowsSince_range(time_t firstTime, v3s16 p, int range,
+std::list<ActionRow> SQL_getRowsSince_range(time_t firstTime, v3POS p, int range,
                 int limit)
 {
 	sqlite3_stmt *stmt = dbs_select_range;
@@ -758,7 +758,7 @@ std::list<ActionRow> SQL_getRowsSince_range(time_t firstTime, v3s16 p, int range
 	return actionRowsFromSelect(stmt);
 }
 
-std::list<RollbackAction> SQL_getActionsSince_range(time_t firstTime, v3s16 p, int range,
+std::list<RollbackAction> SQL_getActionsSince_range(time_t firstTime, v3POS p, int range,
                 int limit)
 {
 	std::list<ActionRow> rows = SQL_getRowsSince_range(firstTime, p, range, limit);
@@ -921,8 +921,8 @@ void TXT_migrate(std::string filepath)
 
 // Get nearness factor for subject's action for this action
 // Return value: 0 = impossible, >0 = factor
-static float getSuspectNearness(bool is_guess, v3s16 suspect_p, time_t suspect_t,
-                                v3s16 action_p, time_t action_t)
+static float getSuspectNearness(bool is_guess, v3POS suspect_p, time_t suspect_t,
+                                v3POS action_p, time_t action_t)
 {
 	// Suspect cannot cause things in the past
 	if (action_t < suspect_t) {
@@ -962,7 +962,7 @@ public:
 		action.actor_is_guess = m_current_actor_is_guess;
 
 		if (action.actor.empty()) { // If actor is not known, find out suspect or cancel
-			v3s16 p;
+			v3POS p;
 			if (!action.getPosition(&p)) {
 				return;
 			}
@@ -998,7 +998,7 @@ public:
 		m_current_actor_is_guess = is_guess;
 	}
 
-	std::string getSuspect(v3s16 p, float nearness_shortcut, float min_nearness) {
+	std::string getSuspect(v3POS p, float nearness_shortcut, float min_nearness) {
 		if (m_current_actor != "") {
 			return m_current_actor;
 		}
@@ -1016,7 +1016,7 @@ public:
 				continue;
 			}
 			// Find position of suspect or continue
-			v3s16 suspect_p;
+			v3POS suspect_p;
 			if (!i->getPosition(&suspect_p)) {
 				continue;
 			}
@@ -1119,7 +1119,7 @@ public:
 		return result;
 	}
 
-	std::list<RollbackAction> getNodeActors(v3s16 pos, int range, time_t seconds, int limit) {
+	std::list<RollbackAction> getNodeActors(v3POS pos, int range, time_t seconds, int limit) {
 		time_t cur_time = time(0);
 		time_t first_time = cur_time - seconds;
 

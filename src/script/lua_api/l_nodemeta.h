@@ -31,7 +31,7 @@ class NodeMetadata;
 
 class NodeMetaRef : public ModApiBase {
 private:
-	v3s16 m_p;
+	v3POS m_p;
 	ServerEnvironment *m_env;
 
 	static const char className[];
@@ -89,13 +89,13 @@ private:
 	static int l_from_table(lua_State *L);
 
 public:
-	NodeMetaRef(v3s16 p, ServerEnvironment *env);
+	NodeMetaRef(v3POS p, ServerEnvironment *env);
 
 	~NodeMetaRef();
 
 	// Creates an NodeMetaRef and leaves it on top of stack
 	// Not callable from Lua; all references are created on the C side.
-	static void create(lua_State *L, v3s16 p, ServerEnvironment *env);
+	static void create(lua_State *L, v3POS p, ServerEnvironment *env);
 
 	static void Register(lua_State *L);
 };

@@ -27,7 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <list>
 
 // Calculate the borders of a "d-radius" cube
-void getFacePositions(std::list<v3s16> &list, u16 d);
+void getFacePositions(std::list<v3POS> &list, u16 d);
 
 class IndentationRaiser
 {
@@ -50,6 +50,11 @@ inline s16 getContainerPos(s16 p, s16 d)
 	return (p>=0 ? p : p-d+1) / d;
 }
 
+inline POS getContainerPos(POS p, POS d)
+{
+	return (p>=0 ? p : p-d+1) / d;
+}
+
 inline v2s16 getContainerPos(v2s16 p, s16 d)
 {
 	return v2s16(
@@ -58,9 +63,17 @@ inline v2s16 getContainerPos(v2s16 p, s16 d)
 	);
 }
 
-inline v3s16 getContainerPos(v3s16 p, s16 d)
+inline v2POS getContainerPos(v2POS p, POS d)
 {
-	return v3s16(
+	return v2POS(
+		getContainerPos(p.X, d),
+		getContainerPos(p.Y, d)
+	);
+}
+
+inline v3POS getContainerPos(v3POS p, POS d)
+{
+	return v3POS(
 		getContainerPos(p.X, d),
 		getContainerPos(p.Y, d),
 		getContainerPos(p.Z, d)
@@ -75,16 +88,24 @@ inline v2s16 getContainerPos(v2s16 p, v2s16 d)
 	);
 }
 
-inline v3s16 getContainerPos(v3s16 p, v3s16 d)
+inline v2POS getContainerPos(v2POS p, v2POS d)
 {
-	return v3s16(
+	return v2POS(
+		getContainerPos(p.X, d.X),
+		getContainerPos(p.Y, d.Y)
+	);
+}
+
+inline v3POS getContainerPos(v3POS p, v3POS d)
+{
+	return v3POS(
 		getContainerPos(p.X, d.X),
 		getContainerPos(p.Y, d.Y),
 		getContainerPos(p.Z, d.Z)
 	);
 }
 
-inline bool isInArea(v3s16 p, s16 d)
+inline bool isInArea(v3POS p, POS d)
 {
 	return (
 		p.X >= 0 && p.X < d &&
@@ -101,7 +122,15 @@ inline bool isInArea(v2s16 p, s16 d)
 	);
 }
 
-inline bool isInArea(v3s16 p, v3s16 d)
+inline bool isInArea(v2POS p, POS d)
+{
+	return (
+		p.X >= 0 && p.X < d &&
+		p.Y >= 0 && p.Y < d
+	);
+}
+
+inline bool isInArea(v3POS p, v3POS d)
 {
 	return (
 		p.X >= 0 && p.X < d.X &&
@@ -122,7 +151,7 @@ inline s16 rangelim(s16 i, s16 max)
 #define rangelim(d, min, max) ((d) < (min) ? (min) : ((d)>(max)?(max):(d)))
 #define myfloor(x) ((x) > 0.0 ? (int)(x) : (int)(x) - 1)
 
-inline v3s16 arealim(v3s16 p, s16 d)
+inline v3POS arealim(v3POS p, s16 d)
 {
 	if(p.X < 0)
 		p.X = 0;
@@ -146,7 +175,7 @@ inline v3s16 arealim(v3s16 p, s16 d)
 	y = temp;              \
 } while (0)
 
-inline void sortBoxVerticies(v3s16 &p1, v3s16 &p2) {
+inline void sortBoxVerticies(v3POS &p1, v3POS &p2) {
 	if (p1.X > p2.X)
 		SWAP(s16, p1.X, p2.X);
 	if (p1.Y > p2.Y)
@@ -224,7 +253,7 @@ int myrand_range(int min, int max);
 
 u64 murmur_hash_64_ua(const void *key, int len, unsigned int seed);
 
-bool isBlockInSight(v3s16 blockpos_b, v3f camera_pos, v3f camera_dir,
+bool isBlockInSight(v3POS blockpos_b, v3f camera_pos, v3f camera_dir,
 		f32 camera_fov, f32 range, f32 *distance_ptr=NULL);
 
 /*
@@ -245,9 +274,9 @@ inline s32 myround(f32 f)
 /*
 	Returns integer position of node in given floating point position
 */
-inline v3s16 floatToInt(v3f p, f32 d)
+inline v3POS floatToInt(v3f p, f32 d)
 {
-	v3s16 p2(
+	v3POS p2(
 		(p.X + (p.X>0 ? d/2 : -d/2))/d,
 		(p.Y + (p.Y>0 ? d/2 : -d/2))/d,
 		(p.Z + (p.Z>0 ? d/2 : -d/2))/d);
@@ -257,7 +286,7 @@ inline v3s16 floatToInt(v3f p, f32 d)
 /*
 	Returns floating point position of node in given integer position
 */
-inline v3f intToFloat(v3s16 p, f32 d)
+inline v3f intToFloat(v3POS p, f32 d)
 {
 	v3f p2(
 		(f32)p.X * d,
@@ -268,7 +297,7 @@ inline v3f intToFloat(v3s16 p, f32 d)
 }
 
 // Random helper. Usually d=BS
-inline core::aabbox3d<f32> getNodeBox(v3s16 p, float d)
+inline core::aabbox3d<f32> getNodeBox(v3POS p, float d)
 {
 	return core::aabbox3d<f32>(
 		(float)p.X * d - 0.5*d,

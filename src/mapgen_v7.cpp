@@ -75,7 +75,7 @@ MapgenV7::MapgenV7(int mapgenid, MapgenV7Params *params, EmergeManager *emerge) 
 	this->flags    = params->flags | MGV7_MOUNTAINS | MGV7_RIDGES;
 	this->gennotify = emerge->gennotify;
 
-	this->csize   = v3s16(1, 1, 1) * params->chunksize * MAP_BLOCKSIZE;
+	this->csize   = v3POS(1, 1, 1) * params->chunksize * MAP_BLOCKSIZE;
 
 	// amount of elements to skip for the next index
 	// for noise/height/biome maps (not vmanip)
@@ -125,7 +125,7 @@ MapgenV7::~MapgenV7() {
 }
 
 
-int MapgenV7::getGroundLevelAtPoint(v2s16 p) {
+int MapgenV7::getGroundLevelAtPoint(v2POS p) {
 	// Base terrain calculation
 	s16 y = baseTerrainLevelAtPoint(p.X, p.Y);
 	
@@ -166,12 +166,12 @@ void MapgenV7::makeChunk(BlockMakeData *data) {
 	this->ndef = data->nodedef;
 	//TimeTaker t("makeChunk");
 	
-	v3s16 blockpos_min = data->blockpos_min;
-	v3s16 blockpos_max = data->blockpos_max;
+	v3POS blockpos_min = data->blockpos_min;
+	v3POS blockpos_max = data->blockpos_max;
 	node_min = blockpos_min * MAP_BLOCKSIZE;
-	node_max = (blockpos_max + v3s16(1, 1, 1)) * MAP_BLOCKSIZE - v3s16(1, 1, 1);
+	node_max = (blockpos_max + v3POS(1, 1, 1)) * MAP_BLOCKSIZE - v3POS(1, 1, 1);
 	full_node_min = (blockpos_min - 1) * MAP_BLOCKSIZE;
-	full_node_max = (blockpos_max + 2) * MAP_BLOCKSIZE - v3s16(1, 1, 1);
+	full_node_max = (blockpos_max + 2) * MAP_BLOCKSIZE - v3POS(1, 1, 1);
 
 	blockseed = emerge->getBlockSeed(full_node_min);  //////use getBlockSeed2()!
 	
@@ -195,7 +195,7 @@ void MapgenV7::makeChunk(BlockMakeData *data) {
 	
 	// Calculate biomes
 	BiomeNoiseInput binput;
-	binput.mapsize      = v2s16(csize.X, csize.Z);
+	binput.mapsize      = v2POS(csize.X, csize.Z);
 	binput.heat_map     = noise_heat->result;
 	binput.humidity_map = noise_humidity->result;
 	binput.height_map   = heightmap;
@@ -230,10 +230,10 @@ void MapgenV7::makeChunk(BlockMakeData *data) {
 	updateLiquid(&data->transforming_liquid, full_node_min, full_node_max);
 	
 	if (!(flags & MG_NOLIGHT))
-		calcLighting(node_min - v3s16(1, 0, 1) * MAP_BLOCKSIZE,
-					 node_max + v3s16(1, 0, 1) * MAP_BLOCKSIZE);
-	//setLighting(node_min - v3s16(1, 0, 1) * MAP_BLOCKSIZE,
-	//			node_max + v3s16(1, 0, 1) * MAP_BLOCKSIZE, 0xFF);
+		calcLighting(node_min - v3POS(1, 0, 1) * MAP_BLOCKSIZE,
+					 node_max + v3POS(1, 0, 1) * MAP_BLOCKSIZE);
+	//setLighting(node_min - v3POS(1, 0, 1) * MAP_BLOCKSIZE,
+	//			node_max + v3POS(1, 0, 1) * MAP_BLOCKSIZE, 0xFF);
 	
 	this->generating = false;
 }
@@ -280,7 +280,7 @@ void MapgenV7::calculateNoise() {
 }
 
 
-Biome *MapgenV7::getBiomeAtPoint(v3s16 p) {
+Biome *MapgenV7::getBiomeAtPoint(v3POS p) {
 	float heat      = NoisePerlin2D(bmgr->np_heat, p.X, p.Z, seed);
 	float humidity  = NoisePerlin2D(bmgr->np_humidity, p.X, p.Z, seed);
 	s16 groundlevel = baseTerrainLevelAtPoint(p.X, p.Z);
@@ -391,7 +391,7 @@ int MapgenV7::generateBaseTerrain() {
 	MapNode n_water(c_water_source);
 	
 	int stone_surface_max_y = -MAP_GENERATION_LIMIT;
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 	u32 index = 0;
 	
 	for (s16 z = node_min.Z; z <= node_max.Z; z++)
@@ -495,7 +495,7 @@ void MapgenV7::generateBiomes() {
 	MapNode n_stone(c_stone);
 	MapNode n_water(c_water_source);
 
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 	u32 index = 0;
 	
 	for (s16 z = node_min.Z; z <= node_max.Z; z++)
@@ -561,7 +561,7 @@ void MapgenV7::generateBiomes() {
 
 
 void MapgenV7::dustTopNodes() {
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 	u32 index = 0;
 	
 	if (water_level > node_max.Y)
@@ -602,7 +602,7 @@ void MapgenV7::dustTopNodes() {
 
 #if 0
 void MapgenV7::addTopNodes() {
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 	s16 ntopnodes;
 	u32 index = 0;
 

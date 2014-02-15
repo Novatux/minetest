@@ -61,18 +61,18 @@ public:
 	void deSerialize(std::istream &is, u8 map_format_version);
 	
 	// Get timer
-	NodeTimer get(v3s16 p){
-		std::map<v3s16, NodeTimer>::iterator n = m_data.find(p);
+	NodeTimer get(v3POS p){
+		std::map<v3POS, NodeTimer>::iterator n = m_data.find(p);
 		if(n == m_data.end())
 			return NodeTimer();
 		return n->second;
 	}
 	// Deletes timer
-	void remove(v3s16 p){
+	void remove(v3POS p){
 		m_data.erase(p);
 	}
 	// Deletes old timer and sets a new one
-	void set(v3s16 p, NodeTimer t){
+	void set(v3POS p, NodeTimer t){
 		m_data[p] = t;
 	}
 	// Deletes all timers
@@ -81,10 +81,10 @@ public:
 	}
 
 	// A step in time. Returns map of elapsed timers.
-	std::map<v3s16, NodeTimer> step(float dtime);
+	std::map<v3POS, NodeTimer> step(float dtime);
 
 private:
-	std::map<v3s16, NodeTimer> m_data;
+	std::map<v3POS, NodeTimer> m_data;
 };
 
 #endif

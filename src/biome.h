@@ -60,14 +60,14 @@ public:
 	s16 depth_top;
 	s16 depth_filler;
 	
-	s16 height_min;
-	s16 height_max;
+	POS height_min;
+	POS height_max;
 	float heat_point;
 	float humidity_point;
 };
 
 struct BiomeNoiseInput {
-	v2s16 mapsize;
+	v2POS mapsize;
 	float *heat_map;
 	float *humidity_map;
 	s16 *height_map;
@@ -92,8 +92,8 @@ public:
 	void resolveNodeNames(INodeDefManager *ndef);
 	u8 getBiomeIdByName(const char *name);
 	
-	s16 calcBlockHeat(v3s16 p, u64 seed, float timeofday, float totaltime);
-	s16 calcBlockHumidity(v3s16 p, u64 seed, float timeofday, float totaltime);
+	s16 calcBlockHeat(v3POS p, u64 seed, float timeofday, float totaltime);
+	s16 calcBlockHumidity(v3POS p, u64 seed, float timeofday, float totaltime);
 };
 
 #endif

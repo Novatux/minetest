@@ -66,7 +66,7 @@ Particle::Particle(
 {
 	// Misc
 	m_gamedef = gamedef;
-	m_camera_offset = v3s16(0,0,0);
+	m_camera_offset = v3POS(0,0,0);
 
 	// Texture
 	m_material.setFlag(video::EMF_LIGHTING, false);
@@ -169,7 +169,7 @@ void Particle::updateLight(ClientEnvironment &env)
 {
 	u8 light = 0;
 	try{
-		v3s16 p = v3s16(
+		v3POS p = v3POS(
 			floor(m_pos.X+0.5),
 			floor(m_pos.Y+0.5),
 			floor(m_pos.Z+0.5)
@@ -239,7 +239,7 @@ void allparticles_step (float dtime, ClientEnvironment &env)
 }
 
 void addDiggingParticles(IGameDef* gamedef, scene::ISceneManager* smgr,
-		LocalPlayer *player, ClientEnvironment &env, v3s16 pos,
+		LocalPlayer *player, ClientEnvironment &env, v3POS pos,
 		const TileSpec tiles[])
 {
 	for (u16 j = 0; j < 32; j++) // set the amount of particles here
@@ -250,7 +250,7 @@ void addDiggingParticles(IGameDef* gamedef, scene::ISceneManager* smgr,
 
 void addPunchingParticles(IGameDef* gamedef, scene::ISceneManager* smgr,
 		LocalPlayer *player, ClientEnvironment &env,
-		v3s16 pos, const TileSpec tiles[])
+		v3POS pos, const TileSpec tiles[])
 {
 	addNodeParticle(gamedef, smgr, player, env, pos, tiles);
 }
@@ -258,7 +258,7 @@ void addPunchingParticles(IGameDef* gamedef, scene::ISceneManager* smgr,
 // add a particle of a node
 // used by digging and punching particles
 void addNodeParticle(IGameDef* gamedef, scene::ISceneManager* smgr,
-		LocalPlayer *player, ClientEnvironment &env, v3s16 pos,
+		LocalPlayer *player, ClientEnvironment &env, v3POS pos,
 		const TileSpec tiles[])
 {
 	// Texture
@@ -477,7 +477,7 @@ void clear_particles ()
 	}
 }
 
-void update_particles_camera_offset (v3s16 camera_offset)
+void update_particles_camera_offset (v3POS camera_offset)
 {
 	for(std::vector<Particle*>::iterator i =
 			all_particles.begin();

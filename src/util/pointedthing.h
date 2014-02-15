@@ -35,8 +35,8 @@ enum PointedThingType
 struct PointedThing
 {
 	PointedThingType type;
-	v3s16 node_undersurface;
-	v3s16 node_abovesurface;
+	v3POS node_undersurface;
+	v3POS node_abovesurface;
 	s16 object_id;
 
 	PointedThing();

@@ -59,7 +59,7 @@ void Database_Dummy::saveBlock(MapBlock *block)
 	// Format used for writing
 	u8 version = SER_FMT_VER_HIGHEST_WRITE;
 	// Get destination
-	v3s16 p3d = block->getPos();
+	v3POS p3d = block->getPos();
 
 	/*
 		[0] u8 serialization version
@@ -78,9 +78,9 @@ void Database_Dummy::saveBlock(MapBlock *block)
 	block->resetModified();
 }
 
-MapBlock* Database_Dummy::loadBlock(v3s16 blockpos)
+MapBlock* Database_Dummy::loadBlock(v3POS blockpos)
 {
-	v2s16 p2d(blockpos.X, blockpos.Z);
+	v2POS p2d(blockpos.X, blockpos.Z);
 
         if(m_database.count(getBlockAsInteger(blockpos))) {
                 /*
@@ -149,11 +149,11 @@ MapBlock* Database_Dummy::loadBlock(v3s16 blockpos)
 	return(NULL);
 }
 
-void Database_Dummy::listAllLoadableBlocks(std::list<v3s16> &dst)
+void Database_Dummy::listAllLoadableBlocks(std::list<v3POS> &dst)
 {
 	for(std::map<unsigned long long, std::string>::iterator x = m_database.begin(); x != m_database.end(); ++x)
 	{
-		v3s16 p = getIntegerAsBlock(x->first);
+		v3POS p = getIntegerAsBlock(x->first);
 		//dstream<<"block_i="<<block_i<<" p="<<PP(p)<<std::endl;
 		dst.push_back(p);
 	}

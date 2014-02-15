@@ -113,7 +113,7 @@ public:
 	// Not callable from Lua; all references are created on the C side.
 	static void create(lua_State *L, const InventoryLocation &loc);
 	static void createPlayer(lua_State *L, Player *player);
-	static void createNodeMeta(lua_State *L, v3s16 p);
+	static void createNodeMeta(lua_State *L, v3POS p);
 	static void Register(lua_State *L);
 };
 

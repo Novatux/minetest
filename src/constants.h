@@ -64,7 +64,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // The absolute working limit is (2^15 - viewing_range).
 // I really don't want to make every algorithm to check if it's going near
 // the limit or not, so this is lower.
-#define MAP_GENERATION_LIMIT (31000)
+#define MAP_GENERATION_LIMIT ((POS)3100000)
 
 // Size of node in floating-point units
 // The original idea behind this is to disallow plain casts between
@@ -74,10 +74,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define BS (10.0)
 
 // Dimension of a MapBlock
-#define MAP_BLOCKSIZE 16
+#define MAP_BLOCKSIZE ((POS)16)
 // This makes mesh updates too slow, as many meshes are updated during
 // the main loop (related to TempMods and day/night)
-//#define MAP_BLOCKSIZE 32
+//#define MAP_BLOCKSIZE ((POS)32)
 
 /*
     Old stuff that shouldn't be hardcoded

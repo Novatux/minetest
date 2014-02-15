@@ -41,14 +41,14 @@ class MapSector
 {
 public:
 	
-	MapSector(Map *parent, v2s16 pos, IGameDef *gamedef);
+	MapSector(Map *parent, v2POS pos, IGameDef *gamedef);
 	virtual ~MapSector();
 
 	virtual u32 getId() const = 0;
 
 	void deleteBlocks();
 
-	v2s16 getPos()
+	v2POS getPos()
 	{
 		return m_pos;
 	}
@@ -73,7 +73,7 @@ protected:
 
 	Map *m_parent;
 	// Position on parent (in MapBlock widths)
-	v2s16 m_pos;
+	v2POS m_pos;
 
 	IGameDef *m_gamedef;
  	
@@ -92,7 +92,7 @@ protected:
 class ServerMapSector : public MapSector
 {
 public:
-	ServerMapSector(Map *parent, v2s16 pos, IGameDef *gamedef);
+	ServerMapSector(Map *parent, v2POS pos, IGameDef *gamedef);
 	~ServerMapSector();
 	
 	u32 getId() const
@@ -110,8 +110,8 @@ public:
 	static ServerMapSector* deSerialize(
 			std::istream &is,
 			Map *parent,
-			v2s16 p2d,
-			std::map<v2s16, MapSector*> & sectors,
+			v2POS p2d,
+			std::map<v2POS, MapSector*> & sectors,
 			IGameDef *gamedef
 		);
 		
@@ -122,7 +122,7 @@ private:
 class ClientMapSector : public MapSector
 {
 public:
-	ClientMapSector(Map *parent, v2s16 pos, IGameDef *gamedef);
+	ClientMapSector(Map *parent, v2POS pos, IGameDef *gamedef);
 	~ClientMapSector();
 	
 	u32 getId() const

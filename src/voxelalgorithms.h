@@ -35,8 +35,8 @@ void setLight(VoxelManipulator &v, VoxelArea a, u8 light,
 
 void clearLightAndCollectSources(VoxelManipulator &v, VoxelArea a,
 		enum LightBank bank, INodeDefManager *ndef,
-		std::set<v3s16> & light_sources,
-		std::map<v3s16, u8> & unlight_from);
+		std::set<v3POS> & light_sources,
+		std::map<v3POS, u8> & unlight_from);
 
 struct SunlightPropagateResult
 {
@@ -49,7 +49,7 @@ struct SunlightPropagateResult
 
 SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 		bool inexistent_top_provides_sunlight,
-		std::set<v3s16> & light_sources,
+		std::set<v3POS> & light_sources,
 		INodeDefManager *ndef);
 
 } // namespace voxalgo

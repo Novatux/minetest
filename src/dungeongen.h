@@ -32,10 +32,10 @@ class ManualMapVoxelManipulator;
 class INodeDefManager;
 class Mapgen;
 
-v3s16 rand_ortho_dir(PseudoRandom &random, bool diagonal_dirs);
-v3s16 turn_xz(v3s16 olddir, int t);
-v3s16 random_turn(PseudoRandom &random, v3s16 olddir);
-int dir_to_facedir(v3s16 d);
+v3POS rand_ortho_dir(PseudoRandom &random, bool diagonal_dirs);
+v3POS turn_xz(v3POS olddir, int t);
+v3POS random_turn(PseudoRandom &random, v3POS olddir);
+int dir_to_facedir(v3POS d);
 
 
 struct DungeonParams {
@@ -47,8 +47,8 @@ struct DungeonParams {
 	int notifytype;
 	bool diagonal_dirs;
 	float mossratio;
-	v3s16 holesize;
-	v3s16 roomsize;
+	v3POS holesize;
+	v3POS roomsize;
 
 	NoiseParams np_rarity;
 	NoiseParams np_wetness;
@@ -61,29 +61,29 @@ public:
 	Mapgen *mg;
 	u32 blockseed;
 	PseudoRandom random;
-	v3s16 csize;
+	v3POS csize;
 
 	content_t c_torch;
 	DungeonParams dp;
 	
 	//RoomWalker
-	v3s16 m_pos;
-	v3s16 m_dir;
+	v3POS m_pos;
+	v3POS m_dir;
 
 	DungeonGen(Mapgen *mg, DungeonParams *dparams);
-	void generate(u32 bseed, v3s16 full_node_min, v3s16 full_node_max);
+	void generate(u32 bseed, v3POS full_node_min, v3POS full_node_max);
 	
-	void makeDungeon(v3s16 start_padding);
-	void makeRoom(v3s16 roomsize, v3s16 roomplace);
-	void makeCorridor(v3s16 doorplace, v3s16 doordir,
-					  v3s16 &result_place, v3s16 &result_dir);
-	void makeDoor(v3s16 doorplace, v3s16 doordir);
-	void makeFill(v3s16 place, v3s16 size, u8 avoid_flags, MapNode n, u8 or_flags);
-	void makeHole(v3s16 place);
+	void makeDungeon(v3POS start_padding);
+	void makeRoom(v3POS roomsize, v3POS roomplace);
+	void makeCorridor(v3POS doorplace, v3POS doordir,
+					  v3POS &result_place, v3POS &result_dir);
+	void makeDoor(v3POS doorplace, v3POS doordir);
+	void makeFill(v3POS place, v3POS size, u8 avoid_flags, MapNode n, u8 or_flags);
+	void makeHole(v3POS place);
 
-	bool findPlaceForDoor(v3s16 &result_place, v3s16 &result_dir);
-	bool findPlaceForRoomDoor(v3s16 roomsize, v3s16 &result_doorplace,
-			v3s16 &result_doordir, v3s16 &result_roomplace);
+	bool findPlaceForDoor(v3POS &result_place, v3POS &result_dir);
+	bool findPlaceForRoomDoor(v3POS roomsize, v3POS &result_doorplace,
+			v3POS &result_doordir, v3POS &result_roomplace);
 			
 	void randomizeDir()
 	{

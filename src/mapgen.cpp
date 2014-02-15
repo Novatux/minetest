@@ -120,7 +120,7 @@ void Ore::resolveNodeNames(INodeDefManager *ndef) {
 }
 
 
-void Ore::placeOre(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
+void Ore::placeOre(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax) {
 	int in_range = 0;
 
 	in_range |= (nmin.Y <= height_max && nmax.Y >= height_min);
@@ -147,7 +147,7 @@ void Ore::placeOre(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
 
 
 void OreScatter::generate(ManualMapVoxelManipulator *vm, int seed,
-						  u32 blockseed, v3s16 nmin, v3s16 nmax) {
+						  u32 blockseed, v3POS nmin, v3POS nmax) {
 	PseudoRandom pr(blockseed);
 	MapNode n_ore(ore, 0, ore_param2);
 
@@ -182,32 +182,32 @@ void OreScatter::generate(ManualMapVoxelManipulator *vm, int seed,
 
 
 void OreSheet::generate(ManualMapVoxelManipulator *vm, int seed,
-						u32 blockseed, v3s16 nmin, v3s16 nmax) {
+						u32 blockseed, v3POS nmin, v3POS nmax) {
 	PseudoRandom pr(blockseed + 4234);
 	MapNode n_ore(ore, 0, ore_param2);
 
-	int max_height = clust_size;
-	int y_start = pr.range(nmin.Y, nmax.Y - max_height);
+	POS max_height = clust_size;
+	POS y_start = pr.range(nmin.Y, nmax.Y - max_height);
 
 	if (!noise) {
-		int sx = nmax.X - nmin.X + 1;
-		int sz = nmax.Z - nmin.Z + 1;
+		POS sx = nmax.X - nmin.X + 1;
+		POS sz = nmax.Z - nmin.Z + 1;
 		noise = new Noise(np, 0, sx, sz);
 	}
 	noise->seed = seed + y_start;
 	noise->perlinMap2D(nmin.X, nmin.Z);
 
 	int index = 0;
-	for (int z = nmin.Z; z <= nmax.Z; z++)
-	for (int x = nmin.X; x <= nmax.X; x++) {
+	for (POS z = nmin.Z; z <= nmax.Z; z++)
+	for (POS x = nmin.X; x <= nmax.X; x++) {
 		float noiseval = noise->result[index++];
 		if (noiseval < nthresh)
 			continue;
 
-		int height = max_height * (1. / pr.range(1, 3));
-		int y0 = y_start + np->scale * noiseval; //pr.range(1, 3) - 1;
-		int y1 = y0 + height;
-		for (int y = y0; y != y1; y++) {
+		POS height = max_height * (1. / pr.range(1, 3));
+		POS y0 = y_start + np->scale * noiseval; //pr.range(1, 3) - 1;
+		POS y1 = y0 + height;
+		for (POS y = y0; y != y1; y++) {
 			u32 i = vm->m_area.index(x, y, z);
 			if (!vm->m_area.contains(i))
 				continue;
@@ -258,7 +258,7 @@ void Decoration::resolveNodeNames(INodeDefManager *ndef) {
 }
 
 
-void Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
+void Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax) {
 	PseudoRandom ps(blockseed + 53);
 	int carea_size = nmax.X - nmin.X + 1;
 
@@ -274,15 +274,15 @@ void Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
 
 	for (s16 z0 = 0; z0 < divlen; z0++)
 	for (s16 x0 = 0; x0 < divlen; x0++) {
-		v2s16 p2d_center( // Center position of part of division
+		v2POS p2d_center( // Center position of part of division
 			nmin.X + sidelen / 2 + sidelen * x0,
 			nmin.Z + sidelen / 2 + sidelen * z0
 		);
-		v2s16 p2d_min( // Minimum edge of part of division
+		v2POS p2d_min( // Minimum edge of part of division
 			nmin.X + sidelen * x0,
 			nmin.Z + sidelen * z0
 		);
-		v2s16 p2d_max( // Maximum edge of part of division
+		v2POS p2d_max( // Maximum edge of part of division
 			nmin.X + sidelen + sidelen * x0 - 1,
 			nmin.Z + sidelen + sidelen * z0 - 1
 		);
@@ -301,7 +301,7 @@ void Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
 
 			s16 y = mg->heightmap ?
 					mg->heightmap[mapindex] :
-					mg->findGroundLevel(v2s16(x, z), nmin.Y, nmax.Y);
+					mg->findGroundLevel(v2POS(x, z), nmin.Y, nmax.Y);
 
 			if (y < nmin.Y || y > nmax.Y)
 				continue;
@@ -328,14 +328,14 @@ void Decoration::placeDeco(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
 				}
 			}
 
-			generate(mg, &ps, max_y, v3s16(x, y, z));
+			generate(mg, &ps, max_y, v3POS(x, y, z));
 		}
 	}
 }
 
 
 #if 0
-void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax) {
+void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3POS nmin, v3POS nmax) {
 	PseudoRandom pr(blockseed + 53);
 	std::vector<CutoffData> handled_cutoffs;
 
@@ -345,7 +345,7 @@ void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 		for (std::list<CutoffData>::iterator i = cutoffs.begin();
 			i != cutoffs.end(); ++i) {
 			CutoffData cutoff = *i;
-			v3s16 p    = cutoff.p;
+			v3POS p    = cutoff.p;
 			s16 height = cutoff.height;
 			if (p.X < nmin.X || p.X > nmax.X ||
 				p.Z < nmin.Z || p.Z > nmax.Z)
@@ -359,15 +359,15 @@ void Decoration::placeCutoffs(Mapgen *mg, u32 blockseed, v3s16 nmin, v3s16 nmax)
 
 	// Generate the cutoffs
 	for (size_t i = 0; i != handled_cutoffs.size(); i++) {
-		v3s16 p    = handled_cutoffs[i].p;
+		v3POS p    = handled_cutoffs[i].p;
 		s16 height = handled_cutoffs[i].height;
 
 		if (p.Y + height > nmax.Y) {
 			//printf("Decoration at (%d %d %d) cut off again!\n", p.X, p.Y, p.Z);
-			cuttoffs.push_back(v3s16(p.X, p.Y, p.Z));
+			cuttoffs.push_back(v3POS(p.X, p.Y, p.Z));
 		}
 
-		generate(mg, &pr, nmax.Y, nmin.Y - p.Y, v3s16(p.X, nmin.Y, p.Z));
+		generate(mg, &pr, nmax.Y, nmin.Y - p.Y, v3POS(p.X, nmin.Y, p.Z));
 	}
 
 	// Remove cutoffs that were handled from the cutoff list
@@ -426,7 +426,7 @@ void DecoSimple::resolveNodeNames(INodeDefManager *ndef) {
 }
 
 
-void DecoSimple::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p) {
+void DecoSimple::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3POS p) {
 	ManualMapVoxelManipulator *vm = mg->vm;
 
 	u32 vi = vm->m_area.index(p);
@@ -436,15 +436,15 @@ void DecoSimple::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p) {
 
 	if (nspawnby != -1) {
 		int nneighs = 0;
-		v3s16 dirs[8] = { // a Moore neighborhood
-			v3s16( 0, 0,  1),
-			v3s16( 0, 0, -1),
-			v3s16( 1, 0,  0),
-			v3s16(-1, 0,  0),
-			v3s16( 1, 0,  1),
-			v3s16(-1, 0,  1),
-			v3s16(-1, 0, -1),
-			v3s16( 1, 0, -1)
+		v3POS dirs[8] = { // a Moore neighborhood
+			v3POS( 0, 0,  1),
+			v3POS( 0, 0, -1),
+			v3POS( 1, 0,  0),
+			v3POS(-1, 0,  0),
+			v3POS( 1, 0,  1),
+			v3POS(-1, 0,  1),
+			v3POS(-1, 0, -1),
+			v3POS( 1, 0, -1)
 		};
 
 		for (int i = 0; i != 8; i++) {
@@ -466,7 +466,7 @@ void DecoSimple::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p) {
 
 	height = MYMIN(height, max_y - p.Y);
 
-	v3s16 em = vm->m_area.getExtent();
+	v3POS em = vm->m_area.getExtent();
 	for (int i = 0; i < height; i++) {
 		vm->m_area.add_y(em, vi, 1);
 
@@ -497,7 +497,7 @@ DecoSchematic::DecoSchematic() {
 	schematic   = NULL;
 	slice_probs = NULL;
 	flags       = 0;
-	size        = v3s16(0, 0, 0);
+	size        = v3POS(0, 0, 0);
 }
 
 
@@ -546,7 +546,7 @@ void DecoSchematic::resolveNodeNames(INodeDefManager *ndef) {
 }
 
 
-void DecoSchematic::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3s16 p) {
+void DecoSchematic::generate(Mapgen *mg, PseudoRandom *pr, s16 max_y, v3POS p) {
 	ManualMapVoxelManipulator *vm = mg->vm;
 
 	if (flags & DECO_PLACE_CENTER_X)
@@ -578,7 +578,7 @@ std::string DecoSchematic::getName() {
 }
 
 
-void DecoSchematic::blitToVManip(v3s16 p, ManualMapVoxelManipulator *vm,
+void DecoSchematic::blitToVManip(v3POS p, ManualMapVoxelManipulator *vm,
 								Rotation rot, bool force_placement) {
 	int xstride = 1;
 	int ystride = size.X;
@@ -654,15 +654,15 @@ void DecoSchematic::blitToVManip(v3s16 p, ManualMapVoxelManipulator *vm,
 }
 
 
-void DecoSchematic::placeStructure(Map *map, v3s16 p) {
+void DecoSchematic::placeStructure(Map *map, v3POS p) {
 	assert(schematic != NULL);
 	ManualMapVoxelManipulator *vm = new ManualMapVoxelManipulator(map);
 
 	Rotation rot = (rotation == ROTATE_RAND) ?
 		(Rotation)myrand_range(ROTATE_0, ROTATE_270) : rotation;
 
-	v3s16 s = (rot == ROTATE_90 || rot == ROTATE_270) ?
-				v3s16(size.Z, size.Y, size.X) : size;
+	v3POS s = (rot == ROTATE_90 || rot == ROTATE_270) ?
+				v3POS(size.Z, size.Y, size.X) : size;
 
 	if (flags & DECO_PLACE_CENTER_X)
 		p.X -= (s.X + 1) / 2;
@@ -671,14 +671,14 @@ void DecoSchematic::placeStructure(Map *map, v3s16 p) {
 	if (flags & DECO_PLACE_CENTER_Z)
 		p.Z -= (s.Z + 1) / 2;
 
-	v3s16 bp1 = getNodeBlockPos(p);
-	v3s16 bp2 = getNodeBlockPos(p + s - v3s16(1,1,1));
+	v3POS bp1 = getNodeBlockPos(p);
+	v3POS bp2 = getNodeBlockPos(p + s - v3POS(1,1,1));
 	vm->initialEmerge(bp1, bp2);
 
 	blitToVManip(p, vm, rot, true);
 
-	std::map<v3s16, MapBlock *> lighting_modified_blocks;
-	std::map<v3s16, MapBlock *> modified_blocks;
+	std::map<v3POS, MapBlock *> lighting_modified_blocks;
+	std::map<v3POS, MapBlock *> modified_blocks;
 	vm->blitBackAll(&modified_blocks);
 
 	// TODO: Optimize this by using Mapgen::calcLighting() instead
@@ -687,7 +687,7 @@ void DecoSchematic::placeStructure(Map *map, v3s16 p) {
 
 	MapEditEvent event;
 	event.type = MEET_OTHER;
-	for (std::map<v3s16, MapBlock *>::iterator
+	for (std::map<v3POS, MapBlock *>::iterator
 		it = modified_blocks.begin();
 		it != modified_blocks.end(); ++it)
 		event.modified_blocks.insert(it->first);
@@ -716,7 +716,7 @@ bool DecoSchematic::loadSchematicFile() {
 		return false;
 	}
 
-	size = readV3S16(is);
+	size = readV3POS(is);
 
 	delete []slice_probs;
 	slice_probs = new u8[size.Y];
@@ -796,7 +796,7 @@ void DecoSchematic::saveSchematicFile(INodeDefManager *ndef) {
 
 	writeU32(ss, MTSCHEM_FILE_SIGNATURE);         // signature
 	writeU16(ss, MTSCHEM_FILE_VER_HIGHEST_WRITE); // version
-	writeV3S16(ss, size);                         // schematic size
+	writeV3POS(ss, size);                         // schematic size
 
 	for (int y = 0; y != size.Y; y++)             // Y slice probabilities
 		writeU8(ss, slice_probs[y]);
@@ -842,11 +842,11 @@ void build_nnlist_and_update_ids(MapNode *nodes, u32 nodecount,
 }
 
 
-bool DecoSchematic::getSchematicFromMap(Map *map, v3s16 p1, v3s16 p2) {
+bool DecoSchematic::getSchematicFromMap(Map *map, v3POS p1, v3POS p2) {
 	ManualMapVoxelManipulator *vm = new ManualMapVoxelManipulator(map);
 
-	v3s16 bp1 = getNodeBlockPos(p1);
-	v3s16 bp2 = getNodeBlockPos(p2);
+	v3POS bp1 = getNodeBlockPos(p1);
+	v3POS bp2 = getNodeBlockPos(p2);
 	vm->initialEmerge(bp1, bp2);
 
 	size = p2 - p1 + 1;
@@ -872,12 +872,12 @@ bool DecoSchematic::getSchematicFromMap(Map *map, v3s16 p1, v3s16 p2) {
 }
 
 
-void DecoSchematic::applyProbabilities(v3s16 p0,
-	std::vector<std::pair<v3s16, u8> > *plist,
+void DecoSchematic::applyProbabilities(v3POS p0,
+	std::vector<std::pair<v3POS, u8> > *plist,
 	std::vector<std::pair<s16, u8> > *splist) {
 
 	for (size_t i = 0; i != plist->size(); i++) {
-		v3s16 p = (*plist)[i].first - p0;
+		v3POS p = (*plist)[i].first - p0;
 		int index = p.Z * (size.Y * size.X) + p.Y * size.X + p.X;
 		if (index < size.Z * size.Y * size.X) {
 			u8 prob = (*plist)[i].second;
@@ -910,7 +910,7 @@ Mapgen::Mapgen() {
 	biomemap    = NULL;
 
 	for (unsigned int i = 0; i != NUM_GEN_NOTIFY; i++)
-		gen_notifications[i] = new std::vector<v3s16>;
+		gen_notifications[i] = new std::vector<v3POS>;
 }
 
 
@@ -921,12 +921,12 @@ Mapgen::~Mapgen() {
 
 
 // Returns Y one under area minimum if not found
-s16 Mapgen::findGroundLevelFull(v2s16 p2d) {
-	v3s16 em = vm->m_area.getExtent();
-	s16 y_nodes_max = vm->m_area.MaxEdge.Y;
-	s16 y_nodes_min = vm->m_area.MinEdge.Y;
+POS Mapgen::findGroundLevelFull(v2POS p2d) {
+	v3POS em = vm->m_area.getExtent();
+	POS y_nodes_max = vm->m_area.MaxEdge.Y;
+	POS y_nodes_min = vm->m_area.MinEdge.Y;
 	u32 i = vm->m_area.index(p2d.X, y_nodes_max, p2d.Y);
-	s16 y;
+	POS y;
 
 	for (y = y_nodes_max; y >= y_nodes_min; y--) {
 		MapNode &n = vm->m_data[i];
@@ -939,10 +939,10 @@ s16 Mapgen::findGroundLevelFull(v2s16 p2d) {
 }
 
 
-s16 Mapgen::findGroundLevel(v2s16 p2d, s16 ymin, s16 ymax) {
-	v3s16 em = vm->m_area.getExtent();
+POS Mapgen::findGroundLevel(v2POS p2d, POS ymin, POS ymax) {
+	v3POS em = vm->m_area.getExtent();
 	u32 i = vm->m_area.index(p2d.X, ymax, p2d.Y);
-	s16 y;
+	POS y;
 
 	for (y = ymax; y >= ymin; y--) {
 		MapNode &n = vm->m_data[i];
@@ -955,15 +955,15 @@ s16 Mapgen::findGroundLevel(v2s16 p2d, s16 ymin, s16 ymax) {
 }
 
 
-void Mapgen::updateHeightmap(v3s16 nmin, v3s16 nmax) {
+void Mapgen::updateHeightmap(v3POS nmin, v3POS nmax) {
 	if (!heightmap)
 		return;
 
 	//TimeTaker t("Mapgen::updateHeightmap", NULL, PRECISION_MICRO);
 	int index = 0;
-	for (s16 z = nmin.Z; z <= nmax.Z; z++) {
-		for (s16 x = nmin.X; x <= nmax.X; x++, index++) {
-			s16 y = findGroundLevel(v2s16(x, z), nmin.Y, nmax.Y);
+	for (POS z = nmin.Z; z <= nmax.Z; z++) {
+		for (POS x = nmin.X; x <= nmax.X; x++, index++) {
+			POS y = findGroundLevel(v2POS(x, z), nmin.Y, nmax.Y);
 
 			// if the values found are out of range, trust the old heightmap
 			if (y == nmax.Y && heightmap[index] > nmax.Y)
@@ -978,23 +978,23 @@ void Mapgen::updateHeightmap(v3s16 nmin, v3s16 nmax) {
 }
 
 
-void Mapgen::updateLiquid(UniqueQueue<v3s16> *trans_liquid, v3s16 nmin, v3s16 nmax) {
+void Mapgen::updateLiquid(UniqueQueue<v3POS> *trans_liquid, v3POS nmin, v3POS nmax) {
 	bool isliquid, wasliquid, rare;
-	v3s16 em  = vm->m_area.getExtent();
+	v3POS em  = vm->m_area.getExtent();
 	rare = g_settings->getBool("liquid_finite");
 	int rarecnt = 0;
 
-	for (s16 z = nmin.Z; z <= nmax.Z; z++) {
-		for (s16 x = nmin.X; x <= nmax.X; x++) {
+	for (POS z = nmin.Z; z <= nmax.Z; z++) {
+		for (POS x = nmin.X; x <= nmax.X; x++) {
 			wasliquid = true;
 
 			u32 i = vm->m_area.index(x, nmax.Y, z);
-			for (s16 y = nmax.Y; y >= nmin.Y; y--) {
+			for (POS y = nmax.Y; y >= nmin.Y; y--) {
 				isliquid = ndef->get(vm->m_data[i]).isLiquid();
 
 				// there was a change between liquid and nonliquid, add to queue. no need to add every with liquid_finite
 				if (isliquid != wasliquid && (!rare || !(rarecnt++ % 36)))
-					trans_liquid->push_back(v3s16(x, y, z));
+					trans_liquid->push_back(v3POS(x, y, z));
 
 				wasliquid = isliquid;
 				vm->m_area.add_y(em, i, -1);
@@ -1004,21 +1004,21 @@ void Mapgen::updateLiquid(UniqueQueue<v3s16> *trans_liquid, v3s16 nmin, v3s16 nm
 }
 
 
-void Mapgen::setLighting(v3s16 nmin, v3s16 nmax, u8 light) {
+void Mapgen::setLighting(v3POS nmin, v3POS nmax, u8 light) {
 	ScopeProfiler sp(g_profiler, "EmergeThread: mapgen lighting update", SPT_AVG);
 	VoxelArea a(nmin, nmax);
 
-	for (int z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
-		for (int y = a.MinEdge.Y; y <= a.MaxEdge.Y; y++) {
+	for (POS z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
+		for (POS y = a.MinEdge.Y; y <= a.MaxEdge.Y; y++) {
 			u32 i = vm->m_area.index(a.MinEdge.X, y, z);
-			for (int x = a.MinEdge.X; x <= a.MaxEdge.X; x++, i++)
+			for (POS x = a.MinEdge.X; x <= a.MaxEdge.X; x++, i++)
 				vm->m_data[i].param1 = light;
 		}
 	}
 }
 
 
-void Mapgen::lightSpread(VoxelArea &a, v3s16 p, u8 light) {
+void Mapgen::lightSpread(VoxelArea &a, v3POS p, u8 light) {
 	if (light <= 1 || !a.contains(p))
 		return;
 
@@ -1032,16 +1032,16 @@ void Mapgen::lightSpread(VoxelArea &a, v3s16 p, u8 light) {
 
 	nn.param1 = light;
 
-	lightSpread(a, p + v3s16(0, 0, 1), light);
-	lightSpread(a, p + v3s16(0, 1, 0), light);
-	lightSpread(a, p + v3s16(1, 0, 0), light);
-	lightSpread(a, p - v3s16(0, 0, 1), light);
-	lightSpread(a, p - v3s16(0, 1, 0), light);
-	lightSpread(a, p - v3s16(1, 0, 0), light);
+	lightSpread(a, p + v3POS(0, 0, 1), light);
+	lightSpread(a, p + v3POS(0, 1, 0), light);
+	lightSpread(a, p + v3POS(1, 0, 0), light);
+	lightSpread(a, p - v3POS(0, 0, 1), light);
+	lightSpread(a, p - v3POS(0, 1, 0), light);
+	lightSpread(a, p - v3POS(1, 0, 0), light);
 }
 
 
-void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
+void Mapgen::calcLighting(v3POS nmin, v3POS nmax) {
 	VoxelArea a(nmin, nmax);
 	bool block_is_underground = (water_level >= nmax.Y);
 
@@ -1049,9 +1049,9 @@ void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
 	//TimeTaker t("updateLighting");
 
 	// first, send vertical rays of sunshine downward
-	v3s16 em = vm->m_area.getExtent();
-	for (int z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
-		for (int x = a.MinEdge.X; x <= a.MaxEdge.X; x++) {
+	v3POS em = vm->m_area.getExtent();
+	for (POS z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
+		for (POS x = a.MinEdge.X; x <= a.MaxEdge.X; x++) {
 			// see if we can get a light value from the overtop
 			u32 i = vm->m_area.index(x, a.MaxEdge.Y + 1, z);
 			if (vm->m_data[i].getContent() == CONTENT_IGNORE) {
@@ -1062,7 +1062,7 @@ void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
 			}
 			vm->m_area.add_y(em, i, -1);
 
-			for (int y = a.MaxEdge.Y; y >= a.MinEdge.Y; y--) {
+			for (POS y = a.MaxEdge.Y; y >= a.MinEdge.Y; y--) {
 				MapNode &n = vm->m_data[i];
 				if (!ndef->get(n).sunlight_propagates)
 					break;
@@ -1073,10 +1073,10 @@ void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
 	}
 
 	// now spread the sunlight and light up any sources
-	for (int z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
-		for (int y = a.MinEdge.Y; y <= a.MaxEdge.Y; y++) {
+	for (POS z = a.MinEdge.Z; z <= a.MaxEdge.Z; z++) {
+		for (POS y = a.MinEdge.Y; y <= a.MaxEdge.Y; y++) {
 			u32 i = vm->m_area.index(a.MinEdge.X, y, z);
-			for (int x = a.MinEdge.X; x <= a.MaxEdge.X; x++, i++) {
+			for (POS x = a.MinEdge.X; x <= a.MaxEdge.X; x++, i++) {
 				MapNode &n = vm->m_data[i];
 				if (n.getContent() == CONTENT_IGNORE ||
 					!ndef->get(n).light_propagates)
@@ -1088,12 +1088,12 @@ void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
 
 				u8 light = n.param1 & 0x0F;
 				if (light) {
-					lightSpread(a, v3s16(x,     y,     z + 1), light - 1);
-					lightSpread(a, v3s16(x,     y + 1, z    ), light - 1);
-					lightSpread(a, v3s16(x + 1, y,     z    ), light - 1);
-					lightSpread(a, v3s16(x,     y,     z - 1), light - 1);
-					lightSpread(a, v3s16(x,     y - 1, z    ), light - 1);
-					lightSpread(a, v3s16(x - 1, y,     z    ), light - 1);
+					lightSpread(a, v3POS(x,     y,     z + 1), light - 1);
+					lightSpread(a, v3POS(x,     y + 1, z    ), light - 1);
+					lightSpread(a, v3POS(x + 1, y,     z    ), light - 1);
+					lightSpread(a, v3POS(x,     y,     z - 1), light - 1);
+					lightSpread(a, v3POS(x,     y - 1, z    ), light - 1);
+					lightSpread(a, v3POS(x - 1, y,     z    ), light - 1);
 				}
 			}
 		}
@@ -1103,7 +1103,7 @@ void Mapgen::calcLighting(v3s16 nmin, v3s16 nmax) {
 }
 
 
-void Mapgen::calcLightingOld(v3s16 nmin, v3s16 nmax) {
+void Mapgen::calcLightingOld(v3POS nmin, v3POS nmax) {
 	enum LightBank banks[2] = {LIGHTBANK_DAY, LIGHTBANK_NIGHT};
 	VoxelArea a(nmin, nmax);
 	bool block_is_underground = (water_level > nmax.Y);
@@ -1113,8 +1113,8 @@ void Mapgen::calcLightingOld(v3s16 nmin, v3s16 nmax) {
 
 	for (int i = 0; i < 2; i++) {
 		enum LightBank bank = banks[i];
-		std::set<v3s16> light_sources;
-		std::map<v3s16, u8> unlight_from;
+		std::set<v3POS> light_sources;
+		std::map<v3POS, u8> unlight_from;
 
 		voxalgo::clearLightAndCollectSources(*vm, a, bank, ndef,
 											 light_sources, unlight_from);

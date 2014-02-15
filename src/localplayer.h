@@ -50,7 +50,7 @@ public:
 
 	void applyControl(float dtime);
 
-	v3s16 getStandingNodePos();
+	v3POS getStandingNodePos();
 
 	// Used to check if anything changed and prevent sending packets if not
 	v3f last_position;
@@ -66,12 +66,12 @@ public:
 
 private:
 	// This is used for determining the sneaking range
-	v3s16 m_sneak_node;
+	v3POS m_sneak_node;
 	// Whether the player is allowed to sneak
 	bool m_sneak_node_exists;
 	// Node below player, used to determine whether it has been removed,
 	// and its old type
-	v3s16 m_old_node_below;
+	v3POS m_old_node_below;
 	std::string m_old_node_below_type;
 	// Whether recalculation of the sneak node is needed
 	bool m_need_to_get_new_sneak_node;

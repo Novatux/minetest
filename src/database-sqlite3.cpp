@@ -148,7 +148,7 @@ void Database_SQLite3::saveBlock(MapBlock *block)
 	*/
 	if(block->isDummy())
 	{
-		/*v3s16 p = block->getPos();
+		/*v3POS p = block->getPos();
 		infostream<<"Database_SQLite3::saveBlock(): WARNING: Not writing dummy block "
 				<<"("<<p.X<<","<<p.Y<<","<<p.Z<<")"<<std::endl;*/
 		return;
@@ -157,11 +157,11 @@ void Database_SQLite3::saveBlock(MapBlock *block)
 	// Format used for writing
 	u8 version = SER_FMT_VER_HIGHEST_WRITE;
 	// Get destination
-	v3s16 p3d = block->getPos();
+	v3POS p3d = block->getPos();
 	
 	
 #if 0
-	v2s16 p2d(p3d.X, p3d.Z);
+	v2POS p2d(p3d.X, p3d.Z);
 	std::string sectordir = getSectorDir(p2d);
 
 	createDirs(sectordir);
@@ -205,9 +205,9 @@ void Database_SQLite3::saveBlock(MapBlock *block)
 	block->resetModified();
 }
 
-MapBlock* Database_SQLite3::loadBlock(v3s16 blockpos)
+MapBlock* Database_SQLite3::loadBlock(v3POS blockpos)
 {
-	v2s16 p2d(blockpos.X, blockpos.Z);
+	v2POS p2d(blockpos.X, blockpos.Z);
 	verifyDatabase();
 
 	if (sqlite3_bind_int64(m_database_read, 1, getBlockAsInteger(blockpos)) != SQLITE_OK) {
@@ -326,14 +326,14 @@ void Database_SQLite3::createDatabase()
 	
 }
 
-void Database_SQLite3::listAllLoadableBlocks(std::list<v3s16> &dst)
+void Database_SQLite3::listAllLoadableBlocks(std::list<v3POS> &dst)
 {
 	verifyDatabase();
 	
 	while(sqlite3_step(m_database_list) == SQLITE_ROW)
 	{
 		sqlite3_int64 block_i = sqlite3_column_int64(m_database_list, 0);
-		v3s16 p = getIntegerAsBlock(block_i);
+		v3POS p = getIntegerAsBlock(block_i);
 		//dstream<<"block_i="<<block_i<<" p="<<PP(p)<<std::endl;
 		dst.push_back(p);
 	}
