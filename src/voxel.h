@@ -269,7 +269,7 @@ public:
 	{
 		v3POS em = getExtent();
 		v3POS off = MinEdge;
-		s32 i = (s32)(z-off.Z)*em.Y*em.X + (y-off.Y)*em.X + (x-off.X);
+		s32 i = ((s32)(z-off.Z))*em.Y*em.X + ((s32)(y-off.Y))*em.X + (s32)(x-off.X);
 		//dstream<<" i("<<x<<","<<y<<","<<z<<")="<<i<<" ";
 		return i;
 	}
@@ -279,17 +279,17 @@ public:
 	}
 
 	// Translate index in the X coordinate
-	void add_x(const v3POS &extent, u32 &i, s16 a)
+	void add_x(const v3POS &extent, u32 &i, POS a)
 	{
 		i += a;
 	}
 	// Translate index in the Y coordinate
-	void add_y(const v3POS &extent, u32 &i, s16 a)
+	void add_y(const v3POS &extent, u32 &i, POS a)
 	{
 		i += a * extent.X;
 	}
 	// Translate index in the Z coordinate
-	void add_z(const v3POS &extent, u32 &i, s16 a)
+	void add_z(const v3POS &extent, u32 &i, POS a)
 	{
 		i += a * extent.X*extent.Y;
 	}

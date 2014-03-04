@@ -136,9 +136,9 @@ public:
 	virtual float baseTerrainLevelFromMap(v2POS p);
 	virtual float baseTerrainLevelFromMap(int index);
 
-	s16 find_stone_level(v2POS p2d);
+	POS find_stone_level(v2POS p2d);
 	bool block_is_underground(u64 seed, v3POS blockpos);
-	s16 find_ground_level_from_noise(u64 seed, v2POS p2d, s16 precision);
+	POS find_ground_level_from_noise(u64 seed, v2POS p2d, s16 precision);
 	
 	float getHumidity(v2POS p);
 	float getTreeAmount(v2POS p);
@@ -155,7 +155,7 @@ public:
 	virtual void calculateNoise();
 	int generateGround();
 	void addMud();
-	void flowMud(s16 &mudflow_minpos, s16 &mudflow_maxpos);
+	void flowMud(POS &mudflow_minpos, POS &mudflow_maxpos);
 	void addDirtGravelBlobs();
 	void growGrass();
 	void placeTreesAndJungleGrass();

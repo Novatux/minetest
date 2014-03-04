@@ -111,12 +111,12 @@ MapgenV6::~MapgenV6() {
 
 
 // Returns Y one under area minimum if not found
-s16 MapgenV6::find_stone_level(v2POS p2d) {
+POS MapgenV6::find_stone_level(v2POS p2d) {
 	v3POS em = vm->m_area.getExtent();
-	s16 y_nodes_max = vm->m_area.MaxEdge.Y;
-	s16 y_nodes_min = vm->m_area.MinEdge.Y;
+	POS y_nodes_max = vm->m_area.MaxEdge.Y;
+	POS y_nodes_min = vm->m_area.MinEdge.Y;
 	u32 i = vm->m_area.index(p2d.X, y_nodes_max, p2d.Y);
-	s16 y;
+	POS y;
 
 	for (y = y_nodes_max; y >= y_nodes_min; y--) {
 		MapNode &n = vm->m_data[i];
@@ -134,10 +134,10 @@ s16 MapgenV6::find_stone_level(v2POS p2d) {
 // Required by mapgen.h
 bool MapgenV6::block_is_underground(u64 seed, v3POS blockpos)
 {
-	/*s16 minimum_groundlevel = (s16)get_sector_minimum_ground_level(
+	/*POS minimum_groundlevel = (POS)get_sector_minimum_ground_level(
 			seed, v2POS(blockpos.X, blockpos.Z));*/
 	// Nah, this is just a heuristic, just return something
-	s16 minimum_groundlevel = water_level;
+	POS minimum_groundlevel = water_level;
 
 	if(blockpos.Y*MAP_BLOCKSIZE + MAP_BLOCKSIZE <= minimum_groundlevel)
 		return true;
@@ -213,7 +213,7 @@ float MapgenV6::baseTerrainLevelFromMap(int index) {
 }
 
 
-s16 MapgenV6::find_ground_level_from_noise(u64 seed, v2POS p2d, s16 precision) {
+POS MapgenV6::find_ground_level_from_noise(u64 seed, v2POS p2d, s16 precision) {
 	return baseTerrainLevelFromNoise(p2d) + AVERAGE_MUD_AMOUNT;
 }
 
@@ -413,17 +413,17 @@ void MapgenV6::makeChunk(BlockMakeData *data) {
 
 	// Maximum height of the stone surface and obstacles.
 	// This is used to guide the cave generation
-	s16 stone_surface_max_y;
+	POS stone_surface_max_y;
 
 	// Generate general ground level to full area
 	stone_surface_max_y = generateGround();
 
 	generateExperimental();
 
-	const s16 max_spread_amount = MAP_BLOCKSIZE;
+	const POS max_spread_amount = MAP_BLOCKSIZE;
 	// Limit dirt flow area by 1 because mud is flown into neighbors.
-	s16 mudflow_minpos = -max_spread_amount + 1;
-	s16 mudflow_maxpos = central_area_size.X + max_spread_amount - 2;
+	POS mudflow_minpos = -max_spread_amount + 1;
+	POS mudflow_maxpos = central_area_size.X + max_spread_amount - 2;
 
 	// Loop this part, it will make stuff look older and newer nicely
 	const u32 age_loops = 2;
@@ -601,7 +601,7 @@ void MapgenV6::addMud() {
 	for (POS z = node_min.Z; z <= node_max.Z; z++)
 	for (POS x = node_min.X; x <= node_max.X; x++, index++) {
 		// Randomize mud amount
-		s16 mud_add_amount = getMudAmount(index) / 2.0 + 0.5;
+		POS mud_add_amount = getMudAmount(index) / 2.0 + 0.5;
 
 		// Find ground level
 		POS surface_y = find_stone_level(v2POS(x, z)); /////////////////optimize this!
@@ -633,9 +633,9 @@ void MapgenV6::addMud() {
 			vm->m_data[i] = n_dirt;
 
 		// Add mud on ground
-		s16 mudcount = 0;
+		POS mudcount = 0;
 		v3POS em = vm->m_area.getExtent();
-		s16 y_start = surface_y + 1;
+		POS y_start = surface_y + 1;
 		i = vm->m_area.index(x, y_start, z);
 		for (POS y = y_start; y <= node_max.Y; y++) {
 			if (mudcount >= mud_add_amount)
@@ -650,14 +650,14 @@ void MapgenV6::addMud() {
 }
 
 
-void MapgenV6::flowMud(s16 &mudflow_minpos, s16 &mudflow_maxpos) {
+void MapgenV6::flowMud(POS &mudflow_minpos, POS &mudflow_maxpos) {
 	// 340ms @cs=8
 	TimeTaker timer1("flow mud");
 
 	// Iterate a few times
 	for(s16 k = 0; k < 3; k++) {
-		for (s16 z = mudflow_minpos; z <= mudflow_maxpos; z++)
-		for (s16 x = mudflow_minpos; x <= mudflow_maxpos; x++) {
+		for (POS z = mudflow_minpos; z <= mudflow_maxpos; z++)
+		for (POS x = mudflow_minpos; x <= mudflow_maxpos; x++) {
 			// Invert coordinates every 2nd iteration
 			if (k % 2 == 0) {
 				x = mudflow_maxpos - (x - mudflow_minpos);
@@ -837,14 +837,14 @@ void MapgenV6::placeTreesAndJungleGrass() {
 	v3POS em = vm->m_area.getExtent();
 	
 	// Divide area into parts
-	s16 div = 8;
-	s16 sidelen = central_area_size.X / div;
+	POS div = 8;
+	POS sidelen = central_area_size.X / div;
 	double area = sidelen * sidelen;
 	
 	// N.B.  We must add jungle grass first, since tree leaves will
 	// obstruct the ground, giving us a false ground level
-	for (s16 z0 = 0; z0 < div; z0++)
-	for (s16 x0 = 0; x0 < div; x0++) {
+	for (POS z0 = 0; z0 < div; z0++)
+	for (POS x0 = 0; x0 < div; x0++) {
 		// Center position of part of division
 		v2POS p2d_center(
 			node_min.X + sidelen / 2 + sidelen * x0,
@@ -878,10 +878,10 @@ void MapgenV6::placeTreesAndJungleGrass() {
 		if (is_jungle) {			
 			u32 grass_count = 5 * humidity * tree_count;
 			for (u32 i = 0; i < grass_count; i++) {
-				s16 x = grassrandom.range(p2d_min.X, p2d_max.X);
-				s16 z = grassrandom.range(p2d_min.Y, p2d_max.Y);
+				POS x = grassrandom.range(p2d_min.X, p2d_max.X);
+				POS z = grassrandom.range(p2d_min.Y, p2d_max.Y);
 				
-				s16 y = findGroundLevelFull(v2POS(x, z)); ////////////////optimize this!
+				POS y = findGroundLevelFull(v2POS(x, z)); ////////////////optimize this!
 				if (y < water_level || y < node_min.Y || y > node_max.Y)
 					continue;
 				
@@ -896,9 +896,9 @@ void MapgenV6::placeTreesAndJungleGrass() {
 		
 		// Put trees in random places on part of division
 		for (u32 i = 0; i < tree_count; i++) {
-			s16 x = myrand_range(p2d_min.X, p2d_max.X);
-			s16 z = myrand_range(p2d_min.Y, p2d_max.Y);
-			s16 y = findGroundLevelFull(v2POS(x, z)); ////////////////////optimize this!
+			POS x = myrand_range(p2d_min.X, p2d_max.X);
+			POS z = myrand_range(p2d_min.Y, p2d_max.Y);
+			POS y = findGroundLevelFull(v2POS(x, z)); ////////////////////optimize this!
 			// Don't make a tree under water level
 			// Don't make a tree so high that it doesn't fit
 			if(y < water_level || y > node_max.Y - 6)

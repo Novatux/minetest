@@ -87,8 +87,8 @@ SunlightPropagateResult propagateSunlight(VoxelManipulator &v, VoxelArea a,
 	// Make sure we have access to it
 	v.emerge(a);
 
-	s16 max_y = a.MaxEdge.Y;
-	s16 min_y = a.MinEdge.Y;
+	POS max_y = a.MaxEdge.Y;
+	POS min_y = a.MinEdge.Y;
 
 	for(s32 x=a.MinEdge.X; x<=a.MaxEdge.X; x++)
 	for(s32 z=a.MinEdge.Z; z<=a.MaxEdge.Z; z++)
