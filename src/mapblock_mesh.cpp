@@ -316,10 +316,16 @@ u16 getSmoothLight(v3s16 p, v3s16 corner, MeshMakeData *data)
 }
 
 void get_sunlight_color(video::SColorf *sunlight, u32 daynight_ratio){
-	f32 rg = daynight_ratio / 1000.0f - 0.04f;
+	f32 r = daynight_ratio / 1000.0f - 0.04f;
+	f32 g = daynight_ratio / 1000.0f - 0.04f;
 	f32 b = (0.98f * daynight_ratio) / 1000.0f + 0.078f;
-	sunlight->r = rg;
-	sunlight->g = rg;
+
+	// Morning/Afternoon is red
+	g -= MYMAX(0.0f, 0.1f - fabs(daynight_ratio / 1000.0f - 0.5f));
+	b -= MYMAX(0.0f, 0.1f - fabs(daynight_ratio / 1000.0f - 0.5f));
+
+	sunlight->r = r;
+	sunlight->g = g;
 	sunlight->b = b;
 }
 
