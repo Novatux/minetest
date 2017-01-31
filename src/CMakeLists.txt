@@ -449,6 +449,7 @@ set(common_SRCS
 	terminal_chat_console.cpp
 	tileanimation.cpp
 	tool.cpp
+	translation.cpp
 	treegen.cpp
 	version.cpp
 	voxel.cpp
