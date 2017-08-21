@@ -730,8 +730,10 @@ end
 
 -- Register nodes
 
+local S = core.get_translator("test")
+
 minetest.register_node("default:stone", {
-	description = "Stone",
+	description = S("Stone @1", minetest.colorize("red", "arg")),
 	tiles ={"default_stone.png"},
 	groups = {cracky=3},
 	drop = 'default:cobble',

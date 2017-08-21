@@ -127,6 +127,8 @@ void Client::handleCommand_AuthAccept(NetworkPacket* pkt)
 	if (lang == "LANG_CODE")
 		lang = "";
 
+	lang = "fr";
+
 	NetworkPacket resp_pkt(TOSERVER_INIT2, sizeof(u16) + lang.size());
 	resp_pkt << lang;
 	Send(&resp_pkt);
