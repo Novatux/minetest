@@ -79,6 +79,8 @@ struct FlagDesc {
 std::wstring utf8_to_wide(const std::string &input);
 std::string wide_to_utf8(const std::wstring &input);
 
+void wide_add_codepoint(std::wstring &result, char32_t codepoint);
+
 std::string urlencode(const std::string &str);
 std::string urldecode(const std::string &str);
 u32 readFlagString(std::string str, const FlagDesc *flagdesc, u32 *flagmask);
