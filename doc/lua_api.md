@@ -3975,11 +3975,16 @@ Helper functions
     * `wear`: Amount of wear the item starts with (default: 0)
 
 
+
+
 Translations
 ============
 
 Texts can be translated client-side with the help of `minetest.translate` and
 translation files.
+
+Consider using the tool [update_translations](https://github.com/minetest-tools/update_translations)
+to generate and update translation files automatically from the Lua source.
 
 Translating a string
 --------------------
@@ -3995,8 +4000,10 @@ Two functions are provided to translate strings: `minetest.translate` and
   It is intended to be used in the following way, so that it avoids verbose
   repetitions of `minetest.translate`:
 
-      local S, NS = minetest.get_translator(textdomain)
-      S(str, ...)
+  ```lua
+  local S, NS = minetest.get_translator(textdomain)
+  S(str, ...)
+  ```
 
   As an extra commodity, if `textdomain` is nil, it is assumed to be "" instead.
 
@@ -4015,15 +4022,19 @@ Two functions are provided to translate strings: `minetest.translate` and
   For instance, suppose we want to translate "@1 Wool" with "@1" being replaced
   by the translation of "Red". We can do the following:
 
-      local S, NS = minetest.get_translator()
-      S("@1 Wool", S("Red"))
+  ```lua
+  local S, NS = minetest.get_translator()
+  S("@1 Wool", S("Red"))
+  ```
 
   This will be displayed as "Red Wool" on old clients and on clients that do
   not have localization enabled. However, if we have for instance a translation
   file named `wool.fr.tr` containing the following:
 
-      @1 Wool=Laine @1
-      Red=Rouge
+  ```
+  @1 Wool=Laine @1
+  Red=Rouge
+  ```
 
   this will be displayed as "Laine Rouge" on clients with a French locale.
 
